@@ -49,8 +49,8 @@ def get_exchange_pairs(arb_df):
 
 def get_arb_depth(ex_pairs, ask_series, bid_series, order_books):
     for bid_ex, ask_ex in ex_pairs:
-        bids = list(filter(lambda x: x[0] <= ask_series[ask_ex], order_books[bid_ex]['bids']))
-        offers = list(filter(lambda x: x[0] >= bid_series[bid_ex], order_books[bid_ex]['asks']))
+        bids = list(filter(lambda x: x[0] >= ask_series[ask_ex], order_books[bid_ex]['bids']))
+        offers = list(filter(lambda x: x[0] <= bid_series[bid_ex], order_books[ask_ex]['asks']))
         bid_nominal = sum([x[1] for x in bids])
         ask_nominal = sum([x[1] for x in offers])
         executable_amount = min(bid_nominal, ask_nominal)
