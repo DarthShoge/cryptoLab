@@ -5,7 +5,6 @@ import pandas as pd
 import math
 import numpy as np
 
-
 # def get_mkt_participants(pair):
 #     subclasses = set()
 #     work = [ccxt.Exchange]
@@ -71,6 +70,24 @@ def get_arb_depth(ex_pairs, ask_series, bid_series, order_books):
         yield bid_ex, ask_ex, executable_amount
 
 
+def order_minimiser(market_df, target_nominal):
+    running_nominal = target_nominal
+    runner = []
+    for x in range(len(market_df)):
+
+        x_ = market_df.iloc[x]
+        vol = x_['vol']
+        # If the current allocatable vol is less than the remaining total
+        # use the volume and deduct this from the total else
+        if vol < running_nominal:
+            running_nominal -= vol
+            runner.append(x_['price_inc_fee'] * vol)
+        else: # the total cannot fully consume the volume so use the  volume and break out
+            runner.append(x_['price_inc_fee'] * running_nominal)
+            break
+    return sum(runner) / target_nominal
+
+
 def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books):
     for bid_ex, ask_ex in ex_pairs:
         target_ask = ask_series[ask_ex]
@@ -82,8 +99,9 @@ def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books):
         bid_nominal = bids['vol'].sum()
         ask_nominal = offers['vol'].sum()
         executable_amount = min(bid_nominal, ask_nominal)
-        avg_bid = bids['vol'].dot(bids['price_inc_fee']) / bid_nominal
-        avg_ask = offers['vol'].dot(offers['price_inc_fee']) / ask_nominal
+        is_ask_more_liquid = executable_amount == ask_nominal
+        avg_bid = order_minimiser(bids, executable_amount)
+        avg_ask = order_minimiser(offers, executable_amount)
         yield pd.Series({'avg_bid': avg_bid,
                          'avg_ask': avg_ask,
                          'executable_amount': executable_amount,
@@ -127,7 +145,7 @@ def deduct_order_book_fees(order_books_dict, fee_df):
     return results
 
 
-coin = 'LTC'
+coin = 'BCH'
 pair = '%s/USDT' % coin
 
 coin_data = pd.DataFrame(
