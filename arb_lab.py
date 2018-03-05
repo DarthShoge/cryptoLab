@@ -99,16 +99,18 @@ def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books):
         bid_nominal = bids['vol'].sum()
         ask_nominal = offers['vol'].sum()
         executable_amount = min(bid_nominal, ask_nominal)
-        is_ask_more_liquid = executable_amount == ask_nominal
         avg_bid = order_minimiser(bids, executable_amount)
         avg_ask = order_minimiser(offers, executable_amount)
+        nominal_return = (avg_bid*executable_amount) - (avg_ask*executable_amount)
+        pct_return = np.log(avg_bid/avg_ask)
         yield pd.Series({'avg_bid': avg_bid,
                          'avg_ask': avg_ask,
                          'executable_amount': executable_amount,
                          'bid_nominal': bid_nominal,
                          'ask_nominal': ask_nominal,
-                         'target_ask': target_ask,
-                         'target_bid': target_bid}, name='{} vs {}'.format(bid_ex, ask_ex))
+                         'outlay': avg_ask * executable_amount,
+                         'nominal_return': nominal_return,
+                         'pct_return': pct_return}, name='{} vs {}'.format(bid_ex, ask_ex))
 
 
 def orderBook_fee_deduction(order_books, fees):
@@ -145,7 +147,7 @@ def deduct_order_book_fees(order_books_dict, fee_df):
     return results
 
 
-coin = 'BCH'
+coin = 'LTC'
 pair = '%s/USDT' % coin
 
 coin_data = pd.DataFrame(
