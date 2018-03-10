@@ -12,8 +12,9 @@ mkdir setup
 rem Move the relevant files into setup directory
 echo "Moving function file(s) to setup dir"
 
-xcopy .\arblab\utils.py setup\ /Q /R /Y
-xcopy .\arblab\arb_lab.py  setup\ /Q /R /Y
+xcopy .\arblab\utils.py setup\arblab\ /Q /R /Y
+xcopy .\arblab\arb_lab.py  setup\arblab\ /Q /R /Y
+xcopy .\main.py  setup\ /Q /R /Y
 cd .\setup
 
 rem Install requirements 
@@ -25,7 +26,7 @@ echo "Setting up your 7zip PATH - This assumes the installation location of 7zip
 set PATH=%PATH%;D:\Program Files\7-Zip\
 
 echo "Zipping package"
-7z a -r ..\package.zip .\* 
+7z a -r ..\package.zip .\*
 
 rem Remove the setup directory used
 echo "Removing setup directory and virtual environment"

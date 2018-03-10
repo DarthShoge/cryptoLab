@@ -1,5 +1,5 @@
 import math
-
+from functools import reduce
 import numpy as np
 import pandas as pd
 
@@ -114,3 +114,8 @@ def deduct_order_book_fees(order_books_dict, fee_df):
                     "vol": np.array([x[1] for x in order_book['bids']])}
         results[exchange] = {'ask': pd.DataFrame(ask_dict), 'bid': pd.DataFrame(bid_dict)}
     return results
+
+
+flatten = lambda lst: reduce(lambda l, i: l + flatten(i) if isinstance(i, (list, tuple)) else l + [i], lst, [])
+
+
