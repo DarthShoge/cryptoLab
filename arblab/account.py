@@ -7,7 +7,7 @@ from numpy import nan
 
 class ExchangeAccount(metaclass=ABCMeta):
 
-    def __init__(self, exchange: Exchange, deposit_address, buy_coin, sell_coin):
+    def __init__(self, deposit_address, buy_coin, sell_coin, exchange: Exchange):
         self.sell_coin = sell_coin
         self.buy_coin = buy_coin
         self.deposit_address = deposit_address
@@ -69,3 +69,21 @@ class HitBtcAccount(ExchangeAccount):
 
             balances = self.get_balances(type='trade')
         return balances
+
+
+class AccountFactory:
+
+    def __init__(self, config):
+        self.config = config['Accounts']
+
+    proxies = {'HitBTC':HitBtcAccount}
+
+    def create(self, ex, base, quote):
+        (exchange,) = (x for x in ccxt.Exchange.__subclasses__() if x().name == ex)
+        exchange.apiKey = self.config[ex]['apikey']
+        exchange.secret = self.config[ex]['secret']
+        deposit = self.config[ex]['deposit'][base]
+        if ex in AccountFactory.proxies:
+            return AccountFactory.proxies[ex](deposit, base, quote, exchange)
+        else:
+            return ExchangeAccount(deposit, base, quote, exchange)
