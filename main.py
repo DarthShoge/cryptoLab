@@ -8,7 +8,8 @@ pair = 'LTC/USDT'
 # exchanges = get_mkt_participants(pair)
 
 exchanges = {'Binance': ccxt.binance(),
-             'HitBTC' : ccxt.hitbtc()}
+             'HitBTC' : ccxt.hitbtc(),
+             'Bittrex': ccxt.bittrex()}
 
 # exchanges = {'OKCoin USD': ccxt.okcoinusd(),
 #              'BitBay': ccxt.bitbay(),
@@ -32,7 +33,10 @@ exchanges = {'Binance': ccxt.binance(),
 
 filtered_exchanges = { e:v for e,v in exchanges.items() if e not in ['CoinEx']}
 
-v = find_arb_opportunities(filtered_exchanges, pair)
+accounts = {'HitBTC': {"LTC":2.38, "USDT":350.07},
+            'Binance': {"LTC": 1.09, "USDT": 140.07}}
+
+v = find_arb_opportunities(filtered_exchanges, pair, accounts)
 
 hit_btc : ccxt.Exchange = exchanges['HitBTC']
 hit_btc.apiKey = ''
