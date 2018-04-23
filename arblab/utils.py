@@ -57,7 +57,9 @@ def order_minimiser(market_df, target_nominal):
     return sum(runner) / target_nominal
 
 
-def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books):
+def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books,coin_pair, accounts_dict) -> pd.Series:
+    base = coin_pair.split('/')[0]
+    quote = coin_pair.split('/')[1]
     for bid_ex, ask_ex in ex_pairs:
         target_ask = ask_series[ask_ex]
         target_bid = bid_series[bid_ex]
@@ -67,7 +69,9 @@ def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books):
         offers = ask_ex_asks[ask_ex_asks['raw_price'] <= target_bid]
         bid_nominal = bids['vol'].sum()
         ask_nominal = offers['vol'].sum()
-        executable_amount = min(bid_nominal, ask_nominal)
+        bid_ex_acc_min = accounts_dict[bid_ex][quote] if bid_ex in  accounts_dict and quote in accounts_dict[bid_ex] else float('inf')
+        ask_ex_acc_min = get_opposing_leg_nominal(accounts_dict, ask_ex, base, offers)
+        executable_amount = min(bid_nominal, ask_nominal,bid_ex_acc_min, ask_ex_acc_min)
         avg_bid = order_minimiser(bids, executable_amount)
         avg_ask = order_minimiser(offers, executable_amount)
         nominal_return = (avg_bid*executable_amount) - (avg_ask*executable_amount)
@@ -80,6 +84,14 @@ def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books):
                          'outlay': avg_ask * executable_amount,
                          'nominal_return': nominal_return,
                          'pct_return': pct_return}, name='{} vs {}'.format(bid_ex, ask_ex))
+
+
+def get_opposing_leg_nominal(accounts_dict, exchange, leg, orders):
+    if exchange in accounts_dict and leg in accounts_dict[exchange]:
+        ask_ex_acc_min = accounts_dict[exchange][leg]
+        return order_minimiser(orders, ask_ex_acc_min) * ask_ex_acc_min
+    else :
+        return float('inf')
 
 
 def orderBook_fee_deduction(order_books, fees):

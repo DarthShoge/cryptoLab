@@ -7,7 +7,7 @@ from arblab.utils import get_clean_ticker, get_fee_structure, get_exchange_pairs
 
 
 
-def find_arb_opportunities(exchanges, pair):
+def find_arb_opportunities(exchanges, pair, accounts={}):
     coin_data = pd.DataFrame(
         {key: get_clean_ticker(val, pair) for key, val in exchanges.items()}).transpose()
 
@@ -37,7 +37,7 @@ def find_arb_opportunities(exchanges, pair):
     order_book_df_dict = deduct_order_book_fees(arb_ex_order_book_dict, fee_df)
 
     executable_amounts = pd.DataFrame(
-        [val for val in get_arb_result_series(exchange_pairs, ask_ser, bid_ser, order_book_df_dict)])
+        [val for val in get_arb_result_series(exchange_pairs, ask_ser, bid_ser, order_book_df_dict, pair, accounts)])
 
     return executable_amounts
 
