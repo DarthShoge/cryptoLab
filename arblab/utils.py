@@ -51,13 +51,33 @@ def order_minimiser(market_df, target_nominal):
         if vol < running_nominal:
             running_nominal -= vol
             runner.append(x_['price_inc_fee'] * vol)
-        else: # the total cannot fully consume the volume so use the  volume and break out
+        else:  # the total cannot fully consume the volume so use the  volume and break out
             runner.append(x_['price_inc_fee'] * running_nominal)
             break
     return sum(runner) / target_nominal
 
 
-def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books,coin_pair, accounts_dict) -> pd.Series:
+def order_book_minimiser(market_df, target_nominal):
+    running_nominal = target_nominal
+    runner = []
+    for x in range(len(market_df)):
+
+        x_ = market_df.iloc[x].copy()
+        vol = x_['vol']
+        # If the current allocatable vol is less than the remaining total
+        # use the volume and deduct this from the total else
+        if vol < running_nominal:
+            running_nominal -= vol
+            x_['executable'] = x_['price_inc_fee'] * vol
+            runner.append(x_)
+        else:  # the total cannot fully consume the volume so use the  volume and break out
+            x_['executable'] = x_['price_inc_fee'] * running_nominal
+            runner.append(x_)
+            break
+    return pd.DataFrame(runner)
+
+
+def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books, coin_pair, accounts_dict) -> pd.Series:
     base = coin_pair.split('/')[0]
     quote = coin_pair.split('/')[1]
     for bid_ex, ask_ex in ex_pairs:
@@ -67,30 +87,34 @@ def get_arb_result_series(ex_pairs, ask_series, bid_series, order_books,coin_pai
         ask_ex_asks = order_books[ask_ex]['ask']
         bids = bid_ex_bids[bid_ex_bids['raw_price'] >= target_ask]
         offers = ask_ex_asks[ask_ex_asks['raw_price'] <= target_bid]
-        bid_nominal = bids['vol'].sum()
-        ask_nominal = offers['vol'].sum()
-        bid_ex_acc_min = accounts_dict[bid_ex][quote] if bid_ex in  accounts_dict and quote in accounts_dict[bid_ex] else float('inf')
+        bid_maximum_depth = bids['vol'].sum()
+        ask_maximum_depth = offers['vol'].sum()
+        bid_ex_acc_min = accounts_dict[bid_ex][quote] if bid_ex in accounts_dict and quote in accounts_dict[
+            bid_ex] else float('inf')
         ask_ex_acc_min = get_opposing_leg_nominal(accounts_dict, ask_ex, base, offers)
-        executable_amount = min(bid_nominal, ask_nominal,bid_ex_acc_min, ask_ex_acc_min)
-        avg_bid = order_minimiser(bids, executable_amount)
-        avg_ask = order_minimiser(offers, executable_amount)
-        nominal_return = (avg_bid*executable_amount) - (avg_ask*executable_amount)
-        pct_return = np.log(avg_bid/avg_ask)
+        executable_amount = min(bid_maximum_depth, ask_maximum_depth, bid_ex_acc_min, ask_ex_acc_min)
+        executable_amount_in_base = 1 / executable_amount if executable_amount > 1 else np.nan
+        actual_ask_ob = order_book_minimiser(offers, executable_amount_in_base)
+        actual_bid_ob = order_book_minimiser(bids, executable_amount_in_base)
+        avg_bid = order_minimiser(bids, executable_amount_in_base)
+        avg_ask = order_minimiser(offers, executable_amount_in_base)
+        nominal_return = (avg_bid * executable_amount_in_base) - (avg_ask * executable_amount_in_base)
+        pct_return = np.log(avg_bid / avg_ask)
         yield pd.Series({'avg_bid': avg_bid,
                          'avg_ask': avg_ask,
                          'executable_amount': executable_amount,
-                         'bid_nominal': bid_nominal,
-                         'ask_nominal': ask_nominal,
-                         'outlay': avg_ask * executable_amount,
+                         'executable_amount_in_base': executable_amount_in_base,
+                         'maximum_bid_depth': bid_maximum_depth,
+                         'maximum_ask_depth': ask_maximum_depth,
                          'nominal_return': nominal_return,
-                         'pct_return': pct_return}, name='{} vs {}'.format(bid_ex, ask_ex))
+                         'pct_return': pct_return}, name='{}/{}'.format(bid_ex, ask_ex))
 
 
 def get_opposing_leg_nominal(accounts_dict, exchange, leg, orders):
     if exchange in accounts_dict and leg in accounts_dict[exchange]:
         ask_ex_acc_min = accounts_dict[exchange][leg]
         return order_minimiser(orders, ask_ex_acc_min) * ask_ex_acc_min
-    else :
+    else:
         return float('inf')
 
 
@@ -129,5 +153,3 @@ def deduct_order_book_fees(order_books_dict, fee_df):
 
 
 flatten = lambda lst: reduce(lambda l, i: l + flatten(i) if isinstance(i, (list, tuple)) else l + [i], lst, [])
-
-

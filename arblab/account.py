@@ -12,8 +12,8 @@ class ExchangeAccount(metaclass=ABCMeta):
         self.buy_coin = buy_coin
         self.deposit_address = deposit_address
         self.exchange = exchange
-        if not exchange.has['withdraw']:
-            raise ccxt.ExchangeError('Exchange cannot withdraw')
+        # if not exchange.has['withdraw']:
+        #     raise ccxt.ExchangeError('Exchange cannot withdraw')
 
     def buy(self, pair, amount=nan, **kwargs):
         return self.exchange.create_market_buy_order(pair, amount, params=kwargs)
@@ -41,16 +41,20 @@ class ExchangeAccount(metaclass=ABCMeta):
 
 class HitBtcAccount(ExchangeAccount):
     def __init__(self, deposit_address, buy_coin, sell_coin, exchange: ccxt.hitbtc = None):
-        ExchangeAccount.__init__(self, exchange if exchange is not None else ccxt.hitbtc(), deposit_address, buy_coin,
-                                 sell_coin)
+        ExchangeAccount.__init__(self, deposit_address, buy_coin,
+                                 sell_coin, exchange if exchange is not None else ccxt.hitbtc())
 
     def buy(self, pair, amount=nan, **kwargs):
-        balances = self.transfer_trade_to_main(self.buy_coin)
-        super(HitBtcAccount, self).buy_coin(pair, balances[self.buy_coin], kwargs)
+        balance = self.get_balances()
+        if balance[self.sell_coin] < 0.005:
+            balances = self.transfer_trade_to_main(self.sell_coin)
+        super(HitBtcAccount, self).buy(pair, balance[self.sell_coin])
 
     def sell(self, pair, amount=nan, **kwargs):
-        balances = self.transfer_trade_to_main(self.buy_coin)
-        super(HitBtcAccount, self).sell_coin(pair, balances[self.buy_coin], kwargs)
+        balance = self.get_balances()
+        if balance[self.buy_coin] < 0.005:
+            balances = self.transfer_trade_to_main(self.buy_coin)
+        super(HitBtcAccount, self).sell(pair, balance[self.buy_coin])
 
     def rebalance(self, coin, amount, to):
         self.exchange.payment_post_transfer_to_main ({
@@ -79,7 +83,8 @@ class AccountFactory:
     proxies = {'HitBTC':HitBtcAccount}
 
     def create(self, ex, base, quote):
-        (exchange,) = (x for x in ccxt.Exchange.__subclasses__() if x().name == ex)
+        (e,) = (x for x in ccxt.Exchange.__subclasses__() if x().name == ex)
+        exchange = e()
         exchange.apiKey = self.config[ex]['apikey']
         exchange.secret = self.config[ex]['secret']
         deposit = self.config[ex]['deposit'][base]
