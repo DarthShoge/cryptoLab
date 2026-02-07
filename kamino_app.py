@@ -1,7 +1,10 @@
 """Kamino Lending liquidation risk simulator - Streamlit UI."""
 
 import os
+from dotenv import load_dotenv
 import streamlit as st
+
+load_dotenv()
 
 from arblab.kamino_onchain import (
     _fetch_jupiter_symbols,
@@ -28,8 +31,9 @@ from arblab.kamino_recovery import (
     recovery_swap_withdraw,
 )
 
-PROGRAM_ID = "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"
-RPC_URL = "https://api.mainnet-beta.solana.com"
+PROGRAM_ID = os.getenv("KAMINO_PROGRAM_ID", "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD")
+RPC_URL = os.getenv("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com")
+DEFAULT_WALLET = os.getenv("DEFAULT_WALLET", "")
 IDL_PATH = os.path.join(os.path.dirname(__file__), "kamino_idl.json")
 
 st.set_page_config(page_title="Kamino Risk Simulator", layout="wide")
@@ -93,7 +97,7 @@ load_mode = st.sidebar.radio(
 if load_mode == "Wallet address":
     wallet = st.sidebar.text_input(
         "Wallet address",
-        value="F8ir9FxMgi17DpnLDbkM6mxy5GmS1o8ynmtP73HuHzQL",
+        value=DEFAULT_WALLET,
     )
     if st.sidebar.button("Load positions"):
         with st.sidebar.status("Fetching obligations...", expanded=True) as status:

@@ -1,6 +1,9 @@
 import argparse
 import json
+import os
 from typing import Any, Dict, List, Optional
+
+from dotenv import load_dotenv
 
 from arblab.kamino_risk import (
     AccountSnapshot,
@@ -68,15 +71,17 @@ def run_simulation(payload: Dict[str, Any]) -> str:
 
 
 def main() -> None:
+    load_dotenv()
+
     parser = argparse.ArgumentParser(description="Kamino liquidation risk simulator.")
     parser.add_argument("--input", help="Path to JSON file with collateral/debt data.")
     parser.add_argument("--obligation", help="Kamino obligation account address.")
     parser.add_argument(
         "--program-id",
-        default="KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD",
+        default=os.getenv("KAMINO_PROGRAM_ID", "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"),
         help="Kamino lending program id (default: mainnet KLend).",
     )
-    parser.add_argument("--rpc-url", default="https://api.mainnet-beta.solana.com")
+    parser.add_argument("--rpc-url", default=os.getenv("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"))
     parser.add_argument("--idl", help="Path to Kamino Anchor IDL JSON for decoding accounts.")
     parser.add_argument("--obligation-account-name", default="Obligation")
     parser.add_argument("--reserve-account-name", default="Reserve")
