@@ -168,3 +168,21 @@ venv.bak/
 
 
 # End of https://www.gitignore.io/api/python,pycharm
+
+# Node / Playwright MCP
+node_modules/
+package.json
+package-lock.json
+.playwright-mcp/
+
+# Screenshots (test artifacts)
+*.png
+
+# Claude Code
+.claude/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
