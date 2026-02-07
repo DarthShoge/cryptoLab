@@ -1,3 +1,5 @@
 ccxt==1.13.32
 numpy==1.14.1
 pandas==0.22.0
+anchorpy==0.20.1
+solana==0.30.2

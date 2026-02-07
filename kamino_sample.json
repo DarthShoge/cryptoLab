@@ -1,0 +1,37 @@
+{
+  "collateral": [
+    {
+      "symbol": "SOL",
+      "amount": 10,
+      "price": 150,
+      "ltv": 0.6,
+      "liquidation_threshold": 0.7
+    },
+    {
+      "symbol": "USDC",
+      "amount": 500,
+      "price": 1,
+      "ltv": 0.8,
+      "liquidation_threshold": 0.9
+    }
+  ],
+  "debt": [
+    {
+      "symbol": "USDC",
+      "amount": 900,
+      "price": 1
+    }
+  ],
+  "actions": [
+    {
+      "type": "borrow",
+      "symbol": "USDC",
+      "amount": 100
+    },
+    {
+      "type": "update_price",
+      "symbol": "SOL",
+      "price": 130
+    }
+  ]
+}
