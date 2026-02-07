@@ -242,6 +242,14 @@ with col_lp2:
 
 st.header("Scenario Simulator")
 
+# Reset: bump a version counter so all widget keys change, creating fresh widgets.
+def _reset_scenario():
+    st.session_state["_scenario_v"] = st.session_state.get("_scenario_v", 0) + 1
+
+st.button("Reset Scenario", on_click=_reset_scenario)
+
+_v = st.session_state.get("_scenario_v", 0)
+
 actions = []
 new_collateral: list[CollateralPosition] = []
 new_debt: list[DebtPosition] = []
@@ -270,7 +278,7 @@ with st.expander("Price Changes", expanded=True):
                 value=current,
                 step=current * 0.01,
                 format=f"$%.{'2' if current >= 1 else '6'}f",
-                key=f"price_{symbol}",
+                key=f"price_{symbol}_v{_v}",
             )
             if abs(new_price - current) > current * 0.001:
                 actions.append({"type": "set_price", "symbol": symbol, "price": new_price})
@@ -285,7 +293,7 @@ with st.expander("Collateral Adjustments"):
             max_value=p.amount * 2.0,
             value=0.0,
             step=max(p.amount * 0.01, 0.001),
-            key=f"coll_{p.symbol}",
+            key=f"coll_{p.symbol}_v{_v}",
         )
         col_b.caption(f"Current: {_fmt(p.amount, 4)}")
         if delta > 0:
@@ -303,7 +311,7 @@ with st.expander("Debt Adjustments"):
             max_value=p.amount * 2.0,
             value=0.0,
             step=max(p.amount * 0.01, 0.01),
-            key=f"debt_{p.symbol}",
+            key=f"debt_{p.symbol}_v{_v}",
         )
         col_b.caption(f"Current: {_fmt(p.amount, 4)}")
         if delta > 0:
@@ -338,7 +346,7 @@ if market_reserves:
                 "Select assets to deposit as collateral",
                 options=[r.symbol for r in available_collateral],
                 format_func=lambda s: f"{s} (${float(collateral_by_symbol[s].price):,.4f}, LTV {float(collateral_by_symbol[s].ltv):.0%})",
-                key="new_coll_select",
+                key=f"new_coll_select_v{_v}",
             )
             for symbol in selected_coll:
                 r = collateral_by_symbol[symbol]
@@ -353,7 +361,7 @@ if market_reserves:
                     value=0.0,
                     step=10.0 ** (-r.decimals) * 1000,
                     format=f"%.{min(r.decimals, 6)}f",
-                    key=f"new_coll_{r.symbol}",
+                    key=f"new_coll_{r.symbol}_v{_v}",
                 )
                 if amount > 0:
                     new_collateral.append(CollateralPosition(
@@ -372,7 +380,7 @@ if market_reserves:
                 "Select assets to borrow",
                 options=[r.symbol for r in available_debt],
                 format_func=lambda s: f"{s} (${float(debt_by_symbol[s].price):,.4f})",
-                key="new_debt_select",
+                key=f"new_debt_select_v{_v}",
             )
             for symbol in selected_debt:
                 r = debt_by_symbol[symbol]
@@ -384,7 +392,7 @@ if market_reserves:
                     value=0.0,
                     step=10.0 ** (-r.decimals) * 1000,
                     format=f"%.{min(r.decimals, 6)}f",
-                    key=f"new_debt_{r.symbol}",
+                    key=f"new_debt_{r.symbol}_v{_v}",
                 )
                 if amount > 0:
                     new_debt.append(DebtPosition(
