@@ -199,6 +199,29 @@ def _normalize_amount(raw_amount: int, decimals: int) -> Decimal:
     return Decimal(raw_amount) / (Decimal(10) ** decimals)
 
 
+def _compute_collateral_exchange_rate(reserve: Any) -> Decimal:
+    """Compute the cToken-to-underlying exchange rate for a reserve.
+
+    deposited_amount on an obligation is in cToken units.  Multiplying by
+    this rate converts to underlying token units (before decimal normalization).
+    """
+    liquidity = reserve.liquidity
+    collateral = reserve.collateral
+
+    mint_total_supply = int(collateral.mint_total_supply)
+    if mint_total_supply == 0:
+        return Decimal(1)
+
+    available = Decimal(int(liquidity.available_amount))
+    borrowed = _sf_to_decimal(liquidity.borrowed_amount_sf)
+    protocol_fees = _sf_to_decimal(liquidity.accumulated_protocol_fees_sf)
+    referrer_fees = _sf_to_decimal(liquidity.accumulated_referrer_fees_sf)
+    pending_fees = _sf_to_decimal(liquidity.pending_referrer_fees_sf)
+
+    total_underlying = available + borrowed - protocol_fees - referrer_fees - pending_fees
+    return total_underlying / Decimal(mint_total_supply)
+
+
 def _load_idl(idl_path: str) -> Any:
     try:
         from anchorpy import Idl
@@ -293,19 +316,23 @@ def load_onchain_snapshot(
     })
 
     reserve_map: Dict[str, ReserveConfig] = {}
+    exchange_rates: Dict[str, Decimal] = {}
     for reserve_address in reserve_addresses:
         reserve_account = _get_account(rpc_url, reserve_address)
         if reserve_account["owner"] != program_id:
             raise ValueError(f"Reserve {reserve_address} is not owned by {program_id}.")
         reserve = _decode_account(idl, reserve_account_name, reserve_account["data"])
         reserve_map[reserve_address] = _parse_reserve_config(reserve)
+        exchange_rates[reserve_address] = _compute_collateral_exchange_rate(reserve)
 
     collateral_positions: List[CollateralPosition] = []
     for entry in active_deposits:
         reserve_address = str(entry.deposit_reserve)
         reserve = reserve_map[reserve_address]
-        deposited_amount = int(entry.deposited_amount)
-        amount = _normalize_amount(deposited_amount, reserve.decimals)
+        # deposited_amount is in cToken units; multiply by exchange rate to get underlying.
+        ctoken_amount = Decimal(int(entry.deposited_amount))
+        underlying_raw = ctoken_amount * exchange_rates[reserve_address]
+        amount = underlying_raw / (Decimal(10) ** reserve.decimals)
         collateral_positions.append(
             CollateralPosition(
                 symbol=reserve.symbol,
