@@ -283,10 +283,17 @@ with st.expander("Price Changes", expanded=True):
             if abs(new_price - current) > current * 0.001:
                 actions.append({"type": "set_price", "symbol": symbol, "price": new_price})
 
+# Effective simulated prices (accounts for price slider changes)
+sim_prices = {}
+for p in snapshot.collateral:
+    sim_prices[p.symbol] = st.session_state.get(f"price_{p.symbol}_v{_v}", p.price)
+
 # Collateral adjustments
+collateral_symbols = [p.symbol for p in snapshot.collateral]
+allocations: list[tuple[str, str, float, float]] = []  # (src, tgt, usd, tgt_amount)
 with st.expander("Collateral Adjustments"):
     for p in snapshot.collateral:
-        col_a, col_b = st.columns([3, 1])
+        col_a, col_b, col_c = st.columns([2, 1, 1])
         delta = col_a.slider(
             f"{p.symbol} collateral change",
             min_value=-p.amount,
@@ -295,11 +302,29 @@ with st.expander("Collateral Adjustments"):
             step=max(p.amount * 0.01, 0.001),
             key=f"coll_{p.symbol}_v{_v}",
         )
-        col_b.caption(f"Current: {_fmt(p.amount, 4)}")
+        other_symbols = [s for s in collateral_symbols if s != p.symbol]
+        allocate_to = col_b.selectbox(
+            "Allocate to",
+            options=["None"] + other_symbols,
+            key=f"alloc_{p.symbol}_v{_v}",
+        )
+        col_c.caption(f"Current: {_fmt(p.amount, 4)}")
         if delta > 0:
             actions.append({"type": "deposit_collateral", "symbol": p.symbol, "amount": delta})
         elif delta < 0:
             actions.append({"type": "withdraw_collateral", "symbol": p.symbol, "amount": abs(delta)})
+            if allocate_to != "None":
+                withdrawn_usd = abs(delta) * sim_prices[p.symbol]
+                target_price = sim_prices[allocate_to]
+                if target_price > 0:
+                    deposit_amount = withdrawn_usd / target_price
+                    actions.append({"type": "deposit_collateral", "symbol": allocate_to, "amount": deposit_amount})
+                    allocations.append((p.symbol, allocate_to, withdrawn_usd, deposit_amount))
+
+    if allocations:
+        st.divider()
+        for src, tgt, usd_val, tgt_amt in allocations:
+            st.markdown(f"**Rebalance:** {src} → +{_fmt(tgt_amt, 4)} {tgt} ({_fmt_usd(usd_val)})")
 
 # Debt adjustments
 with st.expander("Debt Adjustments"):
