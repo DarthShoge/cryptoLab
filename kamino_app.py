@@ -19,6 +19,14 @@ from arblab.kamino_risk import (
     liquidation_prices,
     scenario_report,
 )
+from arblab.kamino_recovery import (
+    auto_loop_deposit,
+    collateral_rebalance,
+    compute_deficit,
+    recovery_deposit_tokens,
+    recovery_repay_usd,
+    recovery_swap_withdraw,
+)
 
 PROGRAM_ID = "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"
 RPC_URL = "https://api.mainnet-beta.solana.com"
@@ -333,7 +341,7 @@ with st.expander("Collateral Adjustments"):
                 withdrawn_usd = abs(delta) * sim_prices[p.symbol]
                 target_price = sim_prices[allocate_to]
                 if target_price > 0:
-                    deposit_amount = withdrawn_usd / target_price
+                    deposit_amount = collateral_rebalance(delta, sim_prices[p.symbol], target_price)
                     actions.append({"type": "deposit_collateral", "symbol": allocate_to, "amount": deposit_amount})
                     allocations.append((p.symbol, allocate_to, withdrawn_usd, deposit_amount))
 
@@ -456,10 +464,10 @@ if market_reserves:
                         key=f"loop_{r.symbol}_v{_v}",
                     )
                     if loop_target != "None":
-                        borrowed_usd = amount * float(r.price)
                         target_price = sim_prices.get(loop_target)
                         if target_price and target_price > 0:
-                            deposit_amount = borrowed_usd / target_price
+                            deposit_amount = auto_loop_deposit(amount, float(r.price), target_price)
+                            borrowed_usd = amount * float(r.price)
                             actions.append({
                                 "type": "deposit_collateral",
                                 "symbol": loop_target,
@@ -565,10 +573,10 @@ if has_changes:
 
         sim_total_debt = sim_report["total_debt_value"]
         sim_liq_value = sim_snapshot.liquidation_value()
-        deficit = target_hf * sim_total_debt - sim_liq_value
+        deficit = compute_deficit(sim_total_debt, sim_liq_value, target_hf)
 
         if deficit > 0:
-            repay_usd = sim_total_debt - sim_liq_value / target_hf
+            repay_usd = recovery_repay_usd(sim_total_debt, sim_liq_value, target_hf)
 
             st.markdown("**Option A — Repay debt:**")
             for dp in sim_snapshot.debt:
@@ -591,12 +599,11 @@ if has_changes:
             for cp in sim_snapshot.collateral:
                 if cp.price <= 0 or cp.liquidation_threshold <= 0:
                     continue
-                if target_hf <= cp.liquidation_threshold:
-                    continue  # Cannot improve HF by swapping when target <= liq threshold
-                withdraw_tokens = min(
-                    deficit / (cp.price * (target_hf - cp.liquidation_threshold)),
-                    cp.amount,
+                withdraw_tokens = recovery_swap_withdraw(
+                    deficit, cp.price, target_hf, cp.liquidation_threshold, cp.amount,
                 )
+                if withdraw_tokens <= 0:
+                    continue
                 repay_usd = withdraw_tokens * cp.price
                 for dp in sim_snapshot.debt:
                     if dp.price <= 0 or dp.amount <= 0:
@@ -620,7 +627,7 @@ if has_changes:
             st.markdown("**Option C — Deposit more collateral:**")
             for cp in sim_snapshot.collateral:
                 if cp.price > 0 and cp.liquidation_threshold > 0:
-                    deposit_tokens = deficit / (cp.price * cp.liquidation_threshold)
+                    deposit_tokens = recovery_deposit_tokens(deficit, cp.price, cp.liquidation_threshold)
                     col_label, col_btn = st.columns([3, 1])
                     col_label.markdown(
                         f"Deposit **{_fmt(deposit_tokens, 4)} {cp.symbol}** "

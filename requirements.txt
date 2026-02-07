@@ -5,3 +5,4 @@ anchorpy==0.20.1
 solana>=0.33.0
 streamlit
 base58
+pytest
