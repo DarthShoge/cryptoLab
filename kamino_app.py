@@ -306,6 +306,9 @@ collateral_symbols = [p.symbol for p in snapshot.collateral]
 allocations: list[tuple[str, str, float, float]] = []  # (src, tgt, usd, tgt_amount)
 with st.expander("Collateral Adjustments"):
     for p in snapshot.collateral:
+        if p.amount <= 0:
+            st.caption(f"**{p.symbol}** — fully withdrawn")
+            continue
         col_a, col_b, col_c = st.columns([2, 1, 1])
         delta = col_a.slider(
             f"{p.symbol} collateral change",
@@ -342,6 +345,9 @@ with st.expander("Collateral Adjustments"):
 # Debt adjustments
 with st.expander("Debt Adjustments"):
     for p in snapshot.debt:
+        if p.amount <= 0:
+            st.caption(f"**{p.symbol}** — fully repaid")
+            continue
         col_a, col_b = st.columns([3, 1])
         delta = col_a.slider(
             f"{p.symbol} debt change",
