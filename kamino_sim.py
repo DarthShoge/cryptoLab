@@ -71,11 +71,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Kamino liquidation risk simulator.")
     parser.add_argument("--input", help="Path to JSON file with collateral/debt data.")
     parser.add_argument("--obligation", help="Kamino obligation account address.")
-    parser.add_argument("--program-id", help="Kamino lending program id (anchor program).")
+    parser.add_argument(
+        "--program-id",
+        default="KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD",
+        help="Kamino lending program id (default: mainnet KLend).",
+    )
     parser.add_argument("--rpc-url", default="https://api.mainnet-beta.solana.com")
     parser.add_argument("--idl", help="Path to Kamino Anchor IDL JSON for decoding accounts.")
-    parser.add_argument("--obligation-account-name", default="obligation")
-    parser.add_argument("--reserve-account-name", default="reserve")
+    parser.add_argument("--obligation-account-name", default="Obligation")
+    parser.add_argument("--reserve-account-name", default="Reserve")
     args = parser.parse_args()
 
     payload: Optional[Dict[str, Any]] = None

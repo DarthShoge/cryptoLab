@@ -1,54 +1,55 @@
-# Continuation Prompt for Next Agent
+# Kamino Liquidation Risk Simulator - Status
 
-You are continuing work on the Kamino liquidation risk simulator in `/workspace/cryptoLab`.
-The current code can load on-chain obligations via Solana RPC + Anchor IDL, but it still
-needs real program/IDL discovery and a clean end-to-end run against a specific obligation.
+## Completed
+The simulator is fully working end-to-end against live Kamino on-chain data.
 
-## Current status
-- CLI supports JSON input or on-chain loading:
-  - `kamino_sim.py --input <file>`
-  - `kamino_sim.py --obligation <addr> --program-id <id> --idl <idl.json> --rpc-url <rpc>`
-- On-chain loader is in `arblab/kamino_onchain.py` and uses `anchorpy` to decode accounts.
-- Dependencies added: `anchorpy`, `solana` (see `requirements.txt`).
+### What was done
+1. **Program ID discovered**: `KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD` (Kamino Lending mainnet)
+2. **IDL obtained**: Downloaded from `Kamino-Finance/klend-sdk` repo (`src/idl/klend.json`) → saved as `kamino_idl.json`
+3. **Code updated** (`arblab/kamino_onchain.py`):
+   - Fixed anchorpy API: `Idl.from_json()` takes a string, `AccountsCoder.decode()` takes only bytes
+   - Account names are PascalCase (`Obligation`, `Reserve`) in Anchor IDL
+   - anchorpy decodes fields to snake_case attributes (not dicts)
+   - Amounts use `Sf` (Scale Factor) 128-bit fixed-point format (scale = 2^60)
+   - Obligation deposits/borrows are fixed-size arrays; empty slots filtered by zero amount
+   - Reserve config uses `loan_to_value_pct` and `liquidation_threshold_pct` (u8 percentages)
+   - Price is `market_price_sf` in reserve liquidity (also Sf format)
+   - Added well-known Solana token mint → symbol mapping (SOL, USDC, USDT, PENGU, USDG, etc.)
+4. **CLI defaults**: program-id now defaults to mainnet KLend address
 
-## Goal
-Run the simulator against the user's obligation account:
-`F8ir9FxMgi17DpnLDbkM6mxy5GmS1o8ynmtP73HuHzQL`
-and produce liquidation metrics using real on-chain data.
 
-## What you must do next
-1) **Find the correct Kamino lending program ID**:
-   - Use Solana RPC `getAccountInfo` on the obligation address.
-   - The account `owner` field is the program ID.
+### User's wallet & obligations
+- Wallet: `F8ir9FxMgi17DpnLDbkM6mxy5GmS1o8ynmtP73HuHzQL`
+- Obligation 1: `J3cQ7pkaR7xLXCPEV1xgyGFvryhMXJU4fy8ZSCHxaZSU`
+  - Collateral: USDG + SOL (~$5,123)
+  - Debt: USDC (~$3,669)
+  - Health factor: ~1.07
+- Obligation 2: `3HUVJerBFwycMVkrSSdBKs2z5LYzKkmxHBvayga5nq1j`
+  - Collateral: PENGU (~$247)
+  - Debt: USDC (~$95)
+  - Health factor: ~1.30
 
-2) **Obtain the Anchor IDL JSON for that program**:
-   - Try `anchor idl fetch <program_id> -o kamino_idl.json`.
-   - If that fails, look in Kamino’s GitHub repos for an `idl/` or `target/idl/` JSON.
-   - If the IDL is not published on-chain, you may need to locate a public repo or
-     reach out for the IDL from Kamino’s sources.
+## Usage
 
-3) **Run the CLI**:
-   ```bash
-   python kamino_sim.py \
-     --obligation F8ir9FxMgi17DpnLDbkM6mxy5GmS1o8ynmtP73HuHzQL \
-     --program-id <PROGRAM_ID> \
-     --idl kamino_idl.json \
-     --rpc-url https://api.mainnet-beta.solana.com
-   ```
-   Capture output and confirm collateral/debt entries look reasonable.
+```bash
+# Run against a specific obligation (program-id defaults to mainnet KLend):
+python kamino_sim.py \
+  --obligation J3cQ7pkaR7xLXCPEV1xgyGFvryhMXJU4fy8ZSCHxaZSU \
+  --idl kamino_idl.json
 
-4) **If decoding fails**:
-   - Inspect actual account layout and adjust field names in `kamino_onchain.py`.
-   - Key expected fields: obligation `deposits`, `borrows`, reserve `config`, `liquidity`.
+# Or with JSON input:
+python kamino_sim.py --input positions.json
+```
 
-## Notes / constraints from previous environment
-- GitHub and some RPC endpoints returned HTTP 403 here; the next environment should
-  have better internet access.
-- Kamino’s token mint (KMNO) is NOT the program ID. You must query the obligation
-  account owner to find the program ID.
+## Possible future improvements
+- Resolve all token symbols dynamically via on-chain token metadata (Metaplex)
+- Add `--wallet` flag to auto-discover obligation accounts for a wallet
+- Monte Carlo price simulation for liquidation probability estimation
+- Support for elevation groups and e-mode LTV overrides
 
-## Files to review
-- `arblab/kamino_onchain.py`
-- `arblab/kamino_risk.py`
-- `kamino_sim.py`
-- `requirements.txt`
+## Files
+- `arblab/kamino_onchain.py` - On-chain data loading via Solana RPC + anchorpy
+- `arblab/kamino_risk.py` - Core risk models and liquidation calculations
+- `kamino_sim.py` - CLI entry point
+- `kamino_idl.json` - Kamino Lending Anchor IDL (from klend-sdk)
+- `requirements.txt` - Python dependencies

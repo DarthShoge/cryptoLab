@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 from dataclasses import dataclass
 from decimal import Decimal
@@ -6,6 +7,27 @@ from typing import Any, Dict, Iterable, List
 from urllib import request
 
 from arblab.kamino_risk import AccountSnapshot, CollateralPosition, DebtPosition
+
+# Kamino uses 128-bit fixed-point numbers with a scale factor of 2^60.
+SF_SCALE = Decimal(2**60)
+
+# Well-known Solana token mints to human-readable symbols.
+KNOWN_MINTS: Dict[str, str] = {
+    "So11111111111111111111111111111111111111112": "SOL",
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
+    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "USDT",
+    "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs": "ETH",
+    "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So": "mSOL",
+    "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn": "JitoSOL",
+    "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj": "stSOL",
+    "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1": "bSOL",
+    "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263": "BONK",
+    "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3": "PYTH",
+    "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL": "JTO",
+    "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4": "JLP",
+    "2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH": "USDG",
+    "2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv": "PENGU",
+}
 
 
 @dataclass(frozen=True)
@@ -41,41 +63,85 @@ def _get_account(rpc_url: str, address: str) -> Dict[str, Any]:
     return {"data": data, "owner": value.get("owner")}
 
 
-def _load_idl(idl_path: str) -> Any:
+OBLIGATION_DISCRIMINATOR = hashlib.sha256(b"account:Obligation").digest()[:8]
+# Obligation owner field offset: 8 (discriminator) + 8 (tag) + 16 (LastUpdate) + 32 (lendingMarket)
+_OBLIGATION_OWNER_OFFSET = 64
+
+
+def find_wallet_obligations(
+    wallet: str,
+    program_id: str,
+    rpc_url: str,
+) -> List[str]:
+    """Discover all Kamino obligation accounts owned by a wallet address."""
     try:
-        from anchorpy import Idl
-    except ImportError as exc:
-        raise ImportError("anchorpy is required for on-chain decoding.") from exc
-    with open(idl_path, "r", encoding="utf-8") as handle:
-        idl_json = json.load(handle)
-    return Idl.from_json(idl_json)
+        import base58
+    except ImportError:
+        raise ImportError("base58 is required for wallet obligation discovery.")
+
+    disc_b64 = base64.b64encode(OBLIGATION_DISCRIMINATOR).decode()
+    wallet_bytes = base58.b58decode(wallet)
+    wallet_b64 = base64.b64encode(wallet_bytes).decode()
+
+    result = _rpc_call(rpc_url, "getProgramAccounts", [
+        program_id,
+        {
+            "encoding": "base64",
+            "dataSlice": {"offset": 0, "length": 0},
+            "filters": [
+                {"memcmp": {"offset": 0, "bytes": disc_b64, "encoding": "base64"}},
+                {"memcmp": {"offset": _OBLIGATION_OWNER_OFFSET, "bytes": wallet_b64, "encoding": "base64"}},
+            ],
+        },
+    ])
+    return [account["pubkey"] for account in result]
 
 
-def _decode_account(idl: Any, account_name: str, data: bytes) -> Dict[str, Any]:
-    try:
-        from anchorpy.coder.accounts import AccountsCoder
-    except ImportError as exc:
-        raise ImportError("anchorpy is required for on-chain decoding.") from exc
-    coder = AccountsCoder(idl)
-    return coder.decode(account_name, data)
-
-
-def _to_decimal(value: Any) -> Decimal:
-    return Decimal(str(value))
+def _sf_to_decimal(sf_value: int) -> Decimal:
+    """Convert a Scale-Factor (Sf) 128-bit fixed-point integer to a Decimal."""
+    return Decimal(int(sf_value)) / SF_SCALE
 
 
 def _normalize_amount(raw_amount: int, decimals: int) -> Decimal:
     return Decimal(raw_amount) / (Decimal(10) ** decimals)
 
 
-def _parse_reserve_config(reserve: Dict[str, Any]) -> ReserveConfig:
-    config = reserve["config"]
-    liquidity = reserve["liquidity"]
-    symbol = liquidity.get("symbol", liquidity.get("mint_pubkey", "UNKNOWN"))
-    price = _to_decimal(liquidity.get("market_price", 0))
-    ltv = _to_decimal(config.get("loan_to_value_ratio", 0)) / Decimal(100)
-    liquidation_threshold = _to_decimal(config.get("liquidation_threshold", 0)) / Decimal(100)
-    decimals = int(liquidity.get("mint_decimals", 0))
+def _load_idl(idl_path: str) -> Any:
+    try:
+        from anchorpy import Idl
+    except ImportError as exc:
+        raise ImportError("anchorpy is required for on-chain decoding.") from exc
+    with open(idl_path, "r", encoding="utf-8") as handle:
+        idl_raw = handle.read()
+    return Idl.from_json(idl_raw)
+
+
+def _decode_account(idl: Any, account_name: str, data: bytes) -> Any:
+    try:
+        from anchorpy.coder.accounts import AccountsCoder
+    except ImportError as exc:
+        raise ImportError("anchorpy is required for on-chain decoding.") from exc
+    coder = AccountsCoder(idl)
+    return coder.decode(data)
+
+
+def _parse_reserve_config(reserve: Any) -> ReserveConfig:
+    config = reserve.config
+    liquidity = reserve.liquidity
+
+    # Token symbol: Kamino doesn't store a symbol on-chain; look up by mint.
+    mint = str(liquidity.mint_pubkey)
+    symbol = KNOWN_MINTS.get(mint, mint[:8])
+
+    # Market price is stored as Sf (128-bit fixed-point, scale 2^60).
+    price = _sf_to_decimal(liquidity.market_price_sf)
+
+    # LTV and liquidation threshold are stored as u8 percentages.
+    ltv = Decimal(int(config.loan_to_value_pct)) / Decimal(100)
+    liquidation_threshold = Decimal(int(config.liquidation_threshold_pct)) / Decimal(100)
+
+    decimals = int(liquidity.mint_decimals)
+
     return ReserveConfig(
         symbol=symbol,
         price=price,
@@ -90,36 +156,46 @@ def load_onchain_snapshot(
     program_id: str,
     rpc_url: str,
     idl_path: str,
-    obligation_account_name: str = "obligation",
-    reserve_account_name: str = "reserve",
+    obligation_account_name: str = "Obligation",
+    reserve_account_name: str = "Reserve",
 ) -> AccountSnapshot:
     idl = _load_idl(idl_path)
+
     obligation_account = _get_account(rpc_url, obligation_address)
     if obligation_account["owner"] != program_id:
         raise ValueError("Obligation account owner does not match the provided program id.")
-    obligation_raw = obligation_account["data"]
-    obligation = _decode_account(idl, obligation_account_name, obligation_raw)
 
-    deposits = obligation.get("deposits", [])
-    borrows = obligation.get("borrows", [])
+    obligation = _decode_account(idl, obligation_account_name, obligation_account["data"])
+
+    # Filter out empty slots (Kamino uses fixed-size arrays; empty entries have zero amounts).
+    active_deposits = [
+        entry for entry in obligation.deposits
+        if int(entry.deposited_amount) > 0
+    ]
+    active_borrows = [
+        entry for entry in obligation.borrows
+        if int(entry.borrowed_amount_sf) > 0
+    ]
+
     reserve_addresses = {
-        str(entry["deposit_reserve"]) for entry in deposits
-    }.union({str(entry["borrow_reserve"]) for entry in borrows})
+        str(entry.deposit_reserve) for entry in active_deposits
+    }.union({
+        str(entry.borrow_reserve) for entry in active_borrows
+    })
 
     reserve_map: Dict[str, ReserveConfig] = {}
     for reserve_address in reserve_addresses:
         reserve_account = _get_account(rpc_url, reserve_address)
         if reserve_account["owner"] != program_id:
             raise ValueError(f"Reserve {reserve_address} is not owned by {program_id}.")
-        reserve_raw = reserve_account["data"]
-        reserve = _decode_account(idl, reserve_account_name, reserve_raw)
+        reserve = _decode_account(idl, reserve_account_name, reserve_account["data"])
         reserve_map[reserve_address] = _parse_reserve_config(reserve)
 
     collateral_positions: List[CollateralPosition] = []
-    for entry in deposits:
-        reserve_address = str(entry["deposit_reserve"])
+    for entry in active_deposits:
+        reserve_address = str(entry.deposit_reserve)
         reserve = reserve_map[reserve_address]
-        deposited_amount = int(entry.get("deposited_amount", 0))
+        deposited_amount = int(entry.deposited_amount)
         amount = _normalize_amount(deposited_amount, reserve.decimals)
         collateral_positions.append(
             CollateralPosition(
@@ -132,15 +208,12 @@ def load_onchain_snapshot(
         )
 
     debt_positions: List[DebtPosition] = []
-    for entry in borrows:
-        reserve_address = str(entry["borrow_reserve"])
+    for entry in active_borrows:
+        reserve_address = str(entry.borrow_reserve)
         reserve = reserve_map[reserve_address]
-        borrowed_amount = entry.get("borrowed_amount")
-        borrowed_amount_wads = entry.get("borrowed_amount_wads")
-        if borrowed_amount is not None:
-            amount = _normalize_amount(int(borrowed_amount), reserve.decimals)
-        else:
-            amount = _to_decimal(borrowed_amount_wads or 0) / Decimal(10**18)
+        # borrowed_amount_sf is a 128-bit fixed-point value (scale 2^60), in raw token units.
+        raw_amount = _sf_to_decimal(entry.borrowed_amount_sf)
+        amount = raw_amount / (Decimal(10) ** reserve.decimals)
         debt_positions.append(
             DebtPosition(
                 symbol=reserve.symbol,
