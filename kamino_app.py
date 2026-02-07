@@ -98,7 +98,9 @@ if load_mode == "Wallet address":
                     # Auto-load the first obligation
                     st.session_state["selected_obligation"] = obligations[0]
                     status.update(label="Loading obligation data...", state="running")
-                    st.session_state["snapshot"] = _load_snapshot(obligations[0])
+                    snap = _load_snapshot(obligations[0])
+                    st.session_state["snapshot"] = snap
+                    st.session_state["snapshot_original"] = snap
                     status.update(label="Loading market reserves...", state="running")
                     st.session_state["market_reserves"] = _load_market_reserves(obligations[0])
                     status.update(label=f"Found {len(obligations)} obligation(s)", state="complete")
@@ -115,7 +117,9 @@ if load_mode == "Wallet address":
         if selected != st.session_state.get("selected_obligation"):
             with st.sidebar.status("Loading obligation..."):
                 st.session_state["selected_obligation"] = selected
-                st.session_state["snapshot"] = _load_snapshot(selected)
+                snap = _load_snapshot(selected)
+                st.session_state["snapshot"] = snap
+                st.session_state["snapshot_original"] = snap
                 st.session_state["market_reserves"] = _load_market_reserves(selected)
 
 else:
@@ -124,7 +128,9 @@ else:
         if obligation_addr:
             with st.sidebar.status("Loading obligation data...") as status:
                 try:
-                    st.session_state["snapshot"] = _load_snapshot(obligation_addr)
+                    snap = _load_snapshot(obligation_addr)
+                    st.session_state["snapshot"] = snap
+                    st.session_state["snapshot_original"] = snap
                     st.session_state["selected_obligation"] = obligation_addr
                     st.session_state["obligations"] = [obligation_addr]
                     status.update(label="Loading market reserves...", state="running")
@@ -143,6 +149,10 @@ if snapshot is None:
     st.title("Kamino Liquidation Risk Simulator")
     st.info("Enter a wallet or obligation address in the sidebar to get started.")
     st.stop()
+
+# Fallback: ensure original snapshot is always available for Reset.
+if "snapshot_original" not in st.session_state:
+    st.session_state["snapshot_original"] = snapshot
 
 st.title("Kamino Liquidation Risk Simulator")
 
@@ -242,11 +252,14 @@ with col_lp2:
 
 st.header("Scenario Simulator")
 
-# Reset: bump a version counter so all widget keys change, creating fresh widgets.
-def _reset_scenario():
+# Reset / Apply: use button return value + st.rerun() for reliable state updates.
+# on_click callbacks sometimes don't trigger a clean re-render, so we use
+# the button's return value, mutate session state, then force a rerun.
+if st.button("Reset Scenario", key="btn_reset"):
+    if "snapshot_original" in st.session_state:
+        st.session_state["snapshot"] = st.session_state["snapshot_original"]
     st.session_state["_scenario_v"] = st.session_state.get("_scenario_v", 0) + 1
-
-st.button("Reset Scenario", on_click=_reset_scenario)
+    st.rerun()
 
 _v = st.session_state.get("_scenario_v", 0)
 
@@ -407,6 +420,9 @@ if market_reserves:
                 format_func=lambda s: f"{s} (${float(debt_by_symbol[s].price):,.4f})",
                 key=f"new_debt_select_v{_v}",
             )
+            # Build list of collateral targets for auto-loop
+            _loop_targets = ["None"] + collateral_symbols
+
             for symbol in selected_debt:
                 r = debt_by_symbol[symbol]
                 col_info, col_amt = st.columns([2, 2])
@@ -425,6 +441,29 @@ if market_reserves:
                         amount=amount,
                         price=float(r.price),
                     ))
+
+                    # Auto-loop: borrow → swap → deposit as collateral
+                    loop_target = st.selectbox(
+                        f"Auto-loop {r.symbol} into collateral",
+                        options=_loop_targets,
+                        index=0,
+                        key=f"loop_{r.symbol}_v{_v}",
+                    )
+                    if loop_target != "None":
+                        borrowed_usd = amount * float(r.price)
+                        target_price = sim_prices.get(loop_target)
+                        if target_price and target_price > 0:
+                            deposit_amount = borrowed_usd / target_price
+                            actions.append({
+                                "type": "deposit_collateral",
+                                "symbol": loop_target,
+                                "amount": deposit_amount,
+                            })
+                            st.caption(
+                                f"↳ Swap {_fmt(amount, 4)} {r.symbol} "
+                                f"→ deposit {_fmt(deposit_amount, 4)} {loop_target} "
+                                f"({_fmt_usd(borrowed_usd)})"
+                            )
 
 # Build the simulation snapshot: start from baseline, add new positions, then apply actions
 has_changes = bool(actions) or bool(new_collateral) or bool(new_debt)
@@ -505,5 +544,133 @@ if has_changes:
                 orig = liq_prices["debt"].get(symbol)
                 delta = f" (was {_fmt_usd(orig)})" if orig and abs(price - orig) > 0.01 else ""
                 st.markdown(f"- {symbol}: {_fmt_usd(price)}{delta}")
+
+    # --- Recovery instructions when HF is unhealthy ---
+    if sim_hf != float("inf") and sim_hf < 1.5:
+        st.subheader("Recovery Instructions")
+        target_hf = st.slider(
+            "Target health factor",
+            min_value=1.0,
+            max_value=2.0,
+            value=1.1,
+            step=0.05,
+            key=f"target_hf_v{_v}",
+        )
+
+        sim_total_debt = sim_report["total_debt_value"]
+        sim_liq_value = sim_snapshot.liquidation_value()
+        deficit = target_hf * sim_total_debt - sim_liq_value
+
+        if deficit > 0:
+            repay_usd = sim_total_debt - sim_liq_value / target_hf
+
+            st.markdown("**Option A — Repay debt:**")
+            for dp in sim_snapshot.debt:
+                if dp.price > 0 and dp.amount > 0:
+                    repay_tokens = min(repay_usd / dp.price, dp.amount)
+                    col_label, col_btn = st.columns([3, 1])
+                    col_label.markdown(
+                        f"Repay **{_fmt(repay_tokens, 4)} {dp.symbol}** "
+                        f"({_fmt_usd(repay_tokens * dp.price)})"
+                    )
+                    if col_btn.button("Apply", key=f"recover_repay_{dp.symbol}_v{_v}"):
+                        recovered = apply_actions(sim_snapshot, [
+                            {"type": "repay", "symbol": dp.symbol, "amount": repay_tokens},
+                        ])
+                        st.session_state["snapshot"] = recovered
+                        st.session_state["_scenario_v"] = st.session_state.get("_scenario_v", 0) + 1
+                        st.rerun()
+
+            st.markdown("**Option B — Repay debt with collateral (swap):**")
+            for cp in sim_snapshot.collateral:
+                if cp.price <= 0 or cp.liquidation_threshold <= 0:
+                    continue
+                if target_hf <= cp.liquidation_threshold:
+                    continue  # Cannot improve HF by swapping when target <= liq threshold
+                withdraw_tokens = min(
+                    deficit / (cp.price * (target_hf - cp.liquidation_threshold)),
+                    cp.amount,
+                )
+                repay_usd = withdraw_tokens * cp.price
+                for dp in sim_snapshot.debt:
+                    if dp.price <= 0 or dp.amount <= 0:
+                        continue
+                    repay_tokens = min(repay_usd / dp.price, dp.amount)
+                    col_label, col_btn = st.columns([3, 1])
+                    col_label.markdown(
+                        f"Withdraw **{_fmt(withdraw_tokens, 4)} {cp.symbol}** "
+                        f"→ Repay **{_fmt(repay_tokens, 4)} {dp.symbol}** "
+                        f"({_fmt_usd(repay_usd)})"
+                    )
+                    if col_btn.button("Apply", key=f"recover_swap_{cp.symbol}_{dp.symbol}_v{_v}"):
+                        recovered = apply_actions(sim_snapshot, [
+                            {"type": "withdraw_collateral", "symbol": cp.symbol, "amount": withdraw_tokens},
+                            {"type": "repay", "symbol": dp.symbol, "amount": repay_tokens},
+                        ])
+                        st.session_state["snapshot"] = recovered
+                        st.session_state["_scenario_v"] = st.session_state.get("_scenario_v", 0) + 1
+                        st.rerun()
+
+            st.markdown("**Option C — Deposit more collateral:**")
+            for cp in sim_snapshot.collateral:
+                if cp.price > 0 and cp.liquidation_threshold > 0:
+                    deposit_tokens = deficit / (cp.price * cp.liquidation_threshold)
+                    col_label, col_btn = st.columns([3, 1])
+                    col_label.markdown(
+                        f"Deposit **{_fmt(deposit_tokens, 4)} {cp.symbol}** "
+                        f"({_fmt_usd(deposit_tokens * cp.price)})"
+                    )
+                    if col_btn.button("Apply", key=f"recover_deposit_{cp.symbol}_v{_v}"):
+                        recovered = apply_actions(sim_snapshot, [
+                            {"type": "deposit_collateral", "symbol": cp.symbol, "amount": deposit_tokens},
+                        ])
+                        st.session_state["snapshot"] = recovered
+                        st.session_state["_scenario_v"] = st.session_state.get("_scenario_v", 0) + 1
+                        st.rerun()
+        else:
+            st.success(f"Health factor already meets target ({_fmt(target_hf)}).")
+
+    # --- Apply scenario as new baseline (without recovery) ---
+    if st.button("Apply scenario as new baseline", key="btn_apply"):
+        st.session_state["snapshot"] = sim_snapshot
+        st.session_state["_scenario_v"] = st.session_state.get("_scenario_v", 0) + 1
+        st.rerun()
+
 else:
     st.info("Adjust the sliders above to simulate scenarios.")
+
+# Always show current position overview (uses sim_snapshot when scenario is active, else baseline)
+_overview_snap = sim_snapshot if has_changes else snapshot
+st.markdown("---")
+st.markdown("**Current Position Overview**" if not has_changes else "**Simulated Position Overview**")
+_ov_left, _ov_right = st.columns(2)
+
+with _ov_left:
+    st.markdown("*Collateral*")
+    _ov_c_rows = []
+    for p in _overview_snap.collateral:
+        _ov_c_rows.append({
+            "Asset": p.symbol,
+            "Amount": _fmt(p.amount, 4),
+            "Price": _fmt_usd(p.price),
+            "Value": _fmt_usd(p.value()),
+            "LTV": _pct(p.ltv),
+            "Liq. Threshold": _pct(p.liquidation_threshold),
+        })
+    if _ov_c_rows:
+        st.dataframe(_ov_c_rows, use_container_width=True, hide_index=True)
+        st.markdown(f"**Total collateral: {_fmt_usd(_overview_snap.total_collateral_value())}**")
+
+with _ov_right:
+    st.markdown("*Debt*")
+    _ov_d_rows = []
+    for p in _overview_snap.debt:
+        _ov_d_rows.append({
+            "Asset": p.symbol,
+            "Amount": _fmt(p.amount, 4),
+            "Price": _fmt_usd(p.price),
+            "Value": _fmt_usd(p.value()),
+        })
+    if _ov_d_rows:
+        st.dataframe(_ov_d_rows, use_container_width=True, hide_index=True)
+        st.markdown(f"**Total debt: {_fmt_usd(_overview_snap.total_debt_value())}**")
