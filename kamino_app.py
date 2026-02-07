@@ -3,7 +3,14 @@
 import os
 import streamlit as st
 
-from arblab.kamino_onchain import find_wallet_obligations, load_onchain_snapshot
+from arblab.kamino_onchain import (
+    _fetch_jupiter_symbols,
+    find_wallet_obligations,
+    get_obligation_market,
+    load_market_reserves,
+    load_onchain_snapshot,
+    ReserveConfig,
+)
 from arblab.kamino_risk import (
     AccountSnapshot,
     CollateralPosition,
@@ -18,6 +25,9 @@ RPC_URL = "https://api.mainnet-beta.solana.com"
 IDL_PATH = os.path.join(os.path.dirname(__file__), "kamino_idl.json")
 
 st.set_page_config(page_title="Kamino Risk Simulator", layout="wide")
+
+# Pre-warm the Jupiter token symbol cache so reserve names are resolved quickly.
+_fetch_jupiter_symbols()
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +65,11 @@ def _load_snapshot(obligation_address: str) -> AccountSnapshot:
     )
 
 
+def _load_market_reserves(obligation_address: str) -> list[ReserveConfig]:
+    market = get_obligation_market(obligation_address, PROGRAM_ID, RPC_URL, IDL_PATH)
+    return load_market_reserves(market, PROGRAM_ID, RPC_URL, IDL_PATH)
+
+
 # ---------------------------------------------------------------------------
 # Sidebar - Position Loading
 # ---------------------------------------------------------------------------
@@ -82,8 +97,10 @@ if load_mode == "Wallet address":
                     st.session_state["obligations"] = obligations
                     # Auto-load the first obligation
                     st.session_state["selected_obligation"] = obligations[0]
-                    status.update(label=f"Loading obligation data...", state="running")
+                    status.update(label="Loading obligation data...", state="running")
                     st.session_state["snapshot"] = _load_snapshot(obligations[0])
+                    status.update(label="Loading market reserves...", state="running")
+                    st.session_state["market_reserves"] = _load_market_reserves(obligations[0])
                     status.update(label=f"Found {len(obligations)} obligation(s)", state="complete")
             except Exception as e:
                 st.sidebar.error(f"Error: {e}")
@@ -99,6 +116,7 @@ if load_mode == "Wallet address":
             with st.sidebar.status("Loading obligation..."):
                 st.session_state["selected_obligation"] = selected
                 st.session_state["snapshot"] = _load_snapshot(selected)
+                st.session_state["market_reserves"] = _load_market_reserves(selected)
 
 else:
     obligation_addr = st.sidebar.text_input("Obligation address", value="")
@@ -109,6 +127,8 @@ else:
                     st.session_state["snapshot"] = _load_snapshot(obligation_addr)
                     st.session_state["selected_obligation"] = obligation_addr
                     st.session_state["obligations"] = [obligation_addr]
+                    status.update(label="Loading market reserves...", state="running")
+                    st.session_state["market_reserves"] = _load_market_reserves(obligation_addr)
                     status.update(label="Loaded", state="complete")
                 except Exception as e:
                     st.sidebar.error(f"Error: {e}")
@@ -223,6 +243,11 @@ with col_lp2:
 st.header("Scenario Simulator")
 
 actions = []
+new_collateral: list[CollateralPosition] = []
+new_debt: list[DebtPosition] = []
+
+# Available market reserves (loaded alongside the snapshot)
+market_reserves: list[ReserveConfig] = st.session_state.get("market_reserves", [])
 
 # Unique asset symbols across collateral and debt
 all_symbols = list({p.symbol for p in snapshot.collateral} | {p.symbol for p in snapshot.debt})
@@ -286,10 +311,98 @@ with st.expander("Debt Adjustments"):
         elif delta < 0:
             actions.append({"type": "repay", "symbol": p.symbol, "amount": abs(delta)})
 
-# Apply scenario
-if actions:
+# Add new collateral / debt from available Kamino reserves
+if market_reserves:
+    existing_collateral_symbols = {p.symbol for p in snapshot.collateral}
+    existing_debt_symbols = {p.symbol for p in snapshot.debt}
+
+    # Filter to reserves with LTV > 0 for collateral (usable as collateral)
+    available_collateral = [
+        r for r in market_reserves
+        if r.symbol not in existing_collateral_symbols and float(r.ltv) > 0
+    ]
+    # All reserves with a price can potentially be borrowed
+    available_debt = [
+        r for r in market_reserves
+        if r.symbol not in existing_debt_symbols and float(r.price) > 0
+    ]
+
+    collateral_by_symbol = {r.symbol: r for r in available_collateral}
+    debt_by_symbol = {r.symbol: r for r in available_debt}
+
+    with st.expander("Add New Collateral"):
+        if not available_collateral:
+            st.caption("No additional collateral assets available.")
+        else:
+            selected_coll = st.multiselect(
+                "Select assets to deposit as collateral",
+                options=[r.symbol for r in available_collateral],
+                format_func=lambda s: f"{s} (${float(collateral_by_symbol[s].price):,.4f}, LTV {float(collateral_by_symbol[s].ltv):.0%})",
+                key="new_coll_select",
+            )
+            for symbol in selected_coll:
+                r = collateral_by_symbol[symbol]
+                col_info, col_amt = st.columns([2, 2])
+                col_info.caption(
+                    f"**{r.symbol}** -- Price: ${float(r.price):,.4f} | "
+                    f"LTV: {float(r.ltv):.0%} | Liq: {float(r.liquidation_threshold):.0%}"
+                )
+                amount = col_amt.number_input(
+                    f"Amount of {r.symbol}",
+                    min_value=0.0,
+                    value=0.0,
+                    step=10.0 ** (-r.decimals) * 1000,
+                    format=f"%.{min(r.decimals, 6)}f",
+                    key=f"new_coll_{r.symbol}",
+                )
+                if amount > 0:
+                    new_collateral.append(CollateralPosition(
+                        symbol=r.symbol,
+                        amount=amount,
+                        price=float(r.price),
+                        ltv=float(r.ltv),
+                        liquidation_threshold=float(r.liquidation_threshold),
+                    ))
+
+    with st.expander("Take New Debt"):
+        if not available_debt:
+            st.caption("No additional debt assets available.")
+        else:
+            selected_debt = st.multiselect(
+                "Select assets to borrow",
+                options=[r.symbol for r in available_debt],
+                format_func=lambda s: f"{s} (${float(debt_by_symbol[s].price):,.4f})",
+                key="new_debt_select",
+            )
+            for symbol in selected_debt:
+                r = debt_by_symbol[symbol]
+                col_info, col_amt = st.columns([2, 2])
+                col_info.caption(f"**{r.symbol}** -- Price: ${float(r.price):,.4f}")
+                amount = col_amt.number_input(
+                    f"Borrow amount of {r.symbol}",
+                    min_value=0.0,
+                    value=0.0,
+                    step=10.0 ** (-r.decimals) * 1000,
+                    format=f"%.{min(r.decimals, 6)}f",
+                    key=f"new_debt_{r.symbol}",
+                )
+                if amount > 0:
+                    new_debt.append(DebtPosition(
+                        symbol=r.symbol,
+                        amount=amount,
+                        price=float(r.price),
+                    ))
+
+# Build the simulation snapshot: start from baseline, add new positions, then apply actions
+has_changes = bool(actions) or bool(new_collateral) or bool(new_debt)
+
+if has_changes:
     try:
-        sim_snapshot = apply_actions(snapshot, actions)
+        # Start from baseline snapshot, add new positions, then apply actions
+        sim_collateral = list(snapshot.collateral) + new_collateral
+        sim_debt = list(snapshot.debt) + new_debt
+        augmented = AccountSnapshot(collateral=sim_collateral, debt=sim_debt)
+        sim_snapshot = apply_actions(augmented, actions) if actions else augmented
     except ValueError as e:
         st.error(f"Invalid scenario: {e}")
         st.stop()

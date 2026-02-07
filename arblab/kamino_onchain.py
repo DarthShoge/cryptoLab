@@ -11,7 +11,7 @@ from arblab.kamino_risk import AccountSnapshot, CollateralPosition, DebtPosition
 # Kamino uses 128-bit fixed-point numbers with a scale factor of 2^60.
 SF_SCALE = Decimal(2**60)
 
-# Well-known Solana token mints to human-readable symbols.
+# Well-known Solana token mints to human-readable symbols (fallback if API unavailable).
 KNOWN_MINTS: Dict[str, str] = {
     "So11111111111111111111111111111111111111112": "SOL",
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
@@ -28,6 +28,54 @@ KNOWN_MINTS: Dict[str, str] = {
     "2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH": "USDG",
     "2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv": "PENGU",
 }
+
+# Module-level cache for Jupiter token list symbols.
+_jupiter_symbols: Dict[str, str] | None = None
+
+
+def _fetch_jupiter_symbols() -> Dict[str, str]:
+    """Fetch mint→symbol mapping from Jupiter's token list API (cached)."""
+    global _jupiter_symbols
+    if _jupiter_symbols is not None:
+        return _jupiter_symbols
+
+    # Try multiple endpoints in order of preference.
+    endpoints = [
+        "https://lite-api.jup.ag/tokens/v2/tag?query=verified",
+    ]
+
+    for url in endpoints:
+        try:
+            req = request.Request(url, headers={
+                "Accept": "application/json",
+                "User-Agent": "KaminoRiskSim/1.0",
+            })
+            with request.urlopen(req, timeout=30) as resp:
+                tokens = json.load(resp)
+            # Jupiter V1 uses "address", V2 uses "id" for the mint field.
+            result: Dict[str, str] = {}
+            for t in tokens:
+                mint = t.get("address") or t.get("id")
+                symbol = t.get("symbol")
+                if mint and symbol:
+                    result[mint] = symbol
+            if result:
+                _jupiter_symbols = result
+                return _jupiter_symbols
+        except Exception:
+            continue
+
+    _jupiter_symbols = {}
+    return _jupiter_symbols
+
+
+def _resolve_symbol(mint: str) -> str:
+    """Resolve a mint address to a human-readable token symbol."""
+    symbol = KNOWN_MINTS.get(mint)
+    if symbol:
+        return symbol
+    jupiter = _fetch_jupiter_symbols()
+    return jupiter.get(mint, mint[:8])
 
 
 @dataclass(frozen=True)
@@ -64,8 +112,11 @@ def _get_account(rpc_url: str, address: str) -> Dict[str, Any]:
 
 
 OBLIGATION_DISCRIMINATOR = hashlib.sha256(b"account:Obligation").digest()[:8]
+RESERVE_DISCRIMINATOR = hashlib.sha256(b"account:Reserve").digest()[:8]
 # Obligation owner field offset: 8 (discriminator) + 8 (tag) + 16 (LastUpdate) + 32 (lendingMarket)
 _OBLIGATION_OWNER_OFFSET = 64
+# Reserve lendingMarket offset: 8 (discriminator) + 8 (version) + 16 (LastUpdate)
+_RESERVE_MARKET_OFFSET = 32
 
 
 def find_wallet_obligations(
@@ -95,6 +146,48 @@ def find_wallet_obligations(
         },
     ])
     return [account["pubkey"] for account in result]
+
+
+def load_market_reserves(
+    lending_market: str,
+    program_id: str,
+    rpc_url: str,
+    idl_path: str,
+) -> List[ReserveConfig]:
+    """Fetch all reserve configs for a Kamino lending market."""
+    try:
+        import base58
+    except ImportError:
+        raise ImportError("base58 is required for market reserve discovery.")
+
+    disc_b64 = base64.b64encode(RESERVE_DISCRIMINATOR).decode()
+    market_bytes = base58.b58decode(lending_market)
+    market_b64 = base64.b64encode(market_bytes).decode()
+
+    idl = _load_idl(idl_path)
+
+    result = _rpc_call(rpc_url, "getProgramAccounts", [
+        program_id,
+        {
+            "encoding": "base64",
+            "filters": [
+                {"memcmp": {"offset": 0, "bytes": disc_b64, "encoding": "base64"}},
+                {"memcmp": {"offset": _RESERVE_MARKET_OFFSET, "bytes": market_b64, "encoding": "base64"}},
+            ],
+        },
+    ])
+
+    reserves: List[ReserveConfig] = []
+    for account in result:
+        data = base64.b64decode(account["account"]["data"][0])
+        decoded = _decode_account(idl, "Reserve", data)
+        config = _parse_reserve_config(decoded)
+        # Skip reserves with zero price (disabled/deprecated)
+        if config.price > 0:
+            reserves.append(config)
+
+    reserves.sort(key=lambda r: r.symbol)
+    return reserves
 
 
 def _sf_to_decimal(sf_value: int) -> Decimal:
@@ -129,9 +222,9 @@ def _parse_reserve_config(reserve: Any) -> ReserveConfig:
     config = reserve.config
     liquidity = reserve.liquidity
 
-    # Token symbol: Kamino doesn't store a symbol on-chain; look up by mint.
+    # Token symbol: Kamino doesn't store a symbol on-chain; resolve via Jupiter API.
     mint = str(liquidity.mint_pubkey)
-    symbol = KNOWN_MINTS.get(mint, mint[:8])
+    symbol = _resolve_symbol(mint)
 
     # Market price is stored as Sf (128-bit fixed-point, scale 2^60).
     price = _sf_to_decimal(liquidity.market_price_sf)
@@ -151,6 +244,21 @@ def _parse_reserve_config(reserve: Any) -> ReserveConfig:
     )
 
 
+def get_obligation_market(
+    obligation_address: str,
+    program_id: str,
+    rpc_url: str,
+    idl_path: str,
+) -> str:
+    """Return the lending market address for an obligation."""
+    idl = _load_idl(idl_path)
+    account = _get_account(rpc_url, obligation_address)
+    if account["owner"] != program_id:
+        raise ValueError("Obligation account owner does not match the provided program id.")
+    obligation = _decode_account(idl, "Obligation", account["data"])
+    return str(obligation.lending_market)
+
+
 def load_onchain_snapshot(
     obligation_address: str,
     program_id: str,
@@ -166,6 +274,7 @@ def load_onchain_snapshot(
         raise ValueError("Obligation account owner does not match the provided program id.")
 
     obligation = _decode_account(idl, obligation_account_name, obligation_account["data"])
+    lending_market = str(obligation.lending_market)
 
     # Filter out empty slots (Kamino uses fixed-size arrays; empty entries have zero amounts).
     active_deposits = [
