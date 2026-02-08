@@ -177,6 +177,7 @@ package-lock.json
 
 # Screenshots (test artifacts)
 *.png
+!docs/*.png
 
 # Claude Code
 .claude/
@@ -186,3 +187,6 @@ package-lock.json
 *.swp
 *.swo
 *~
+
+# Price data cache (backtest)
+.price_cache/
