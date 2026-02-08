@@ -121,6 +121,10 @@ if run_btn:
     # Get initial price from first bar
     initial_price = float(price_data.iloc[0][(collateral_symbol, "close")])
 
+    # Buy-and-hold benchmark: value of simply holding the initial collateral
+    buy_hold = initial_collateral * price_data[(collateral_symbol, "close")]
+    buy_hold.name = "Buy & Hold"
+
     strategy = LeverageLoopStrategy()
     strategy_config = {
         "collateral_symbol": collateral_symbol,
@@ -160,7 +164,11 @@ if run_btn:
         # Charts
         if not result.history.empty:
             st.subheader("Portfolio Value")
-            st.line_chart(result.history["portfolio_value"])
+            pv_df = pd.DataFrame({
+                "Strategy": result.history["portfolio_value"],
+                "Buy & Hold": buy_hold.reindex(result.history.index, method="ffill"),
+            })
+            st.line_chart(pv_df)
 
             st.subheader("Health Factor")
             hf_df = result.history[["health_factor"]].copy()
@@ -241,10 +249,66 @@ if run_btn:
         st.subheader("Best Result (by Sharpe)")
         bm = best.metrics
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Return", f"{bm.total_return_pct:+.2f}%")
-        col2.metric("Sharpe", f"{bm.sharpe_ratio:.3f}")
-        col3.metric("Max DD", f"{bm.max_drawdown_pct:.2f}%")
-        col4.metric("Min HF", f"{bm.min_health_factor:.3f}")
+        col1.metric("Total Return", f"{bm.total_return_pct:+.2f}%")
+        col2.metric("Max Drawdown", f"{bm.max_drawdown_pct:.2f}%")
+        col3.metric("Sharpe Ratio", f"{bm.sharpe_ratio:.3f}")
+        col4.metric("Sortino Ratio", f"{bm.sortino_ratio:.3f}")
+
+        col5, col6, col7, col8 = st.columns(4)
+        col5.metric("Min HF", f"{bm.min_health_factor:.3f}")
+        col6.metric("Liquidations", str(bm.total_liquidations))
+        col7.metric("Interest Paid", f"${bm.total_interest_paid:,.2f}")
+        col8.metric("LST Yield", f"${bm.total_lst_yield_earned:,.2f}")
+
+        if best.liquidated:
+            st.error("Position was fully liquidated!")
 
         if not best.history.empty:
-            st.line_chart(best.history["portfolio_value"])
+            st.subheader("Portfolio Value")
+            pv_df = pd.DataFrame({
+                "Strategy": best.history["portfolio_value"],
+                "Buy & Hold": buy_hold.reindex(best.history.index, method="ffill"),
+            })
+            st.line_chart(pv_df)
+
+            st.subheader("Health Factor")
+            hf_df = best.history[["health_factor"]].copy()
+            hf_df["HF=1.0"] = 1.0
+            hf_df["HF=1.5"] = 1.5
+            hf_df["health_factor"] = hf_df["health_factor"].clip(upper=5.0)
+            st.line_chart(hf_df)
+
+            st.subheader("Asset Prices")
+            close_cols = [
+                c for c in price_data.columns if c[1] == "close"
+            ]
+            price_display = price_data[close_cols].droplevel(1, axis=1)
+            st.line_chart(price_display)
+
+            with st.expander("Interest & Yield Breakdown"):
+                cum_interest = best.history["interest_accrued"].cumsum()
+                cum_yield = best.history["lst_yield"].cumsum()
+                breakdown = pd.DataFrame({
+                    "Cumulative Interest Paid": cum_interest,
+                    "Cumulative LST Yield": cum_yield,
+                    "Net (Yield - Interest)": cum_yield - cum_interest,
+                })
+                st.line_chart(breakdown)
+
+            if best.liquidation_events:
+                with st.expander("Liquidation Events"):
+                    liq_rows = []
+                    for e in best.liquidation_events:
+                        liq_rows.append({
+                            "Time": str(e.timestamp),
+                            "Debt Repaid": f"{e.debt_repaid:.4f} {e.debt_symbol}",
+                            "Debt Repaid USD": f"${e.debt_repaid_usd:,.2f}",
+                            "Collateral Seized": f"{e.collateral_seized:.4f} {e.collateral_symbol}",
+                            "Collateral Seized USD": f"${e.collateral_seized_usd:,.2f}",
+                            "Bonus": f"{e.bonus_pct * 100:.1f}%",
+                            "Resulting HF": f"{e.resulting_hf:.3f}",
+                        })
+                    st.dataframe(pd.DataFrame(liq_rows))
+
+            with st.expander("Full History"):
+                st.dataframe(best.history)
