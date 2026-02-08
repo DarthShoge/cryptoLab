@@ -18,6 +18,38 @@ from arblab.strategies.leverage_loop import LeverageLoopStrategy
 st.set_page_config(page_title="Kamino Backtester", layout="wide")
 st.title("Kamino Lending Strategy Backtester")
 
+MAX_CHART_POINTS = 200
+
+
+def _downsample(df: pd.DataFrame, max_points: int = MAX_CHART_POINTS) -> pd.DataFrame:
+    """Reduce chart data to *max_points* rows using evenly-spaced sampling."""
+    if len(df) <= max_points:
+        return df
+    idx = np.linspace(0, len(df) - 1, max_points, dtype=int)
+    return df.iloc[idx]
+
+
+@st.cache_data(show_spinner="Fetching price data...")
+def _fetch_cached(symbol: str, display_name: str, timeframe: str, start: str, end: str, exchange_id: str):
+    symbols = [OHLCVConfig(symbol=symbol, display_name=display_name)]
+    return fetch_ohlcv(symbols=symbols, timeframe=timeframe, start=start, end=end, exchange_id=exchange_id)
+
+
+@st.cache_data(show_spinner="Running backtest...")
+def _run_backtest(price_data, strategy_config, _market_params):
+    strategy = LeverageLoopStrategy()
+    engine = BacktestEngine(strategy)
+    return engine.run(price_data, strategy_config, _market_params)
+
+
+@st.cache_data(show_spinner="Running grid search...")
+def _run_grid_search(price_data, param_grid, base_config, _market_params, sort_metric):
+    strategy = LeverageLoopStrategy()
+    return grid_search(
+        strategy=strategy, price_data=price_data, param_grid=param_grid,
+        base_config=base_config, market_params=_market_params, sort_metric=sort_metric,
+    )
+
 # ── Sidebar ──────────────────────────────────────────────────────────────
 
 st.sidebar.header("Data Settings")
@@ -92,25 +124,19 @@ if run_btn:
             assets[sym] = dreplace(assets[sym], lst_base_apy=lst_apy)
     mp = dreplace(mp, assets=assets)
 
-    # Fetch price data
-    with st.spinner("Fetching price data..."):
-        try:
-            symbols = [
-                OHLCVConfig(
-                    symbol=EXCHANGE_SYMBOLS.get(collateral_symbol, f"{collateral_symbol}/USDT"),
-                    display_name=collateral_symbol,
-                )
-            ]
-            price_data = fetch_ohlcv(
-                symbols=symbols,
-                timeframe=timeframe,
-                start=str(start_date),
-                end=str(end_date),
-                exchange_id=exchange_id,
-            )
-        except Exception as e:
-            st.error(f"Failed to fetch price data: {e}")
-            st.stop()
+    # Fetch price data (cached)
+    try:
+        price_data = _fetch_cached(
+            symbol=EXCHANGE_SYMBOLS.get(collateral_symbol, f"{collateral_symbol}/USDT"),
+            display_name=collateral_symbol,
+            timeframe=timeframe,
+            start=str(start_date),
+            end=str(end_date),
+            exchange_id=exchange_id,
+        )
+    except Exception as e:
+        st.error(f"Failed to fetch price data: {e}")
+        st.stop()
 
     if price_data.empty:
         st.warning("No price data returned. Check date range and exchange.")
@@ -125,7 +151,6 @@ if run_btn:
     buy_hold = initial_collateral * price_data[(collateral_symbol, "close")]
     buy_hold.name = "Buy & Hold"
 
-    strategy = LeverageLoopStrategy()
     strategy_config = {
         "collateral_symbol": collateral_symbol,
         "debt_symbol": debt_symbol,
@@ -140,9 +165,7 @@ if run_btn:
     }
 
     if mode == "Single Backtest":
-        with st.spinner("Running backtest..."):
-            engine = BacktestEngine(strategy)
-            result = engine.run(price_data, strategy_config, mp)
+        result = _run_backtest(price_data, strategy_config, mp)
 
         # Summary metrics
         m = result.metrics
@@ -168,7 +191,19 @@ if run_btn:
                 "Strategy": result.history["portfolio_value"],
                 "Buy & Hold": buy_hold.reindex(result.history.index, method="ffill"),
             })
-            st.line_chart(pv_df)
+            st.line_chart(_downsample(pv_df))
+
+            st.subheader("Position Levels")
+            pos_cols = {}
+            for col in result.history.columns:
+                if col.startswith("collateral_"):
+                    sym = col.removeprefix("collateral_")
+                    pos_cols[f"Collateral ({sym})"] = result.history[col]
+                elif col.startswith("debt_"):
+                    sym = col.removeprefix("debt_")
+                    pos_cols[f"Debt ({sym})"] = result.history[col]
+            if pos_cols:
+                st.line_chart(_downsample(pd.DataFrame(pos_cols)))
 
             st.subheader("Health Factor")
             hf_df = result.history[["health_factor"]].copy()
@@ -176,14 +211,14 @@ if run_btn:
             hf_df["HF=1.5"] = 1.5
             # Cap display for readability
             hf_df["health_factor"] = hf_df["health_factor"].clip(upper=5.0)
-            st.line_chart(hf_df)
+            st.line_chart(_downsample(hf_df))
 
             st.subheader("Asset Prices")
             close_cols = [
                 c for c in price_data.columns if c[1] == "close"
             ]
             price_display = price_data[close_cols].droplevel(1, axis=1)
-            st.line_chart(price_display)
+            st.line_chart(_downsample(price_display))
 
             # Expandable details
             with st.expander("Interest & Yield Breakdown"):
@@ -194,7 +229,7 @@ if run_btn:
                     "Cumulative LST Yield": cum_yield,
                     "Net (Yield - Interest)": cum_yield - cum_interest,
                 })
-                st.line_chart(breakdown)
+                st.line_chart(_downsample(breakdown))
 
             if result.liquidation_events:
                 with st.expander("Liquidation Events"):
@@ -226,15 +261,13 @@ if run_btn:
         total_combos = len(loops) * len(hfs)
         st.info(f"Running {total_combos} parameter combinations...")
 
-        with st.spinner(f"Running grid search ({total_combos} backtests)..."):
-            opt_result = grid_search(
-                strategy=strategy,
-                price_data=price_data,
-                param_grid=param_grid,
-                base_config=strategy_config,
-                market_params=mp,
-                sort_metric="sharpe_ratio",
-            )
+        opt_result = _run_grid_search(
+            price_data=price_data,
+            param_grid=param_grid,
+            base_config=strategy_config,
+            _market_params=mp,
+            sort_metric="sharpe_ratio",
+        )
 
         st.subheader("Optimization Results")
         st.dataframe(
@@ -269,21 +302,33 @@ if run_btn:
                 "Strategy": best.history["portfolio_value"],
                 "Buy & Hold": buy_hold.reindex(best.history.index, method="ffill"),
             })
-            st.line_chart(pv_df)
+            st.line_chart(_downsample(pv_df))
+
+            st.subheader("Position Levels")
+            pos_cols = {}
+            for col in best.history.columns:
+                if col.startswith("collateral_"):
+                    sym = col.removeprefix("collateral_")
+                    pos_cols[f"Collateral ({sym})"] = best.history[col]
+                elif col.startswith("debt_"):
+                    sym = col.removeprefix("debt_")
+                    pos_cols[f"Debt ({sym})"] = best.history[col]
+            if pos_cols:
+                st.line_chart(_downsample(pd.DataFrame(pos_cols)))
 
             st.subheader("Health Factor")
             hf_df = best.history[["health_factor"]].copy()
             hf_df["HF=1.0"] = 1.0
             hf_df["HF=1.5"] = 1.5
             hf_df["health_factor"] = hf_df["health_factor"].clip(upper=5.0)
-            st.line_chart(hf_df)
+            st.line_chart(_downsample(hf_df))
 
             st.subheader("Asset Prices")
             close_cols = [
                 c for c in price_data.columns if c[1] == "close"
             ]
             price_display = price_data[close_cols].droplevel(1, axis=1)
-            st.line_chart(price_display)
+            st.line_chart(_downsample(price_display))
 
             with st.expander("Interest & Yield Breakdown"):
                 cum_interest = best.history["interest_accrued"].cumsum()
@@ -293,7 +338,7 @@ if run_btn:
                     "Cumulative LST Yield": cum_yield,
                     "Net (Yield - Interest)": cum_yield - cum_interest,
                 })
-                st.line_chart(breakdown)
+                st.line_chart(_downsample(breakdown))
 
             if best.liquidation_events:
                 with st.expander("Liquidation Events"):

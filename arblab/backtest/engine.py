@@ -233,7 +233,7 @@ class BacktestEngine:
         liquidation_penalty: float,
     ) -> Dict[str, Any]:
         report = scenario_report(snapshot)
-        return {
+        record: Dict[str, Any] = {
             "timestamp": timestamp,
             "collateral_value": report["total_collateral_value"],
             "debt_value": report["total_debt_value"],
@@ -247,3 +247,9 @@ class BacktestEngine:
             "lst_yield": lst_yield,
             "liquidation_penalty": liquidation_penalty,
         }
+        # Native token amounts per position
+        for pos in snapshot.collateral:
+            record[f"collateral_{pos.symbol}"] = pos.amount
+        for pos in snapshot.debt:
+            record[f"debt_{pos.symbol}"] = pos.amount
+        return record

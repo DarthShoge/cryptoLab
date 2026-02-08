@@ -81,8 +81,24 @@ def grid_search(
     best_idx = comparison_df.index[0]
     best_result = results[grid.index(dict(zip(keys, combos[best_idx])))]
 
+    # Drop heavy history DataFrames from non-best results to save memory
+    trimmed: List[BacktestResult] = []
+    for r in results:
+        if r is best_result:
+            trimmed.append(r)
+        else:
+            trimmed.append(BacktestResult(
+                history=pd.DataFrame(),
+                liquidation_events=[],
+                metrics=r.metrics,
+                liquidated=r.liquidated,
+                strategy_config=r.strategy_config,
+                engine_config=r.engine_config,
+                market_params=r.market_params,
+            ))
+
     return OptimizationResult(
-        results=results,
+        results=trimmed,
         param_grid=grid,
         best_result=best_result,
         comparison_df=comparison_df,
