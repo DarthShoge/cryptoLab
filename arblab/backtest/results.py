@@ -37,6 +37,8 @@ class BacktestResult:
             f"Interest Paid:   ${m.total_interest_paid:,.2f}",
             f"LST Yield:       ${m.total_lst_yield_earned:,.2f}",
             f"Liq Penalties:   ${m.total_liquidation_penalty_paid:,.2f}",
+            f"Cash Hedged:     ${m.total_cash_hedged:,.2f}",
+            f"Max Cash Reserve:${m.max_cash_reserve:,.2f}",
             f"Actions:         {m.total_actions}",
             f"Fully Liquidated: {self.liquidated}",
         ]

@@ -71,6 +71,7 @@ class BacktestEngine:
         records: List[Dict[str, Any]] = []
         liquidation_events: List[LiquidationEvent] = []
         fully_liquidated = False
+        cash_reserve: float = 0.0
 
         for idx in range(len(price_data)):
             row = price_data.iloc[idx]
@@ -106,7 +107,8 @@ class BacktestEngine:
                 # Call strategy for each liquidation event
                 for event in events:
                     bar_data = self._make_bar_data(
-                        timestamp, row, symbols, price_data, idx, market_params
+                        timestamp, row, symbols, price_data, idx,
+                        market_params, cash_reserve,
                     )
                     recovery_actions = self.strategy.on_liquidation(
                         snapshot, bar_data, event
@@ -119,7 +121,7 @@ class BacktestEngine:
                     fully_liquidated = True
                     records.append(self._record(
                         timestamp, snapshot, 0, interest_usd,
-                        lst_yield_usd, liq_penalty_usd,
+                        lst_yield_usd, liq_penalty_usd, cash_reserve,
                     ))
                     if self.config.stop_on_full_liquidation:
                         break
@@ -127,18 +129,25 @@ class BacktestEngine:
 
             # 5. Call strategy
             bar_data = self._make_bar_data(
-                timestamp, row, symbols, price_data, idx, market_params
+                timestamp, row, symbols, price_data, idx,
+                market_params, cash_reserve,
             )
             actions = self.strategy.on_bar(snapshot, bar_data)
 
             # 6. Apply actions
             if actions:
                 snapshot = apply_actions(snapshot, actions)
+                # Track cash reserve changes from hedge actions
+                for action in actions:
+                    cash_delta = action.get("cash_delta", 0.0)
+                    if cash_delta != 0:
+                        cash_reserve += cash_delta
+                        cash_reserve = max(cash_reserve, 0.0)
 
             # 7. Record
             records.append(self._record(
                 timestamp, snapshot, len(actions), interest_usd,
-                lst_yield_usd, liq_penalty_usd,
+                lst_yield_usd, liq_penalty_usd, cash_reserve,
             ))
 
         history = pd.DataFrame(records)
@@ -197,6 +206,7 @@ class BacktestEngine:
         price_data: pd.DataFrame,
         idx: int,
         market_params: MarketParams,
+        cash_reserve: float = 0.0,
     ) -> BarData:
         prices: Dict[str, PriceBar] = {}
         for sym in symbols:
@@ -221,6 +231,7 @@ class BacktestEngine:
             history=history,
             bar_index=idx,
             market_params=market_params,
+            cash_reserve=cash_reserve,
         )
 
     @staticmethod
@@ -231,13 +242,15 @@ class BacktestEngine:
         interest_accrued: float,
         lst_yield: float,
         liquidation_penalty: float,
+        cash_reserve: float = 0.0,
     ) -> Dict[str, Any]:
         report = scenario_report(snapshot)
         record: Dict[str, Any] = {
             "timestamp": timestamp,
             "collateral_value": report["total_collateral_value"],
             "debt_value": report["total_debt_value"],
-            "portfolio_value": report["total_collateral_value"] - report["total_debt_value"],
+            "portfolio_value": report["total_collateral_value"] - report["total_debt_value"] + cash_reserve,
+            "cash_reserve": cash_reserve,
             "health_factor": report["health_factor"],
             "current_ltv": report["current_ltv"],
             "borrow_limit": report["borrow_limit"],

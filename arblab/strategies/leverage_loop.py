@@ -6,7 +6,12 @@ from typing import Any, Dict, List
 
 from arblab.backtest.market import LiquidationEvent
 from arblab.backtest.strategy import BarData, Strategy
-from arblab.kamino_recovery import auto_loop_deposit, recovery_repay_usd
+from arblab.kamino_recovery import (
+    auto_loop_deposit,
+    hedge_deploy_amount,
+    hedge_withdraw_amount,
+    recovery_repay_usd,
+)
 from arblab.kamino_risk import (
     AccountSnapshot,
     CollateralPosition,
@@ -131,6 +136,57 @@ class LeverageLoopStrategy(Strategy):
                                 {"type": "withdraw_collateral", "symbol": coll_sym, "amount": withdraw_tokens},
                                 {"type": "repay", "symbol": debt_sym, "amount": repay_tokens},
                             ]
+
+        # Hedge: HF too high → withdraw collateral to cash
+        hedge_enabled = config.get("hedge_enabled", False)
+        if hedge_enabled:
+            hedge_trigger = config.get("hedge_hf_trigger", 2.5)
+            hedge_fraction = config.get("hedge_fraction", 1.0)
+
+            if hf > hedge_trigger:
+                coll_pos = next(
+                    (p for p in snapshot.collateral if p.symbol == coll_sym), None
+                )
+                if coll_pos and coll_pos.price > 0:
+                    withdraw_tokens = hedge_withdraw_amount(
+                        total_debt=snapshot.total_debt_value(),
+                        liq_value=snapshot.liquidation_value(),
+                        target_hf=target_hf,
+                        collateral_price=coll_pos.price,
+                        liq_threshold=coll_pos.liquidation_threshold,
+                    )
+                    withdraw_tokens = withdraw_tokens * hedge_fraction
+                    # Cap at 90% of collateral to avoid emptying position
+                    withdraw_tokens = min(withdraw_tokens, coll_pos.amount * 0.9)
+                    if withdraw_tokens > 0:
+                        cash_usd = withdraw_tokens * coll_pos.price
+                        return [
+                            {
+                                "type": "withdraw_collateral",
+                                "symbol": coll_sym,
+                                "amount": withdraw_tokens,
+                                "cash_delta": cash_usd,
+                            }
+                        ]
+
+            # Hedge exit: HF dropped to target, re-deploy cash
+            if bar.cash_reserve > 0 and hf <= target_hf:
+                coll_pos = next(
+                    (p for p in snapshot.collateral if p.symbol == coll_sym), None
+                )
+                if coll_pos and coll_pos.price > 0:
+                    deploy_tokens = hedge_deploy_amount(
+                        bar.cash_reserve, coll_pos.price
+                    )
+                    if deploy_tokens > 0:
+                        return [
+                            {
+                                "type": "deposit_collateral",
+                                "symbol": coll_sym,
+                                "amount": deploy_tokens,
+                                "cash_delta": -bar.cash_reserve,
+                            }
+                        ]
 
         # Re-lever: HF too high → add more leverage
         if hf > high:

@@ -34,6 +34,7 @@ class BarData:
     history: pd.DataFrame
     bar_index: int
     market_params: MarketParams
+    cash_reserve: float = 0.0
 
 
 class Strategy(ABC):

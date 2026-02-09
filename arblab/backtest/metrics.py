@@ -26,6 +26,8 @@ class PerformanceMetrics:
     total_interest_paid: float
     total_lst_yield_earned: float
     total_liquidation_penalty_paid: float
+    total_cash_hedged: float
+    max_cash_reserve: float
     pnl_series: pd.Series
 
 
@@ -106,6 +108,16 @@ def compute_metrics(
     total_liq_penalty = float(history_df["liquidation_penalty"].sum()) if "liquidation_penalty" in history_df else 0.0
     total_liqs = int((history_df["liquidation_penalty"] > 0).sum()) if "liquidation_penalty" in history_df else 0
 
+    # Hedge metrics
+    if "cash_reserve" in history_df:
+        cash_col = history_df["cash_reserve"]
+        cash_increases = cash_col.diff().clip(lower=0).sum()
+        total_cash_hedged = float(cash_increases)
+        max_cash_reserve = float(cash_col.max())
+    else:
+        total_cash_hedged = 0.0
+        max_cash_reserve = 0.0
+
     return PerformanceMetrics(
         initial_value=initial_value,
         final_value=final_value,
@@ -123,5 +135,7 @@ def compute_metrics(
         total_interest_paid=total_interest,
         total_lst_yield_earned=total_yield,
         total_liquidation_penalty_paid=total_liq_penalty,
+        total_cash_hedged=total_cash_hedged,
+        max_cash_reserve=max_cash_reserve,
         pnl_series=pnl,
     )

@@ -85,6 +85,18 @@ rebalance_hf_high = st.sidebar.slider(
     "Re-lever Trigger (HF high)", 1.5, 5.0, 2.5, step=0.1
 )
 
+st.sidebar.header("Hedge / Take Profit")
+hedge_enabled = st.sidebar.checkbox("Enable Hedge", value=False)
+hedge_hf_trigger = 2.5
+hedge_fraction = 1.0
+if hedge_enabled:
+    hedge_hf_trigger = st.sidebar.slider(
+        "Hedge HF Trigger", 1.5, 5.0, 2.5, step=0.1
+    )
+    hedge_fraction = st.sidebar.slider(
+        "Hedge Fraction", 0.1, 1.0, 1.0, step=0.1
+    )
+
 st.sidebar.header("Market Overrides")
 borrow_rate = st.sidebar.slider(
     "USDC Borrow Rate APY", 0.0, 0.30, 0.08, step=0.01, format="%.2f"
@@ -106,6 +118,13 @@ if mode == "Grid Optimization":
     target_hf_range = st.sidebar.text_input(
         "target_hf (comma-sep)", "1.2,1.3,1.5"
     )
+    if hedge_enabled:
+        hedge_hf_range = st.sidebar.text_input(
+            "hedge_hf_trigger (comma-sep)", "2.0,2.5,3.0"
+        )
+        hedge_frac_range = st.sidebar.text_input(
+            "hedge_fraction (comma-sep)", "0.5,0.75,1.0"
+        )
 
 # ── Main ─────────────────────────────────────────────────────────────────
 
@@ -162,6 +181,9 @@ if run_btn:
         "rebalance_hf_high": rebalance_hf_high,
         "initial_collateral_price": initial_price,
         "initial_debt_price": 1.0,
+        "hedge_enabled": hedge_enabled,
+        "hedge_hf_trigger": hedge_hf_trigger,
+        "hedge_fraction": hedge_fraction,
     }
 
     if mode == "Single Backtest":
@@ -181,16 +203,24 @@ if run_btn:
         col7.metric("Interest Paid", f"${m.total_interest_paid:,.2f}")
         col8.metric("LST Yield", f"${m.total_lst_yield_earned:,.2f}")
 
+        if hedge_enabled:
+            col9, col10 = st.columns(2)
+            col9.metric("Total Cash Hedged", f"${m.total_cash_hedged:,.2f}")
+            col10.metric("Max Cash Reserve", f"${m.max_cash_reserve:,.2f}")
+
         if result.liquidated:
             st.error("Position was fully liquidated!")
 
         # Charts
         if not result.history.empty:
             st.subheader("Portfolio Value")
-            pv_df = pd.DataFrame({
+            pv_data = {
                 "Strategy": result.history["portfolio_value"],
                 "Buy & Hold": buy_hold.reindex(result.history.index, method="ffill"),
-            })
+            }
+            if hedge_enabled and "cash_reserve" in result.history:
+                pv_data["Cash Reserve"] = result.history["cash_reserve"]
+            pv_df = pd.DataFrame(pv_data)
             st.line_chart(_downsample(pv_df))
 
             st.subheader("Position Levels")
@@ -202,6 +232,8 @@ if run_btn:
                 elif col.startswith("debt_"):
                     sym = col.removeprefix("debt_")
                     pos_cols[f"Debt ({sym})"] = result.history[col]
+            if hedge_enabled and "cash_reserve" in result.history:
+                pos_cols["Cash Reserve (USD)"] = result.history["cash_reserve"]
             if pos_cols:
                 st.line_chart(_downsample(pd.DataFrame(pos_cols)))
 
@@ -253,12 +285,19 @@ if run_btn:
         try:
             loops = [int(x.strip()) for x in loop_range.split(",")]
             hfs = [float(x.strip()) for x in target_hf_range.split(",")]
+            param_grid = {"num_loops": loops, "target_hf": hfs}
+            if hedge_enabled:
+                hedge_hfs = [float(x.strip()) for x in hedge_hf_range.split(",")]
+                hedge_fracs = [float(x.strip()) for x in hedge_frac_range.split(",")]
+                param_grid["hedge_hf_trigger"] = hedge_hfs
+                param_grid["hedge_fraction"] = hedge_fracs
         except ValueError:
             st.error("Invalid grid search ranges. Use comma-separated numbers.")
             st.stop()
 
-        param_grid = {"num_loops": loops, "target_hf": hfs}
-        total_combos = len(loops) * len(hfs)
+        total_combos = 1
+        for v in param_grid.values():
+            total_combos *= len(v)
         st.info(f"Running {total_combos} parameter combinations...")
 
         opt_result = _run_grid_search(
@@ -293,15 +332,23 @@ if run_btn:
         col7.metric("Interest Paid", f"${bm.total_interest_paid:,.2f}")
         col8.metric("LST Yield", f"${bm.total_lst_yield_earned:,.2f}")
 
+        if hedge_enabled:
+            col9, col10 = st.columns(2)
+            col9.metric("Total Cash Hedged", f"${bm.total_cash_hedged:,.2f}")
+            col10.metric("Max Cash Reserve", f"${bm.max_cash_reserve:,.2f}")
+
         if best.liquidated:
             st.error("Position was fully liquidated!")
 
         if not best.history.empty:
             st.subheader("Portfolio Value")
-            pv_df = pd.DataFrame({
+            pv_data = {
                 "Strategy": best.history["portfolio_value"],
                 "Buy & Hold": buy_hold.reindex(best.history.index, method="ffill"),
-            })
+            }
+            if hedge_enabled and "cash_reserve" in best.history:
+                pv_data["Cash Reserve"] = best.history["cash_reserve"]
+            pv_df = pd.DataFrame(pv_data)
             st.line_chart(_downsample(pv_df))
 
             st.subheader("Position Levels")
@@ -313,6 +360,8 @@ if run_btn:
                 elif col.startswith("debt_"):
                     sym = col.removeprefix("debt_")
                     pos_cols[f"Debt ({sym})"] = best.history[col]
+            if hedge_enabled and "cash_reserve" in best.history:
+                pos_cols["Cash Reserve (USD)"] = best.history["cash_reserve"]
             if pos_cols:
                 st.line_chart(_downsample(pd.DataFrame(pos_cols)))
 
