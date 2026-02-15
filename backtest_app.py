@@ -60,12 +60,13 @@ end_date = st.sidebar.date_input("End Date", value=pd.Timestamp("2024-12-31"))
 
 st.sidebar.header("Assets")
 collateral_symbol = st.sidebar.selectbox(
-    "Collateral Asset", ["SOL", "JitoSOL", "mSOL"], index=0
+    "Collateral Asset", ["SOL", "JitoSOL", "mSOL", "ETH"], index=0
 )
 EXCHANGE_SYMBOLS = {
     "SOL": "SOL/USDT",
     "JitoSOL": "JITOSOL/USDT",
     "mSOL": "MSOL/USDT",
+    "ETH": "ETH/USDT",
 }
 debt_symbol = st.sidebar.selectbox("Debt Asset", ["USDC", "USDT"], index=0)
 
