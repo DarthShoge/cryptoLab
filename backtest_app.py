@@ -171,6 +171,10 @@ if run_btn:
     buy_hold = initial_collateral * price_data[(collateral_symbol, "close")]
     buy_hold.name = "Buy & Hold"
 
+    # Extract asset params from market config
+    coll_cfg = mp.assets.get(collateral_symbol)
+    debt_cfg = mp.assets.get(debt_symbol)
+
     strategy_config = {
         "collateral_symbol": collateral_symbol,
         "debt_symbol": debt_symbol,
@@ -185,6 +189,10 @@ if run_btn:
         "hedge_enabled": hedge_enabled,
         "hedge_hf_trigger": hedge_hf_trigger,
         "hedge_fraction": hedge_fraction,
+        # Asset params from market config
+        "ltv": coll_cfg.ltv if coll_cfg else 0.75,
+        "liquidation_threshold": coll_cfg.liquidation_threshold if coll_cfg else 0.80,
+        "borrow_factor": debt_cfg.borrow_factor if debt_cfg else 1.0,
     }
 
     if mode == "Single Backtest":
@@ -198,16 +206,28 @@ if run_btn:
         col3.metric("Sharpe Ratio", f"{m.sharpe_ratio:.3f}")
         col4.metric("Sortino Ratio", f"{m.sortino_ratio:.3f}")
 
+        # Risk Metrics Row
         col5, col6, col7, col8 = st.columns(4)
         col5.metric("Min HF", f"{m.min_health_factor:.3f}")
         col6.metric("Liquidations", str(m.total_liquidations))
-        col7.metric("Interest Paid", f"${m.total_interest_paid:,.2f}")
-        col8.metric("LST Yield", f"${m.total_lst_yield_earned:,.2f}")
+        if not result.history.empty:
+            final = result.history.iloc[-1]
+            col7.metric("Borrow LTV (Kamino)", f"{final['borrow_ltv'] * 100:.2f}%")
+            col8.metric("Liquidation LTV", f"{final['liquidation_ltv'] * 100:.2f}%")
 
+        # Cost/Revenue Row
+        col9, col10, col11, col12 = st.columns(4)
+        col9.metric("Interest Paid", f"${m.total_interest_paid:,.2f}")
+        col10.metric("LST Yield", f"${m.total_lst_yield_earned:,.2f}")
+        if not result.history.empty:
+            col11.metric("Current LTV", f"{final['current_ltv'] * 100:.2f}%")
+        # col12 empty for now
+
+        # Hedge Metrics Row (if enabled)
         if hedge_enabled:
-            col9, col10 = st.columns(2)
-            col9.metric("Total Cash Hedged", f"${m.total_cash_hedged:,.2f}")
-            col10.metric("Max Cash Reserve", f"${m.max_cash_reserve:,.2f}")
+            col13, col14 = st.columns(2)
+            col13.metric("Total Cash Hedged", f"${m.total_cash_hedged:,.2f}")
+            col14.metric("Max Cash Reserve", f"${m.max_cash_reserve:,.2f}")
 
         if result.liquidated:
             st.error("Position was fully liquidated!")
@@ -327,16 +347,28 @@ if run_btn:
         col3.metric("Sharpe Ratio", f"{bm.sharpe_ratio:.3f}")
         col4.metric("Sortino Ratio", f"{bm.sortino_ratio:.3f}")
 
+        # Risk Metrics Row
         col5, col6, col7, col8 = st.columns(4)
         col5.metric("Min HF", f"{bm.min_health_factor:.3f}")
         col6.metric("Liquidations", str(bm.total_liquidations))
-        col7.metric("Interest Paid", f"${bm.total_interest_paid:,.2f}")
-        col8.metric("LST Yield", f"${bm.total_lst_yield_earned:,.2f}")
+        if not best.history.empty:
+            final = best.history.iloc[-1]
+            col7.metric("Borrow LTV (Kamino)", f"{final['borrow_ltv'] * 100:.2f}%")
+            col8.metric("Liquidation LTV", f"{final['liquidation_ltv'] * 100:.2f}%")
 
+        # Cost/Revenue Row
+        col9, col10, col11, col12 = st.columns(4)
+        col9.metric("Interest Paid", f"${bm.total_interest_paid:,.2f}")
+        col10.metric("LST Yield", f"${bm.total_lst_yield_earned:,.2f}")
+        if not best.history.empty:
+            col11.metric("Current LTV", f"{final['current_ltv'] * 100:.2f}%")
+        # col12 empty for now
+
+        # Hedge Metrics Row (if enabled)
         if hedge_enabled:
-            col9, col10 = st.columns(2)
-            col9.metric("Total Cash Hedged", f"${bm.total_cash_hedged:,.2f}")
-            col10.metric("Max Cash Reserve", f"${bm.max_cash_reserve:,.2f}")
+            col13, col14 = st.columns(2)
+            col13.metric("Total Cash Hedged", f"${bm.total_cash_hedged:,.2f}")
+            col14.metric("Max Cash Reserve", f"${bm.max_cash_reserve:,.2f}")
 
         if best.liquidated:
             st.error("Position was fully liquidated!")

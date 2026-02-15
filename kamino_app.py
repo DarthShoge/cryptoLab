@@ -225,11 +225,19 @@ report = scenario_report(snapshot)
 hf = report["health_factor"]
 hf_color = _health_color(hf)
 
+# Row 1: Core metrics
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Health Factor", _fmt(hf) if hf != float("inf") else "Safe (no debt)")
-m2.metric("Current LTV", _pct(report["current_ltv"]) if report["current_ltv"] != float("inf") else "N/A")
-m3.metric("Borrow Limit", _fmt_usd(report["borrow_limit"]))
-m4.metric("Liquidation Buffer", _fmt_usd(report["liquidation_buffer"]))
+m2.metric("Borrow Limit", _fmt_usd(report["borrow_limit"]))
+m3.metric("Liquidation Buffer", _fmt_usd(report["liquidation_buffer"]))
+m4.metric("", "")  # Empty for spacing
+
+# Row 2: LTV metrics
+ltv1, ltv2, ltv3, ltv4 = st.columns(4)
+ltv1.metric("Current LTV", _pct(report["current_ltv"]) if report["current_ltv"] != float("inf") else "N/A")
+ltv2.metric("Borrow LTV (Kamino)", _pct(report["borrow_ltv"]) if report["borrow_ltv"] != float("inf") else "N/A")
+ltv3.metric("Liquidation LTV", _pct(report["liquidation_ltv"]))
+ltv4.metric("", "")  # Empty for spacing
 
 if hf != float("inf"):
     if hf < 1.1:
@@ -503,14 +511,14 @@ if has_changes:
 
     st.subheader("Scenario Results")
 
-    s1, s2, s3, s4 = st.columns(4)
-
     def _delta_str(new: float, old: float) -> str:
         diff = new - old
         if abs(diff) < 0.0001:
             return ""
         return f"{diff:+.2f}"
 
+    # Row 1: Core metrics
+    s1, s2, s3, s4 = st.columns(4)
     hf_delta = _delta_str(sim_hf, hf) if hf != float("inf") and sim_hf != float("inf") else ""
     s1.metric(
         "Health Factor",
@@ -518,23 +526,42 @@ if has_changes:
         delta=hf_delta or None,
         delta_color="normal",
     )
-    ltv_delta = _delta_str(sim_report["current_ltv"], report["current_ltv"]) if report["current_ltv"] != float("inf") else ""
     s2.metric(
-        "Current LTV",
-        _pct(sim_report["current_ltv"]) if sim_report["current_ltv"] != float("inf") else "N/A",
-        delta=ltv_delta or None,
-        delta_color="inverse",
-    )
-    s3.metric(
         "Borrow Limit",
         _fmt_usd(sim_report["borrow_limit"]),
         delta=_delta_str(sim_report["borrow_limit"], report["borrow_limit"]) or None,
     )
-    s4.metric(
+    s3.metric(
         "Liq. Buffer",
         _fmt_usd(sim_report["liquidation_buffer"]),
         delta=_delta_str(sim_report["liquidation_buffer"], report["liquidation_buffer"]) or None,
     )
+    s4.metric("", "")  # Empty for spacing
+
+    # Row 2: LTV metrics
+    ltv1, ltv2, ltv3, ltv4 = st.columns(4)
+    current_ltv_delta = _delta_str(sim_report["current_ltv"], report["current_ltv"]) if report["current_ltv"] != float("inf") else ""
+    ltv1.metric(
+        "Current LTV",
+        _pct(sim_report["current_ltv"]) if sim_report["current_ltv"] != float("inf") else "N/A",
+        delta=current_ltv_delta or None,
+        delta_color="inverse",
+    )
+    borrow_ltv_delta = _delta_str(sim_report["borrow_ltv"], report["borrow_ltv"]) if report["borrow_ltv"] != float("inf") else ""
+    ltv2.metric(
+        "Borrow LTV (Kamino)",
+        _pct(sim_report["borrow_ltv"]) if sim_report["borrow_ltv"] != float("inf") else "N/A",
+        delta=borrow_ltv_delta or None,
+        delta_color="inverse",
+    )
+    liq_ltv_delta = _delta_str(sim_report["liquidation_ltv"], report["liquidation_ltv"])
+    ltv3.metric(
+        "Liquidation LTV",
+        _pct(sim_report["liquidation_ltv"]),
+        delta=liq_ltv_delta or None,
+        delta_color="normal",
+    )
+    ltv4.metric("", "")  # Empty for spacing
 
     if sim_hf != float("inf"):
         if sim_hf < 1.0:

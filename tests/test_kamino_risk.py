@@ -474,6 +474,8 @@ class TestScenarioReport:
             "total_debt_value",
             "borrow_limit",
             "current_ltv",
+            "borrow_ltv",
+            "liquidation_ltv",
             "health_factor",
             "liquidation_buffer",
         }

@@ -253,6 +253,8 @@ class BacktestEngine:
             "cash_reserve": cash_reserve,
             "health_factor": report["health_factor"],
             "current_ltv": report["current_ltv"],
+            "borrow_ltv": report["borrow_ltv"],
+            "liquidation_ltv": report["liquidation_ltv"],
             "borrow_limit": report["borrow_limit"],
             "liquidation_buffer": report["liquidation_buffer"],
             "action_count": action_count,

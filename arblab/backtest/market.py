@@ -91,7 +91,7 @@ class MarketParams:
                 max_liquidation_bonus_bps=500,
                 borrow_rate_apy=0.08,
                 protocol_take_rate_pct=0.15,
-                borrow_factor=1.0,
+                borrow_factor=1.053,  # Risk-adjusted: 5.3% premium
             ),
             "USDT": AssetConfig(
                 symbol="USDT",
@@ -101,7 +101,7 @@ class MarketParams:
                 max_liquidation_bonus_bps=500,
                 borrow_rate_apy=0.08,
                 protocol_take_rate_pct=0.15,
-                borrow_factor=1.0,
+                borrow_factor=1.053,  # Risk-adjusted: 5.3% premium
             ),
             "ETH": AssetConfig(
                 symbol="ETH",

@@ -49,6 +49,7 @@ class LeverageLoopStrategy(Strategy):
         # Look up asset params from market config if available
         ltv = config.get("ltv", 0.75)
         liq_threshold = config.get("liquidation_threshold", 0.80)
+        borrow_factor = config.get("borrow_factor", 1.0)
 
         # Start with initial collateral and zero debt
         snapshot = AccountSnapshot(
@@ -62,7 +63,12 @@ class LeverageLoopStrategy(Strategy):
                 )
             ],
             debt=[
-                DebtPosition(symbol=debt_sym, amount=0.0, price=debt_price)
+                DebtPosition(
+                    symbol=debt_sym,
+                    amount=0.0,
+                    price=debt_price,
+                    borrow_factor=borrow_factor,
+                )
             ],
         )
 
