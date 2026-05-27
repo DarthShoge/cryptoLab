@@ -29,7 +29,7 @@ def grid_search(
     base_config: Dict[str, Any] | None = None,
     engine_config: EngineConfig | None = None,
     market_params: MarketParams | None = None,
-    sort_metric: str = "sharpe_ratio",
+    sort_metric: str = "sortino_ratio",
     sort_ascending: bool = False,
 ) -> OptimizationResult:
     """Run a grid search over strategy parameter combinations.

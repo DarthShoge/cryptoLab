@@ -23,6 +23,7 @@ EXPECTED_HISTORY_COLUMNS = [
     "debt_value",
     "portfolio_value",
     "health_factor",
+    "liquidation_health_factor",
     "current_ltv",
     "borrow_limit",
     "liquidation_buffer",
@@ -228,7 +229,7 @@ class TestConstantPricesStablePortfolio:
         engine = BacktestEngine(NoOpStrategy())
         result = engine.run(price_data, market_params=market_params)
 
-        # HF = liquidation_value / debt = (1500 * 0.80) / ~500 = ~2.4
+        # HF = borrow_limit / debt = (1500 * 0.75) / ~500 = ~2.25
         min_hf = result.history["health_factor"].min()
         assert min_hf > 2.0
 

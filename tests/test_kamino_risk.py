@@ -123,11 +123,11 @@ class TestAccountSnapshotMetrics:
 
     def test_health_factor_normal(self):
         snap = make_snapshot(
-            collateral=[make_collateral(amount=10.0, price=150.0, liq_threshold=0.75)],
+            collateral=[make_collateral(amount=10.0, price=150.0, ltv=0.65, liq_threshold=0.75)],
             debt=[make_debt(amount=500.0, price=1.0)],
         )
-        # liq_value=1125, debt=500 => hf=2.25
-        assert snap.health_factor() == pytest.approx(2.25)
+        # borrow_limit=975, debt=500 => hf=1.95
+        assert snap.health_factor() == pytest.approx(1.95)
 
     def test_health_factor_no_debt_is_inf(self):
         snap = make_snapshot(
@@ -138,11 +138,11 @@ class TestAccountSnapshotMetrics:
 
     def test_health_factor_below_one(self):
         snap = make_snapshot(
-            collateral=[make_collateral(amount=10.0, price=150.0, liq_threshold=0.75)],
+            collateral=[make_collateral(amount=10.0, price=150.0, ltv=0.65, liq_threshold=0.75)],
             debt=[make_debt(amount=1200.0, price=1.0)],
         )
-        # liq_value=1125, debt=1200 => hf=0.9375
-        assert snap.health_factor() == pytest.approx(0.9375)
+        # borrow_limit=975, debt=1200 => hf=0.8125
+        assert snap.health_factor() == pytest.approx(0.8125)
 
     def test_current_ltv_normal(self):
         snap = make_snapshot(
@@ -477,6 +477,7 @@ class TestScenarioReport:
             "borrow_ltv",
             "liquidation_ltv",
             "health_factor",
+            "liquidation_health_factor",
             "liquidation_buffer",
         }
         assert set(report.keys()) == expected_keys

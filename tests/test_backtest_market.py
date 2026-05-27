@@ -379,22 +379,22 @@ def test_priority_repay_highest_borrow_factor_debt():
 # ===================================================================
 
 def test_simulate_liquidation_cascade_restores_health():
-    """Cascading liquidations should bring health factor back above 1.0."""
+    """Cascading liquidations should bring liquidation health factor back above 1.0."""
     market = _simple_market(close_factor_pct=0.20)
-    # Mildly underwater: HF just below 1.0
+    # Mildly underwater: liquidation HF just below 1.0
     # collateral: 10 SOL at $100 = $1000, liq_value = $800
-    # debt: 850 USDC => HF = 800/850 = 0.941
+    # debt: 850 USDC => liquidation HF = 800/850 = 0.941
     snap = make_snapshot(
         collateral=[make_collateral("SOL", amount=10.0, price=100.0, ltv=0.75, liq_threshold=0.80)],
         debt=[make_debt("USDC", amount=850.0, price=1.0)],
     )
-    assert snap.health_factor() < 1.0
+    assert snap.liquidation_health_factor() < 1.0
 
     new_snap, events = simulate_liquidation_cascade(snap, market, max_cascades=10)
     assert len(events) >= 1
-    # Either health factor restored or position wiped
+    # Either liquidation health factor restored or position wiped
     if new_snap.total_collateral_value() > 0 and any(d.amount > 0 for d in new_snap.debt):
-        assert new_snap.health_factor() >= 1.0
+        assert new_snap.liquidation_health_factor() >= 1.0
 
 
 def test_simulate_liquidation_cascade_position_wiped():

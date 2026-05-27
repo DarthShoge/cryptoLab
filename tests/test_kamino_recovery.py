@@ -65,16 +65,16 @@ class TestRecoveryRepayUsd:
     def test_round_trip_repay_achieves_target_hf(self):
         """Apply the computed repayment to a snapshot and verify HF reaches target."""
         target_hf = 1.25
-        # 10 SOL @ $150, liq_threshold=0.75 => liq_value = 1125
-        # 1000 USDC debt => HF = 1125/1000 = 1.125 (below 1.25)
+        # 10 SOL @ $150, ltv=0.65 => borrow_limit = 975
+        # 1000 USDC debt => HF = 975/1000 = 0.975 (below 1.25)
         snap = make_snapshot(
             collateral=[make_collateral("SOL", 10, 150, 0.65, 0.75)],
             debt=[make_debt("USDC", 1000, 1.0)],
         )
-        total_debt = snap.total_debt_value()
-        liq_value = snap.liquidation_value()
+        weighted_debt = snap.risk_adjusted_debt_value()
+        borrow_limit = snap.borrow_limit()
 
-        repay_amount = recovery_repay_usd(total_debt, liq_value, target_hf)
+        repay_amount = recovery_repay_usd(weighted_debt, borrow_limit, target_hf)
         assert repay_amount > 0
 
         recovered = apply_actions(snap, [
@@ -117,23 +117,23 @@ class TestRecoverySwapWithdraw:
         """Withdraw collateral + use proceeds to repay debt => HF reaches target.
 
         The swap-withdraw formula assumes that withdrawing W tokens of collateral
-        (worth W*price) reduces liq_value by W*price*liq_threshold and simultaneously
+        (worth W*price) reduces borrow_limit by W*price*ltv and simultaneously
         reduces debt by W*price. Net HF change should hit the target.
         """
         target_hf = 1.25
         sol_price = 150.0
-        liq_threshold = 0.75
+        ltv = 0.65
 
         snap = make_snapshot(
-            collateral=[make_collateral("SOL", 20, sol_price, 0.65, liq_threshold)],
+            collateral=[make_collateral("SOL", 20, sol_price, ltv, 0.75)],
             debt=[make_debt("USDC", 2000, 1.0)],
         )
-        total_debt = snap.total_debt_value()
-        liq_value = snap.liquidation_value()
-        deficit = compute_deficit(total_debt, liq_value, target_hf)
+        weighted_debt = snap.risk_adjusted_debt_value()
+        borrow_limit = snap.borrow_limit()
+        deficit = compute_deficit(weighted_debt, borrow_limit, target_hf)
 
         withdraw_tokens = recovery_swap_withdraw(
-            deficit, sol_price, target_hf, liq_threshold, 20
+            deficit, sol_price, target_hf, ltv, 20
         )
         withdraw_usd = withdraw_tokens * sol_price
 
@@ -166,17 +166,17 @@ class TestRecoveryDepositTokens:
         """Deposit tokens to reach target HF."""
         target_hf = 1.25
         sol_price = 150.0
-        liq_threshold = 0.75
+        ltv = 0.65
 
         snap = make_snapshot(
-            collateral=[make_collateral("SOL", 10, sol_price, 0.65, liq_threshold)],
+            collateral=[make_collateral("SOL", 10, sol_price, ltv, 0.75)],
             debt=[make_debt("USDC", 1000, 1.0)],
         )
-        total_debt = snap.total_debt_value()
-        liq_value = snap.liquidation_value()
-        deficit = compute_deficit(total_debt, liq_value, target_hf)
+        weighted_debt = snap.risk_adjusted_debt_value()
+        borrow_limit = snap.borrow_limit()
+        deficit = compute_deficit(weighted_debt, borrow_limit, target_hf)
 
-        deposit_tokens = recovery_deposit_tokens(deficit, sol_price, liq_threshold)
+        deposit_tokens = recovery_deposit_tokens(deficit, sol_price, ltv)
 
         recovered = apply_actions(snap, [
             {"type": "deposit_collateral", "symbol": "SOL", "amount": deposit_tokens},

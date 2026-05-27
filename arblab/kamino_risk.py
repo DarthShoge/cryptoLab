@@ -85,7 +85,23 @@ class AccountSnapshot:
         return self.liquidation_value() / total_collateral
 
     def health_factor(self) -> float:
-        total_debt = self.total_debt_value()
+        """Borrow-weighted health factor matching Kamino's UI.
+
+        HF = borrow_limit / risk_adjusted_debt.
+        When HF < 1.0 the position exceeds its borrow capacity.
+        """
+        total_debt = self.risk_adjusted_debt_value()
+        if total_debt == 0:
+            return float("inf")
+        return self.borrow_limit() / total_debt
+
+    def liquidation_health_factor(self) -> float:
+        """Liquidation health factor used for on-chain liquidation checks.
+
+        LHF = liquidation_value / risk_adjusted_debt.
+        When LHF < 1.0 the position is eligible for liquidation.
+        """
+        total_debt = self.risk_adjusted_debt_value()
         if total_debt == 0:
             return float("inf")
         return self.liquidation_value() / total_debt
@@ -194,5 +210,6 @@ def scenario_report(snapshot: AccountSnapshot) -> Dict[str, float]:
         "borrow_ltv": snapshot.borrow_ltv(),
         "liquidation_ltv": snapshot.liquidation_ltv(),
         "health_factor": snapshot.health_factor(),
+        "liquidation_health_factor": snapshot.liquidation_health_factor(),
         "liquidation_buffer": snapshot.liquidation_buffer(),
     }

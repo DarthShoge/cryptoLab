@@ -247,7 +247,7 @@ def simulate_liquidation(
     - Seize collateral with lowest liquidation_threshold first
     - Repay debt with highest borrow_factor first
     """
-    if snapshot.health_factor() >= 1.0:
+    if snapshot.liquidation_health_factor() >= 1.0:
         raise ValueError("Cannot liquidate: health factor >= 1.0")
 
     # Pick debt: highest borrow_factor
@@ -326,7 +326,7 @@ def simulate_liquidation_cascade(
     events: List[LiquidationEvent] = []
 
     for _ in range(max_cascades):
-        if snapshot.health_factor() >= 1.0:
+        if snapshot.liquidation_health_factor() >= 1.0:
             break
         # Check if position is effectively wiped out
         if snapshot.total_collateral_value() <= 0 or all(

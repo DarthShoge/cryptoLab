@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -20,6 +20,7 @@ class BacktestResult:
     strategy_config: Dict[str, Any]
     engine_config: Any  # EngineConfig — avoid circular import
     market_params: MarketParams
+    strategy_events: List[Dict[str, Any]] = field(default_factory=list)
 
     def summary(self) -> str:
         m = self.metrics

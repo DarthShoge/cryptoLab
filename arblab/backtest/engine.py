@@ -92,7 +92,7 @@ class BacktestEngine:
 
             # 4. Check liquidation
             liq_penalty_usd = 0.0
-            if snapshot.health_factor() < 1.0:
+            if snapshot.liquidation_health_factor() < 1.0:
                 snapshot, events = simulate_liquidation_cascade(
                     snapshot,
                     market_params,
@@ -164,6 +164,7 @@ class BacktestEngine:
             strategy_config=strategy_config,
             engine_config=self.config,
             market_params=market_params,
+            strategy_events=list(getattr(self.strategy, "event_log", [])),
         )
 
     # ------------------------------------------------------------------
@@ -252,6 +253,7 @@ class BacktestEngine:
             "portfolio_value": report["total_collateral_value"] - report["total_debt_value"] + cash_reserve,
             "cash_reserve": cash_reserve,
             "health_factor": report["health_factor"],
+            "liquidation_health_factor": report["liquidation_health_factor"],
             "current_ltv": report["current_ltv"],
             "borrow_ltv": report["borrow_ltv"],
             "liquidation_ltv": report["liquidation_ltv"],

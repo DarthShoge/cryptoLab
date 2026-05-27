@@ -116,8 +116,8 @@ class LeverageLoopStrategy(Strategy):
         # Delever: HF too low → repay debt
         if hf < low:
             repay_usd = recovery_repay_usd(
-                snapshot.total_debt_value(),
-                snapshot.liquidation_value(),
+                snapshot.risk_adjusted_debt_value(),
+                snapshot.borrow_limit(),
                 target_hf,
             )
             if repay_usd > 0:
@@ -155,11 +155,11 @@ class LeverageLoopStrategy(Strategy):
                 )
                 if coll_pos and coll_pos.price > 0:
                     withdraw_tokens = hedge_withdraw_amount(
-                        total_debt=snapshot.total_debt_value(),
-                        liq_value=snapshot.liquidation_value(),
+                        total_debt=snapshot.risk_adjusted_debt_value(),
+                        liq_value=snapshot.borrow_limit(),
                         target_hf=target_hf,
                         collateral_price=coll_pos.price,
-                        liq_threshold=coll_pos.liquidation_threshold,
+                        liq_threshold=coll_pos.ltv,
                     )
                     withdraw_tokens = withdraw_tokens * hedge_fraction
                     # Cap at 90% of collateral to avoid emptying position
