@@ -161,6 +161,38 @@ def _experiment_group(config: Dict[str, object]) -> str:
     return "core_hedge"
 
 
+def _final_position_columns(history: pd.DataFrame, final_sol_price: float) -> dict[str, float]:
+    if history.empty:
+        return {
+            "final_portfolio_value_usd": 0.0,
+            "final_sol_equiv": 0.0,
+        }
+
+    final = history.iloc[-1]
+    values = {
+        "final_portfolio_value_usd": float(final.get("portfolio_value", 0.0)),
+        "final_sol_equiv": (
+            float(final.get("portfolio_value", 0.0)) / final_sol_price
+            if final_sol_price > 0.0
+            else 0.0
+        ),
+    }
+
+    for symbol in ("SOL", "USDC"):
+        values[f"final_collateral_{symbol}"] = float(
+            final.get(f"collateral_{symbol}", 0.0)
+        )
+        values[f"final_collateral_{symbol}_value_usd"] = float(
+            final.get(f"collateral_{symbol}_value", 0.0)
+        )
+    for symbol in ("ETH", "USDC"):
+        values[f"final_debt_{symbol}"] = float(final.get(f"debt_{symbol}", 0.0))
+        values[f"final_debt_{symbol}_value_usd"] = float(
+            final.get(f"debt_{symbol}_value", 0.0)
+        )
+    return values
+
+
 def _pandas_timeframe(timeframe: str) -> str:
     if timeframe.lower().endswith("w"):
         return timeframe[:-1] + "W"
@@ -333,6 +365,7 @@ def _run_sol_supertrend_grid_search(
         else 0.0
     )
     sol_benchmark_max_drawdown_pct = _series_max_drawdown_pct(sol_close)
+    final_sol_price = float(sol_close.iloc[-1]) if len(sol_close) > 0 else 0.0
 
     for combo in combos:
         params = dict(zip(keys, combo))
@@ -369,6 +402,7 @@ def _run_sol_supertrend_grid_search(
                     sol_benchmark_return_pct=sol_benchmark_return_pct,
                     sol_benchmark_max_drawdown_pct=sol_benchmark_max_drawdown_pct,
                 ),
+                **_final_position_columns(result.history, final_sol_price),
                 "total_return_pct": m.total_return_pct,
                 "max_drawdown_pct": m.max_drawdown_pct,
                 "sharpe_ratio": m.sharpe_ratio,

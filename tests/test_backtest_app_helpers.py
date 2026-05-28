@@ -284,6 +284,43 @@ def test_sol_supertrend_grid_search_adds_benchmark_tier_columns():
     assert row["experiment_group"] == "core_hedge"
 
 
+def test_sol_supertrend_grid_search_adds_final_position_columns():
+    result = run_selected_grid_search(
+        strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
+        price_data=_long_price_data(),
+        param_grid={"supertrend_atr_period": [10]},
+        base_config={
+            "initial_sol_collateral": 100.0,
+            "initial_sol_price": 100.0,
+            "initial_eth_price": 2_000.0,
+            "rebalance_cooldown_bars": 0,
+            "enable_usdc_releverage": False,
+            "enable_full_short_mode": False,
+        },
+    )
+
+    row = result.comparison_df.iloc[0]
+    expected_columns = {
+        "final_portfolio_value_usd",
+        "final_sol_equiv",
+        "final_collateral_SOL",
+        "final_collateral_SOL_value_usd",
+        "final_collateral_USDC",
+        "final_collateral_USDC_value_usd",
+        "final_debt_ETH",
+        "final_debt_ETH_value_usd",
+        "final_debt_USDC",
+        "final_debt_USDC_value_usd",
+    }
+
+    assert expected_columns.issubset(result.comparison_df.columns)
+    assert row["final_portfolio_value_usd"] == row["final_collateral_SOL_value_usd"]
+    assert row["final_sol_equiv"] > 0
+    assert row["final_collateral_SOL"] == 100.0
+    assert row["final_debt_ETH"] == 0.0
+    assert row["final_debt_USDC"] == 0.0
+
+
 def test_sol_supertrend_grid_search_groups_full_short_only_when_enabled():
     price_data = _long_price_data()
 
