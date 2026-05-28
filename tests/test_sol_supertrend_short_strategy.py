@@ -116,6 +116,45 @@ def test_eth_short_proceeds_are_posted_as_usdc_collateral():
     assert strategy.event_log[-1]["target_eth_short_ratio"] == pytest.approx(0.75)
 
 
+def test_eth_short_open_updates_aggregate_hedge_basis():
+    strategy, snapshot = _setup_strategy(
+        signal_by_bar={0: {"green": 1, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    strategy.on_bar(snapshot, _bar(0, eth_price=2_000.0))
+
+    accounting = strategy.hedge_accounting_state()
+    assert accounting["open_eth_short_amount"] == pytest.approx(3.75)
+    assert accounting["average_eth_short_basis_usdc"] == pytest.approx(1_998.0)
+    assert accounting["lifetime_realized_hedge_pnl_usdc"] == pytest.approx(0.0)
+    assert accounting["spendable_hedge_profit_usdc"] == pytest.approx(0.0)
+    assert strategy.event_log[-1]["open_eth_short_amount"] == pytest.approx(3.75)
+    assert strategy.event_log[-1]["average_eth_short_basis_usdc"] == pytest.approx(1_998.0)
+
+
+def test_eth_short_cover_realizes_pnl_and_spendable_profit():
+    strategy, snapshot = _setup_strategy(
+        signal_by_bar={
+            0: {"green": 0, "bearish_3d": True, "bearish_1w": True},
+            1: {"green": 4, "bearish_3d": True, "bearish_1w": True},
+        },
+    )
+
+    from arblab.kamino_risk import apply_actions
+
+    open_actions = strategy.on_bar(snapshot, _bar(0, eth_price=2_000.0))
+    snapshot = apply_actions(snapshot, open_actions)
+    close_actions = strategy.on_bar(snapshot, _bar(1, eth_price=1_500.0))
+
+    eth_repay = next(a for a in close_actions if a["type"] == "repay" and a["symbol"] == "ETH")
+    expected_pnl = eth_repay["amount"] * (1_998.0 - 1_501.5)
+    accounting = strategy.hedge_accounting_state()
+    assert accounting["lifetime_realized_hedge_pnl_usdc"] == pytest.approx(expected_pnl)
+    assert accounting["spendable_hedge_profit_usdc"] == pytest.approx(expected_pnl)
+    assert accounting["open_eth_short_amount"] == pytest.approx(7.5 - eth_repay["amount"])
+    assert strategy.event_log[-1]["lifetime_realized_hedge_pnl_usdc"] == pytest.approx(expected_pnl)
+
+
 def test_strong_bullish_vote_adds_usdc_debt_to_buy_sol():
     strategy, snapshot = _setup_strategy(
         enable_usdc_releverage=True,

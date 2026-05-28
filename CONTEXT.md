@@ -92,6 +92,54 @@ _Avoid_: Normal rebalance
 A rebalance triggered by an improving SOL Supertrend vote. The priority is to reduce ETH short exposure first, then increase SOL collateral using available USDC value and, when permitted, additional USDC debt.
 _Avoid_: Unwind when additional SOL buying is included.
 
+**Surplus USDC reinvestment**:
+Using existing USDC collateral or realized hedge proceeds to buy and deposit more SOL without borrowing new USDC. It is distinct from USDC releverage because it converts existing account value rather than increasing debt.
+_Avoid_: Releverage; borrowing to buy SOL
+
+**Bullish reinvestment priority**:
+The bullish recovery ordering where ETH short exposure is reduced to the current hedge target first, a USDC safety buffer is preserved second, and only remaining surplus USDC is used to buy and deposit SOL.
+_Avoid_: Buying SOL before hedge unwind
+
+**Hedge unwind capital**:
+USDC value reserved or spent to buy back ETH debt until ETH short exposure reaches the current hedge target.
+_Avoid_: Reinvestable cash; surplus
+
+**Realized hedge profit surplus**:
+Positive cumulative hedge realized PnL remaining after ETH short exposure has actually been reduced to the current hedge target and the USDC safety buffer has been preserved. It is the only hedge-derived USDC eligible for surplus reinvestment, and prior realized hedge losses must be recovered before the surplus can be positive.
+_Avoid_: Paper hedge profit; raw USDC collateral
+
+**Hedge realized PnL ledger**:
+The accounting record that tracks ETH short proceeds when exposure is opened and ETH cover cost when exposure is reduced. Realized hedge profit surplus is derived from cumulative realized PnL in this ledger rather than inferred from raw USDC balances.
+_Avoid_: Balance-derived hedge profit
+
+**Spendable hedge profit pool**:
+The portion of positive cumulative hedge realized PnL that has not already been consumed by surplus reinvestment. Buying SOL through surplus reinvestment reduces this pool, while lifetime realized PnL remains available for reporting.
+_Avoid_: Reusing the same hedge profit across multiple buys
+
+**Hedge profit spend policy**:
+The configurable choice of whether USDC debt cleanup consumes the spendable hedge profit pool. The conservative default treats both surplus reinvestment and hedge-profit-funded debt cleanup as spending from the same pool.
+_Avoid_: Implicitly double-counting hedge profit
+
+**Aggregate ETH short basis**:
+The averaged entry basis used by the hedge realized PnL ledger for the open ETH short. It tracks total borrowed ETH amount and average sale price rather than FIFO lots.
+_Avoid_: Tax-lot accounting
+
+**Realized hedge profit gate**:
+A configurable threshold requiring realized hedge profit surplus to exceed a chosen fraction of SOL collateral value before surplus USDC reinvestment can buy more SOL.
+_Avoid_: Reinvesting every positive hedge PnL
+
+**Surplus reinvestment ladder**:
+The bullish-vote sizing rule for converting eligible realized hedge profit surplus into additional SOL collateral. The initial ladder reinvests 25% of eligible surplus at three bullish votes and 50% at four bullish votes after the realized hedge profit gate is met.
+_Avoid_: All-in reinvestment; raw surplus spend
+
+**Surplus reinvestment cap**:
+The maximum amount of eligible realized hedge profit surplus that can be converted into SOL collateral in a single rebalance, expressed as a fraction of SOL collateral value. The initial cap is 5% of SOL collateral value per rebalance.
+_Avoid_: Spending the whole eligible surplus at once
+
+**Surplus reinvestment cadence**:
+Surplus USDC reinvestment uses the existing rebalance cooldown rather than a separate cooldown clock.
+_Avoid_: Independent reinvestment cooldown
+
 **Bullish re-lever**:
 The part of a bullish rebalance that borrows USDC, buys SOL, and deposits that SOL as collateral.
 _Avoid_: Buy SOL when the purchase is funded by new debt.
@@ -110,7 +158,7 @@ _Avoid_: Fixed debt ceiling
 
 **USDC releverage module**:
 The optional high-risk module that borrows USDC to buy and deposit more SOL during strong bullish regimes. It is separate from the core ETH hedge harness and should be tested as an explicitly labeled aggressive growth experiment.
-_Avoid_: Default strategy behavior; hedge behavior
+_Avoid_: Default strategy behavior; hedge behavior; surplus USDC reinvestment
 
 **USDC debt repayment threshold**:
 A high-health-factor threshold above which the strategy may trim USDC debt. USDC debt is growth leverage and is otherwise repaid only when required for safety.
@@ -119,6 +167,30 @@ _Avoid_: Hedge unwind threshold
 **Defensive USDC debt target**:
 The configurable target USDC debt level in defensive mode, expressed as a fraction of the dynamic USDC debt budget. Initial defaults are 50% at one bullish vote and 0% at zero bullish votes.
 _Avoid_: Fixed repayment amount; initial optimization parameter
+
+**Defensive carried USDC debt**:
+USDC debt that may remain open while the 1w SOL Supertrend is bearish, provided the account is protected by an aggressive ETH hedge or full-short posture.
+_Avoid_: Growth debt; unhedged dollar debt
+
+**Aggressive hedge floor**:
+The minimum ETH short exposure required when defensive carried USDC debt exists in a bearish 1w SOL regime. The initial floor is 100% of SOL collateral value, capped by health factor.
+_Avoid_: Mild hedge while carrying USDC debt
+
+**Under-hedged defensive debt**:
+Defensive carried USDC debt that cannot be protected by the aggressive hedge floor within health factor limits. New USDC debt stops immediately, and existing USDC debt is reduced until the remaining debt can be defended by the maximum safe ETH hedge.
+_Avoid_: Carrying oversized USDC debt without hedge capacity
+
+**Green-regime USDC debt repayment**:
+The rule that a bullish 1w SOL Supertrend makes USDC debt repayment a priority before surplus reinvestment or new USDC releverage.
+_Avoid_: Waiting for all short-term votes to be green before repaying USDC debt
+
+**USDC-first debt cleanup**:
+Routine USDC debt repayment preserves the USDC safety buffer, then uses remaining USDC collateral or hedge-derived USDC before selling SOL. SOL is sold to repay USDC debt only when required for safety.
+_Avoid_: Selling SOL for normal green-regime repayment
+
+**USDC safety buffer**:
+USDC collateral value preserved before debt cleanup or surplus reinvestment so projected health factor remains above the configured safety threshold. The initial surplus reinvestment threshold is a projected health factor of 2.0.
+_Avoid_: Fixed cash buffer
 
 **Close-price execution**:
 Backtest execution that fills swaps at the decision bar close price with a configurable fee or slippage haircut.
@@ -230,6 +302,42 @@ Dev: "What happens when SOL turns bullish again?"
 
 Domain expert: "Run a bullish rebalance: unwind the ETH short as the first priority, then try to buy additional SOL with available USDC value."
 
+Dev: "Can hedge profit buy SOL before the ETH debt is actually reduced?"
+
+Domain expert: "No. Hedge-derived USDC becomes realized hedge profit surplus only after ETH short exposure has been reduced to the current hedge target and the safety buffer is preserved."
+
+Dev: "How is hedge profit measured?"
+
+Domain expert: "Use the hedge realized PnL ledger. Track ETH short proceeds when opening exposure and cover cost when reducing it, rather than inferring profit from raw USDC balances."
+
+Dev: "Do realized hedge losses affect future reinvestment?"
+
+Domain expert: "Yes. The ledger uses cumulative realized PnL, so prior realized hedge losses must be recovered before realized hedge profit surplus can become positive."
+
+Dev: "Does buying SOL consume hedge profit surplus?"
+
+Domain expert: "Yes. Surplus reinvestment spends from the spendable hedge profit pool, while lifetime realized PnL remains available for reporting."
+
+Dev: "Does USDC debt cleanup consume hedge profit surplus?"
+
+Domain expert: "That is controlled by the hedge profit spend policy. The conservative setting consumes the spendable hedge profit pool when realized hedge profit is used for either SOL buying or USDC debt cleanup."
+
+Dev: "Does the hedge ledger need FIFO lots?"
+
+Domain expert: "No. Use aggregate ETH short basis: total borrowed ETH amount and average sale price are enough for strategy backtesting."
+
+Dev: "How much realized hedge profit surplus can be reinvested?"
+
+Domain expert: "Only after the realized hedge profit gate is met. The initial surplus reinvestment ladder buys SOL with 25% of eligible surplus at three bullish votes and 50% at four bullish votes."
+
+Dev: "Can a large hedge win be reinvested all at once?"
+
+Domain expert: "No. The surplus reinvestment cap limits each rebalance to an initial maximum of 5% of SOL collateral value."
+
+Dev: "Does surplus reinvestment have a separate cooldown?"
+
+Domain expert: "No. It uses the existing rebalance cooldown."
+
 Dev: "Can bullish rebalancing add new debt?"
 
 Domain expert: "Yes. After reducing ETH short exposure, the strategy may borrow USDC to buy and deposit additional SOL."
@@ -249,6 +357,30 @@ Domain expert: "No. Use a dynamic USDC debt budget so the allowable debt can gro
 Dev: "How much USDC debt should hedge proceeds repay in defensive mode?"
 
 Domain expert: "Repay toward configurable defensive USDC debt targets, not an all-or-nothing amount."
+
+Dev: "Can USDC debt stay open while the weekly SOL regime is red?"
+
+Domain expert: "Yes, but treat it as defensive carried USDC debt. It must be paired with aggressive ETH hedge protection or full-short posture."
+
+Dev: "How much ETH hedge protection is required for defensive carried USDC debt?"
+
+Domain expert: "Use the aggressive hedge floor: initially at least 100% of SOL collateral value in ETH short exposure, capped by health factor."
+
+Dev: "What if the account cannot safely reach the aggressive hedge floor?"
+
+Domain expert: "Then the position has under-hedged defensive debt. Stop adding USDC debt and reduce existing USDC debt until the remaining debt can be defended by the maximum safe ETH hedge."
+
+Dev: "When does USDC debt repayment become a priority?"
+
+Domain expert: "When the 1w SOL Supertrend turns green. Green-regime USDC debt repayment happens before surplus reinvestment or new USDC releverage."
+
+Dev: "Can routine green-regime USDC debt repayment sell SOL?"
+
+Domain expert: "No. Use USDC-first debt cleanup; preserve the USDC safety buffer, then use remaining USDC, and sell SOL only when required for safety."
+
+Dev: "How is the USDC safety buffer sized?"
+
+Domain expert: "Use projected health factor rather than fixed dollars. Initially, preserve enough USDC collateral so cleanup or reinvestment leaves projected health factor at or above 2.0."
 
 Dev: "How are swaps priced in the first harness?"
 

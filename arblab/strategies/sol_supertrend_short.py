@@ -131,6 +131,10 @@ class SolSupertrendShortStrategy(Strategy):
         self.event_log: list[dict[str, Any]] = []
         self.in_full_short_mode = False
         self._last_rebalance_bar: int | None = None
+        self._open_eth_short_amount = 0.0
+        self._average_eth_short_basis_usdc = 0.0
+        self._lifetime_realized_hedge_pnl_usdc = 0.0
+        self._consumed_hedge_profit_usdc = 0.0
 
     def setup(
         self, snapshot: AccountSnapshot, config: Dict[str, Any]
@@ -139,6 +143,10 @@ class SolSupertrendShortStrategy(Strategy):
         self.event_log = []
         self.in_full_short_mode = False
         self._last_rebalance_bar = None
+        self._open_eth_short_amount = 0.0
+        self._average_eth_short_basis_usdc = 0.0
+        self._lifetime_realized_hedge_pnl_usdc = 0.0
+        self._consumed_hedge_profit_usdc = 0.0
 
         sol_price = float(config.get("initial_sol_price", 150.0))
         eth_price = float(config.get("initial_eth_price", 2_000.0))
@@ -159,6 +167,14 @@ class SolSupertrendShortStrategy(Strategy):
                 DebtPosition("USDC", 0.0, 1.0, usdc_borrow_factor),
             ],
         )
+
+    def hedge_accounting_state(self) -> dict[str, float]:
+        return {
+            "open_eth_short_amount": self._open_eth_short_amount,
+            "average_eth_short_basis_usdc": self._average_eth_short_basis_usdc,
+            "lifetime_realized_hedge_pnl_usdc": self._lifetime_realized_hedge_pnl_usdc,
+            "spendable_hedge_profit_usdc": self._spendable_hedge_profit_usdc(),
+        }
 
     def on_bar(
         self, snapshot: AccountSnapshot, bar: BarData
@@ -310,6 +326,7 @@ class SolSupertrendShortStrategy(Strategy):
             return []
         eth_tokens = short_usd / eth_price
         usdc_proceeds = short_usd * (1.0 - fee)
+        self._record_eth_short_open(eth_tokens, usdc_proceeds)
         return [
             {"type": "borrow", "symbol": "ETH", "amount": eth_tokens},
             {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
@@ -352,6 +369,7 @@ class SolSupertrendShortStrategy(Strategy):
         if max_repay_tokens <= 0:
             return []
         usdc_needed = max_repay_tokens * eth_price * (1.0 + fee)
+        self._record_eth_short_cover(max_repay_tokens, usdc_needed)
         return [
             {"type": "withdraw_collateral", "symbol": "USDC", "amount": usdc_needed},
             {"type": "repay", "symbol": "ETH", "amount": max_repay_tokens},
@@ -438,11 +456,47 @@ class SolSupertrendShortStrategy(Strategy):
                 "health_factor": snapshot.health_factor(),
                 "reason": reason,
                 "actions": actions,
+                **self.hedge_accounting_state(),
             }
         )
 
     def _swap_fee(self) -> float:
         return float(self._config.get("swap_fee_bps", 10.0)) / 10_000.0
+
+    def _record_eth_short_open(self, eth_amount: float, usdc_proceeds: float) -> None:
+        if eth_amount <= 0:
+            return
+        existing_proceeds_basis = (
+            self._open_eth_short_amount * self._average_eth_short_basis_usdc
+        )
+        new_total_amount = self._open_eth_short_amount + eth_amount
+        self._average_eth_short_basis_usdc = (
+            existing_proceeds_basis + usdc_proceeds
+        ) / new_total_amount
+        self._open_eth_short_amount = new_total_amount
+
+    def _record_eth_short_cover(self, eth_amount: float, usdc_cost: float) -> None:
+        if eth_amount <= 0 or self._open_eth_short_amount <= 0:
+            return
+        covered_amount = min(eth_amount, self._open_eth_short_amount)
+        cover_cost_basis = usdc_cost * (covered_amount / eth_amount)
+        realized_pnl = (
+            covered_amount * self._average_eth_short_basis_usdc
+        ) - cover_cost_basis
+        self._lifetime_realized_hedge_pnl_usdc += realized_pnl
+        self._open_eth_short_amount = max(
+            0.0,
+            self._open_eth_short_amount - covered_amount,
+        )
+        if self._open_eth_short_amount == 0.0:
+            self._average_eth_short_basis_usdc = 0.0
+
+    def _spendable_hedge_profit_usdc(self) -> float:
+        return max(
+            0.0,
+            self._lifetime_realized_hedge_pnl_usdc
+            - self._consumed_hedge_profit_usdc,
+        )
 
     @staticmethod
     def _collateral_amount(snapshot: AccountSnapshot, symbol: str) -> float:
