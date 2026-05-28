@@ -311,6 +311,52 @@ def test_defensive_mode_repays_usdc_debt_toward_target_budget():
     assert usdc_repays[0]["amount"] == pytest.approx(3_500.0)
 
 
+def test_green_weekly_regime_repays_usdc_debt_before_surplus_reinvestment():
+    strategy, _ = _setup_strategy(
+        enable_surplus_usdc_reinvestment=True,
+        signal_by_bar={0: {"green": 4, "bearish_3d": False, "bearish_1w": False}},
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 2_500.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 1_500.0, 1.0, 1.053),
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    assert actions == [
+        {"type": "withdraw_collateral", "symbol": "USDC", "amount": pytest.approx(1_500.0)},
+        {"type": "repay", "symbol": "USDC", "amount": pytest.approx(1_500.0)},
+    ]
+    assert strategy.event_log[-1]["reason"] == "green_regime_usdc_debt_cleanup"
+
+
+def test_green_weekly_regime_does_not_sell_sol_for_routine_usdc_debt_cleanup():
+    strategy, _ = _setup_strategy(
+        signal_by_bar={0: {"green": 4, "bearish_3d": False, "bearish_1w": False}},
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 1_500.0, 1.0, 1.053),
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    assert actions == []
+    assert strategy.event_log == []
+
+
 def test_four_green_in_full_short_mode_cuts_eth_short_to_zero():
     strategy, snapshot = _setup_strategy(
         signal_by_bar={

@@ -211,6 +211,11 @@ class SolSupertrendShortStrategy(Strategy):
         if vote.green <= 1:
             actions.extend(self._defensive_usdc_repay(snapshot, vote))
 
+        if not actions and not vote.bearish_1w:
+            actions.extend(self._green_regime_usdc_debt_cleanup(snapshot))
+            if actions:
+                reason = "green_regime_usdc_debt_cleanup"
+
         if not actions and vote.green == 4 and not self.in_full_short_mode:
             actions.extend(self._bullish_relever(snapshot, bar))
             if actions:
@@ -499,6 +504,20 @@ class SolSupertrendShortStrategy(Strategy):
         repay_amount = max(0.0, current_debt - target_debt)
         usdc_available = self._collateral_amount(snapshot, "USDC")
         repay_amount = min(repay_amount, usdc_available, current_debt)
+        if repay_amount <= 0:
+            return []
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": repay_amount},
+            {"type": "repay", "symbol": "USDC", "amount": repay_amount},
+        ]
+
+    def _green_regime_usdc_debt_cleanup(
+        self,
+        snapshot: AccountSnapshot,
+    ) -> list[dict[str, Any]]:
+        current_debt = self._debt_amount(snapshot, "USDC")
+        usdc_available = self._collateral_amount(snapshot, "USDC")
+        repay_amount = min(current_debt, usdc_available)
         if repay_amount <= 0:
             return []
         return [
