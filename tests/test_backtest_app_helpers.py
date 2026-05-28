@@ -8,6 +8,8 @@ from arblab.backtest.app_helpers import (
     DEFAULT_STRATEGY,
     LEVERAGE_LOOP_STRATEGY,
     SOL_SUPERTREND_SHORT_STRATEGY,
+    benchmark_tier,
+    benchmark_tier_rank,
     build_price_configs,
     build_sol_supertrend_short_config,
     build_sol_supertrend_signal_by_bar,
@@ -193,6 +195,85 @@ def test_run_selected_grid_search_uses_sortino_for_supertrend_short():
     for result_item in result.results:
         assert "signal_by_bar" in result_item.strategy_config
         assert result_item.strategy_config["signal_by_bar"]
+
+
+def test_benchmark_tier_uses_sol_relative_usd_compounding_rules():
+    assert (
+        benchmark_tier(
+            strategy_return_pct=320.0,
+            strategy_max_drawdown_pct=50.0,
+            sol_benchmark_return_pct=300.0,
+            sol_benchmark_max_drawdown_pct=70.0,
+        )
+        == "pass"
+    )
+    assert (
+        benchmark_tier(
+            strategy_return_pct=285.0,
+            strategy_max_drawdown_pct=40.0,
+            sol_benchmark_return_pct=300.0,
+            sol_benchmark_max_drawdown_pct=70.0,
+        )
+        == "acceptable"
+    )
+    assert (
+        benchmark_tier(
+            strategy_return_pct=150.0,
+            strategy_max_drawdown_pct=35.0,
+            sol_benchmark_return_pct=300.0,
+            sol_benchmark_max_drawdown_pct=70.0,
+        )
+        == "capital_preservation"
+    )
+    assert (
+        benchmark_tier(
+            strategy_return_pct=150.0,
+            strategy_max_drawdown_pct=95.0,
+            sol_benchmark_return_pct=300.0,
+            sol_benchmark_max_drawdown_pct=70.0,
+        )
+        == "reject"
+    )
+
+
+def test_benchmark_tier_rank_orders_normal_passes_before_defensive_tiers():
+    assert benchmark_tier_rank("pass") < benchmark_tier_rank("acceptable")
+    assert benchmark_tier_rank("acceptable") < benchmark_tier_rank("capital_preservation")
+    assert benchmark_tier_rank("capital_preservation") < benchmark_tier_rank("reject")
+
+
+def test_sol_supertrend_grid_search_adds_benchmark_tier_columns():
+    result = run_selected_grid_search(
+        strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
+        price_data=_long_price_data(),
+        param_grid={
+            "supertrend_atr_period": [10],
+            "supertrend_multiplier": [3.0],
+        },
+        base_config={
+            "initial_sol_collateral": 100.0,
+            "initial_sol_price": 100.0,
+            "initial_eth_price": 2_000.0,
+            "rebalance_cooldown_bars": 0,
+            "max_usdc_debt_to_equity": 0.0,
+            "full_short_lower_bound": 0.0,
+            "full_short_upper_bound": 0.0,
+        },
+    )
+
+    row = result.comparison_df.iloc[0]
+    assert "sol_benchmark_return_pct" in result.comparison_df.columns
+    assert "tracking_gap_vs_sol_pct" in result.comparison_df.columns
+    assert "drawdown_improvement_vs_sol_pct" in result.comparison_df.columns
+    assert "benchmark_tier" in result.comparison_df.columns
+    assert "experiment_group" in result.comparison_df.columns
+    assert row["benchmark_tier"] in {
+        "pass",
+        "acceptable",
+        "capital_preservation",
+        "reject",
+    }
+    assert row["experiment_group"] == "core_hedge"
 
 
 def test_position_value_chart_data_uses_mark_to_market_values_only():

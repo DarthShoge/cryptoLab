@@ -12,7 +12,10 @@ from arblab.backtest.engine import BacktestEngine
 from arblab.backtest.strategy import BarData, PriceBar
 from arblab.kamino_risk import AccountSnapshot
 from arblab.kamino_risk import CollateralPosition, DebtPosition
-from arblab.strategies.sol_supertrend_short import SolSupertrendShortStrategy
+from arblab.strategies.sol_supertrend_short import (
+    SolSupertrendShortStrategy,
+    supertrend_direction,
+)
 
 
 def _bar(
@@ -78,6 +81,24 @@ def test_setup_starts_with_unlevered_sol_and_zero_debt_positions():
         "ETH": 0.0,
         "USDC": 0.0,
     }
+
+
+def test_supertrend_stays_mostly_bullish_on_steady_uptrend():
+    dates = pd.date_range("2024-01-01", periods=80, freq="h", tz="UTC")
+    closes = pd.Series(range(100, 180), index=dates, dtype=float)
+    ohlcv = pd.DataFrame(
+        {
+            "open": closes,
+            "high": closes * 1.01,
+            "low": closes * 0.99,
+            "close": closes,
+            "volume": 1_000.0,
+        }
+    )
+
+    direction = supertrend_direction(ohlcv, atr_period=10, multiplier=3.0)
+
+    assert direction.iloc[20:].mean() > 0.90
 
 
 def test_eth_short_proceeds_are_posted_as_usdc_collateral():

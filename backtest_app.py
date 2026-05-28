@@ -409,16 +409,24 @@ if run_btn:
         )
 
         st.subheader("Optimization Results")
+        highlight_max_cols = ["sortino_ratio", "total_return_pct"]
+        if "tracking_gap_vs_sol_pct" in opt_result.comparison_df:
+            highlight_max_cols.append("tracking_gap_vs_sol_pct")
         st.dataframe(
             opt_result.comparison_df.style.highlight_max(
-                subset=["sortino_ratio", "total_return_pct"], color="lightgreen"
+                subset=highlight_max_cols, color="lightgreen"
             ).highlight_min(subset=["max_drawdown_pct"], color="lightgreen"),
             use_container_width=True,
         )
 
         # Show best result details
         best = opt_result.best_result
-        st.subheader("Best Result (by Sortino)")
+        best_label = (
+            "Best Result (by SOL benchmark tier, then Sortino)"
+            if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY
+            else "Best Result (by Sortino)"
+        )
+        st.subheader(best_label)
         bm = best.metrics
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Total Return", f"{bm.total_return_pct:+.2f}%")

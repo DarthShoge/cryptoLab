@@ -54,7 +54,7 @@ def supertrend_direction(
         if pd.isna(atr.iloc[i]):
             direction.iloc[i] = True
             continue
-        if i == 0:
+        if i == 0 or pd.isna(final_upper.iloc[i - 1]) or pd.isna(final_lower.iloc[i - 1]):
             direction.iloc[i] = True
             continue
 

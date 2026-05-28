@@ -110,6 +110,56 @@ def position_value_chart_data(history: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(data, index=history.index)
 
 
+def _series_max_drawdown_pct(values: pd.Series) -> float:
+    if len(values) < 2:
+        return 0.0
+    running_peak = values.cummax()
+    drawdown = (values - running_peak) / running_peak
+    return abs(float(drawdown.min())) * 100.0
+
+
+def benchmark_tier(
+    strategy_return_pct: float,
+    strategy_max_drawdown_pct: float,
+    sol_benchmark_return_pct: float,
+    sol_benchmark_max_drawdown_pct: float,
+    acceptable_tracking_gap_pct: float = 25.0,
+) -> str:
+    """Classify a run against the SOL-relative USD compounding objective."""
+    tracking_gap = strategy_return_pct - sol_benchmark_return_pct
+    drawdown_improvement = sol_benchmark_max_drawdown_pct - strategy_max_drawdown_pct
+
+    if tracking_gap >= 0.0 and drawdown_improvement > 0.0:
+        return "pass"
+    if tracking_gap >= -acceptable_tracking_gap_pct and drawdown_improvement > 0.0:
+        return "acceptable"
+    if drawdown_improvement > 0.0:
+        return "capital_preservation"
+    return "reject"
+
+
+def benchmark_tier_rank(tier: str) -> int:
+    """Return sort precedence for benchmark tiers; lower is better."""
+    return {
+        "pass": 0,
+        "acceptable": 1,
+        "capital_preservation": 2,
+        "reject": 3,
+    }.get(tier, 99)
+
+
+def _experiment_group(config: Dict[str, object]) -> str:
+    if float(config.get("max_usdc_debt_to_equity", 0.0)) > 0.0:
+        return "usdc_releverage"
+    if (
+        bool(config.get("enable_full_short_mode", False))
+        or float(config.get("full_short_lower_bound", 0.0)) > 0.0
+        or float(config.get("full_short_upper_bound", 0.0)) > 0.0
+    ):
+        return "core_full_short"
+    return "core_hedge"
+
+
 def _pandas_timeframe(timeframe: str) -> str:
     if timeframe.lower().endswith("w"):
         return timeframe[:-1] + "W"
@@ -269,6 +319,15 @@ def _run_sol_supertrend_grid_search(
     results: list[BacktestResult] = []
     grid: list[dict[str, object]] = []
     rows: list[dict[str, object]] = []
+    sol_close = price_data[("SOL", "close")].astype(float)
+    sol_benchmark_return_pct = (
+        (float(sol_close.iloc[-1]) - float(sol_close.iloc[0]))
+        / float(sol_close.iloc[0])
+        * 100.0
+        if len(sol_close) > 0 and float(sol_close.iloc[0]) != 0.0
+        else 0.0
+    )
+    sol_benchmark_max_drawdown_pct = _series_max_drawdown_pct(sol_close)
 
     for combo in combos:
         params = dict(zip(keys, combo))
@@ -289,10 +348,22 @@ def _run_sol_supertrend_grid_search(
         results.append(result)
 
         m = result.metrics
+        tracking_gap = m.total_return_pct - sol_benchmark_return_pct
+        drawdown_improvement = sol_benchmark_max_drawdown_pct - m.max_drawdown_pct
         rows.append(
             {
                 **params,
                 "_result_index": len(results) - 1,
+                "experiment_group": _experiment_group(config),
+                "sol_benchmark_return_pct": sol_benchmark_return_pct,
+                "tracking_gap_vs_sol_pct": tracking_gap,
+                "drawdown_improvement_vs_sol_pct": drawdown_improvement,
+                "benchmark_tier": benchmark_tier(
+                    strategy_return_pct=m.total_return_pct,
+                    strategy_max_drawdown_pct=m.max_drawdown_pct,
+                    sol_benchmark_return_pct=sol_benchmark_return_pct,
+                    sol_benchmark_max_drawdown_pct=sol_benchmark_max_drawdown_pct,
+                ),
                 "total_return_pct": m.total_return_pct,
                 "max_drawdown_pct": m.max_drawdown_pct,
                 "sharpe_ratio": m.sharpe_ratio,
@@ -305,12 +376,16 @@ def _run_sol_supertrend_grid_search(
             }
         )
 
-    comparison_df = pd.DataFrame(rows).sort_values(
-        sort_metric,
-        ascending=False,
+    comparison_df = pd.DataFrame(rows)
+    comparison_df["_benchmark_tier_rank"] = comparison_df["benchmark_tier"].map(
+        benchmark_tier_rank
+    )
+    comparison_df = comparison_df.sort_values(
+        ["_benchmark_tier_rank", sort_metric],
+        ascending=[True, False],
     ).reset_index(drop=True)
     best_idx = int(comparison_df.iloc[0]["_result_index"])
-    comparison_df = comparison_df.drop(columns=["_result_index"])
+    comparison_df = comparison_df.drop(columns=["_result_index", "_benchmark_tier_rank"])
 
     return OptimizationResult(
         results=results,

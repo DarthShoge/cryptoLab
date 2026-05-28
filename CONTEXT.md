@@ -37,12 +37,12 @@ A bearish SOL Supertrend vote state, starting at one bullish and three bearish S
 _Avoid_: Mild hedge state
 
 **Full short mode**:
-A bearish strategy mode where ETH short exposure is no longer only a hedge against SOL collateral and may express net short crypto direction. SOL is never shorted because the strategy aims to maximize SOL accumulation.
+A core bearish strategy mode where ETH short exposure is no longer only a hedge against SOL collateral and may express net short crypto direction. SOL is never shorted. The harness keeps full short mode explicitly switchable so hedge-only and hedge-plus-full-short experiments can be compared.
 _Avoid_: Hedge mode
 
-**SOL accumulation objective**:
-The strategy's ultimate goal of increasing SOL holdings or SOL-denominated value over time. SOL may be bought, held, or used as collateral, but not shorted.
-_Avoid_: USD-only return objective
+**SOL-relative USD compounding objective**:
+The strategy's ultimate goal of growing USD account value while clearing the opportunity-cost hurdle of simply holding SOL. USD growth alone is not success if SOL buy-and-hold massively outperforms over the same window. SOL may be bought, held, or used as collateral, but not shorted.
+_Avoid_: USD-only return objective; SOL-only accumulation objective
 
 **Higher-regime confirmation**:
 A slower SOL trend confirmation required before hedge mode can escalate into full short mode. The initial confirmations are 3d and 1w SOL Supertrend states, and they gate entry and scale-up rather than exit.
@@ -108,6 +108,10 @@ _Avoid_: Minimum health factor
 A growth-linked cap on USDC debt, expressed as a multiple of account equity rather than as a fixed dollar ceiling. The initial cap is 1.0x equity.
 _Avoid_: Fixed debt ceiling
 
+**USDC releverage module**:
+The optional high-risk module that borrows USDC to buy and deposit more SOL during strong bullish regimes. It is separate from the core ETH hedge harness and should be tested as an explicitly labeled aggressive growth experiment.
+_Avoid_: Default strategy behavior; hedge behavior
+
 **USDC debt repayment threshold**:
 A high-health-factor threshold above which the strategy may trim USDC debt. USDC debt is growth leverage and is otherwise repaid only when required for safety.
 _Avoid_: Hedge unwind threshold
@@ -121,8 +125,20 @@ Backtest execution that fills swaps at the decision bar close price with a confi
 _Avoid_: Intrabar execution
 
 **Optimization objective**:
-The metric used to rank hyperparameter runs in the harness. The initial objective is Sortino ratio.
-_Avoid_: Best result without naming the metric.
+The metric used to rank hyperparameter runs in the harness. For this strategy, optimization is two-layered: first apply a SOL benchmark gate, then rank surviving candidates by USD risk-adjusted growth such as Sortino or CAGR-to-drawdown.
+_Avoid_: Best result without naming the metric; USD Sortino without a SOL benchmark gate
+
+**SOL benchmark gate**:
+A pass/fail hurdle requiring a strategy candidate to beat, or remain within an explicitly accepted tracking gap of, unlevered SOL buy-and-hold over the same backtest window before USD risk-adjusted returns can rank it highly.
+_Avoid_: Benchmark as an informational chart only
+
+**Tiered SOL benchmark gate**:
+The SOL benchmark gate expressed as candidate tiers instead of a single cutoff. A pass beats SOL buy-and-hold in USD while reducing drawdown. An acceptable candidate may trail SOL by a limited configured gap if it materially improves drawdown or liquidation risk. A reject trails SOL beyond the configured gap regardless of USD Sortino.
+_Avoid_: All-or-nothing benchmark comparison
+
+**Capital preservation tier**:
+A separate candidate tier for strategies that trail SOL beyond the normal acceptable gap but avoid catastrophic loss or materially reduce drawdown. These runs may be useful defensively, but they are not labeled as successful SOL-relative USD compounding.
+_Avoid_: Treating defensive underperformance as a normal pass
 
 **Rebalance cooldown**:
 The minimum number of decision bars the strategy waits after a rebalance before trading again, except for safety-driven defensive action.
