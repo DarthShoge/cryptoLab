@@ -271,7 +271,9 @@ class SolSupertrendShortStrategy(Strategy):
                 self.in_full_short_mode = False
                 return 0.0, "full_short_cover"
             if vote.green == 0:
-                target = 1.5 if vote.bearish_1w else 1.0
+                lower = float(self._config.get("full_short_lower_bound", 1.0))
+                upper = float(self._config.get("full_short_upper_bound", 1.5))
+                target = upper if vote.bearish_1w else lower
                 return target, "full_short_up"
             cover_target = self.DEFAULT_SHORT_COVER_LADDER[vote.green]
             if cover_target is None:

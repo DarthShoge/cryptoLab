@@ -264,9 +264,11 @@ class BacktestEngine:
             "lst_yield": lst_yield,
             "liquidation_penalty": liquidation_penalty,
         }
-        # Native token amounts per position
+        # Native token amounts and mark-to-market USD values per position.
         for pos in snapshot.collateral:
             record[f"collateral_{pos.symbol}"] = pos.amount
+            record[f"collateral_{pos.symbol}_value"] = pos.value()
         for pos in snapshot.debt:
             record[f"debt_{pos.symbol}"] = pos.amount
+            record[f"debt_{pos.symbol}_value"] = pos.value()
         return record

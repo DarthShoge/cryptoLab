@@ -9,11 +9,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from arblab.backtest.data import OHLCVConfig, fetch_ohlcv
-from arblab.backtest.engine import BacktestEngine, EngineConfig
+from arblab.backtest.app_helpers import (
+    DEFAULT_STRATEGY,
+    EXCHANGE_SYMBOLS,
+    LEVERAGE_LOOP_STRATEGY,
+    SOL_SUPERTREND_SHORT_STRATEGY,
+    build_price_configs,
+    build_sol_supertrend_short_config,
+    position_value_chart_data,
+    run_selected_backtest,
+    run_selected_grid_search,
+)
+from arblab.backtest.data import fetch_ohlcv
 from arblab.backtest.market import MarketParams
-from arblab.backtest.optimizer import grid_search
-from arblab.strategies.leverage_loop import LeverageLoopStrategy
 
 st.set_page_config(page_title="Kamino Backtester", layout="wide")
 st.title("Kamino Lending Strategy Backtester")
@@ -30,23 +38,20 @@ def _downsample(df: pd.DataFrame, max_points: int = MAX_CHART_POINTS) -> pd.Data
 
 
 @st.cache_data(show_spinner="Fetching price data...")
-def _fetch_cached(symbol: str, display_name: str, timeframe: str, start: str, end: str, exchange_id: str):
-    symbols = [OHLCVConfig(symbol=symbol, display_name=display_name)]
+def _fetch_cached(strategy_name: str, collateral_symbol: str, timeframe: str, start: str, end: str, exchange_id: str):
+    symbols = build_price_configs(strategy_name, collateral_symbol)
     return fetch_ohlcv(symbols=symbols, timeframe=timeframe, start=start, end=end, exchange_id=exchange_id)
 
 
 @st.cache_data(show_spinner="Running backtest...")
-def _run_backtest(price_data, strategy_config, _market_params):
-    strategy = LeverageLoopStrategy()
-    engine = BacktestEngine(strategy)
-    return engine.run(price_data, strategy_config, _market_params)
+def _run_backtest(strategy_name, price_data, strategy_config, _market_params):
+    return run_selected_backtest(strategy_name, price_data, strategy_config, _market_params)
 
 
 @st.cache_data(show_spinner="Running grid search...")
-def _run_grid_search(price_data, param_grid, base_config, _market_params, sort_metric):
-    strategy = LeverageLoopStrategy()
-    return grid_search(
-        strategy=strategy, price_data=price_data, param_grid=param_grid,
+def _run_grid_search(strategy_name, price_data, param_grid, base_config, _market_params, sort_metric):
+    return run_selected_grid_search(
+        strategy_name=strategy_name, price_data=price_data, param_grid=param_grid,
         base_config=base_config, market_params=_market_params, sort_metric=sort_metric,
     )
 
@@ -54,57 +59,98 @@ def _run_grid_search(price_data, param_grid, base_config, _market_params, sort_m
 
 st.sidebar.header("Data Settings")
 exchange_id = st.sidebar.selectbox("Exchange", ["binance", "bybit", "okx"], index=0)
-timeframe = st.sidebar.selectbox("Timeframe", ["1h", "4h", "1d"], index=0)
+timeframe = st.sidebar.selectbox("Base Timeframe", ["1h"], index=0)
 start_date = st.sidebar.date_input("Start Date", value=pd.Timestamp("2024-01-01"))
 end_date = st.sidebar.date_input("End Date", value=pd.Timestamp("2024-12-31"))
 
-st.sidebar.header("Assets")
-collateral_symbol = st.sidebar.selectbox(
-    "Collateral Asset", ["SOL", "JitoSOL", "mSOL", "ETH"], index=0
-)
-EXCHANGE_SYMBOLS = {
-    "SOL": "SOL/USDT",
-    "JitoSOL": "JITOSOL/USDT",
-    "mSOL": "MSOL/USDT",
-    "ETH": "ETH/USDT",
-}
-debt_symbol = st.sidebar.selectbox("Debt Asset", ["USDC", "USDT"], index=0)
-
-st.sidebar.header("Strategy Parameters")
-initial_collateral = st.sidebar.number_input(
-    "Initial Collateral (tokens)", value=100.0, min_value=1.0, step=10.0
-)
-num_loops = st.sidebar.slider("Leverage Loops", 1, 6, 3)
-loop_utilization = st.sidebar.slider(
-    "Loop Utilization", 0.5, 0.95, 0.85, step=0.05
-)
-target_hf = st.sidebar.slider("Target HF", 1.1, 2.0, 1.3, step=0.05)
-rebalance_hf_low = st.sidebar.slider(
-    "Delever Trigger (HF low)", 1.0, 1.5, 1.15, step=0.05
-)
-rebalance_hf_high = st.sidebar.slider(
-    "Re-lever Trigger (HF high)", 1.5, 5.0, 2.5, step=0.1
+st.sidebar.header("Strategy")
+strategy_name = st.sidebar.selectbox(
+    "Strategy",
+    [LEVERAGE_LOOP_STRATEGY, SOL_SUPERTREND_SHORT_STRATEGY],
+    index=[LEVERAGE_LOOP_STRATEGY, SOL_SUPERTREND_SHORT_STRATEGY].index(DEFAULT_STRATEGY),
 )
 
-st.sidebar.header("Hedge / Take Profit")
-hedge_enabled = st.sidebar.checkbox("Enable Hedge", value=False)
-hedge_hf_trigger = 2.5
-hedge_fraction = 1.0
-if hedge_enabled:
-    hedge_hf_trigger = st.sidebar.slider(
-        "Hedge HF Trigger", 1.5, 5.0, 2.5, step=0.1
+if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY:
+    collateral_symbol = "SOL"
+    debt_symbol = "USDC"
+else:
+    st.sidebar.header("Assets")
+    collateral_symbol = st.sidebar.selectbox(
+        "Collateral Asset",
+        ["SOL", "JitoSOL", "mSOL", "ETH"],
+        index=0,
     )
-    hedge_fraction = st.sidebar.slider(
-        "Hedge Fraction", 0.1, 1.0, 1.0, step=0.1
+    debt_symbol = st.sidebar.selectbox(
+        "Debt Asset",
+        ["USDC", "USDT"],
+        index=0,
+    )
+
+hedge_enabled = False
+
+if strategy_name == LEVERAGE_LOOP_STRATEGY:
+    st.sidebar.header("Leverage Loop Parameters")
+    initial_collateral = st.sidebar.number_input(
+        "Initial Collateral (tokens)", value=100.0, min_value=1.0, step=10.0
+    )
+    num_loops = st.sidebar.slider("Leverage Loops", 1, 6, 3)
+    loop_utilization = st.sidebar.slider(
+        "Loop Utilization", 0.5, 0.95, 0.85, step=0.05
+    )
+    target_hf = st.sidebar.slider("Target HF", 1.1, 2.0, 1.3, step=0.05)
+    rebalance_hf_low = st.sidebar.slider(
+        "Delever Trigger (HF low)", 1.0, 1.5, 1.15, step=0.05
+    )
+    rebalance_hf_high = st.sidebar.slider(
+        "Re-lever Trigger (HF high)", 1.5, 5.0, 2.5, step=0.1
+    )
+
+    st.sidebar.header("Hedge / Take Profit")
+    hedge_enabled = st.sidebar.checkbox("Enable Hedge", value=False)
+    hedge_hf_trigger = 2.5
+    hedge_fraction = 1.0
+    if hedge_enabled:
+        hedge_hf_trigger = st.sidebar.slider(
+            "Hedge HF Trigger", 1.5, 5.0, 2.5, step=0.1
+        )
+        hedge_fraction = st.sidebar.slider(
+            "Hedge Fraction", 0.1, 1.0, 1.0, step=0.1
+        )
+else:
+    st.sidebar.header("SOL Supertrend Parameters")
+    initial_collateral = st.sidebar.number_input(
+        "Initial SOL Collateral", value=100.0, min_value=1.0, step=10.0
+    )
+    supertrend_atr_period = st.sidebar.number_input(
+        "Supertrend ATR Period", value=10, min_value=2, max_value=100, step=1
+    )
+    supertrend_multiplier = st.sidebar.slider(
+        "Supertrend Multiplier", 1.0, 8.0, 3.0, step=0.25
+    )
+    target_bullish_hf = st.sidebar.slider("Target Bullish HF", 1.1, 2.0, 1.35, step=0.05)
+    min_rebalance_hf = st.sidebar.slider("Minimum Rebalance HF", 1.05, 2.0, 1.25, step=0.05)
+    max_usdc_debt_to_equity = st.sidebar.slider("Max USDC Debt / Equity", 0.25, 2.0, 1.0, step=0.25)
+    rebalance_threshold = st.sidebar.slider("Rebalance Threshold", 0.01, 0.25, 0.10, step=0.01)
+    rebalance_cooldown_bars = st.sidebar.slider("Cooldown Bars", 0, 24, 4)
+    full_short_lower_bound = st.sidebar.slider(
+        "Full Short Lower Bound", 0.75, 1.5, 1.0, step=0.05
+    )
+    full_short_upper_bound = st.sidebar.slider(
+        "Full Short Upper Bound", 1.0, 2.5, 1.5, step=0.05
     )
 
 st.sidebar.header("Market Overrides")
 borrow_rate = st.sidebar.slider(
     "USDC Borrow Rate APY", 0.0, 0.30, 0.08, step=0.01, format="%.2f"
 )
-lst_apy = st.sidebar.slider(
-    "LST Staking APY", 0.0, 0.15, 0.07, step=0.01, format="%.2f"
+swap_fee_bps = st.sidebar.slider(
+    "Swap Fee (bps)", 0.0, 100.0, 10.0, step=1.0
 )
+lst_apy = 0.07
+if strategy_name == LEVERAGE_LOOP_STRATEGY:
+    lst_apy = st.sidebar.slider(
+        "LST Staking APY", 0.0, 0.15, 0.07, step=0.01, format="%.2f"
+    )
 
 st.sidebar.header("Mode")
 mode = st.sidebar.radio("Run Mode", ["Single Backtest", "Grid Optimization"])
@@ -115,17 +161,22 @@ run_btn = st.sidebar.button("Run", type="primary")
 
 if mode == "Grid Optimization":
     st.sidebar.subheader("Grid Search Ranges")
-    loop_range = st.sidebar.text_input("num_loops (comma-sep)", "2,3,4")
-    target_hf_range = st.sidebar.text_input(
-        "target_hf (comma-sep)", "1.2,1.3,1.5"
-    )
-    if hedge_enabled:
-        hedge_hf_range = st.sidebar.text_input(
-            "hedge_hf_trigger (comma-sep)", "2.0,2.5,3.0"
+    if strategy_name == LEVERAGE_LOOP_STRATEGY:
+        loop_range = st.sidebar.text_input("num_loops (comma-sep)", "2,3,4")
+        target_hf_range = st.sidebar.text_input(
+            "target_hf (comma-sep)", "1.2,1.3,1.5"
         )
-        hedge_frac_range = st.sidebar.text_input(
-            "hedge_fraction (comma-sep)", "0.5,0.75,1.0"
-        )
+        if hedge_enabled:
+            hedge_hf_range = st.sidebar.text_input(
+                "hedge_hf_trigger (comma-sep)", "2.0,2.5,3.0"
+            )
+            hedge_frac_range = st.sidebar.text_input(
+                "hedge_fraction (comma-sep)", "0.5,0.75,1.0"
+            )
+    else:
+        atr_period_range = st.sidebar.text_input("supertrend_atr_period", "7,10,14")
+        multiplier_range = st.sidebar.text_input("supertrend_multiplier", "2.0,3.0,4.0")
+        threshold_range = st.sidebar.text_input("rebalance_threshold", "0.05,0.10,0.15")
 
 # ── Main ─────────────────────────────────────────────────────────────────
 
@@ -142,13 +193,13 @@ if run_btn:
     for sym in ["JitoSOL", "mSOL"]:
         if sym in assets:
             assets[sym] = dreplace(assets[sym], lst_base_apy=lst_apy)
-    mp = dreplace(mp, assets=assets)
+    mp = dreplace(mp, assets=assets, swap_fee_bps=swap_fee_bps)
 
     # Fetch price data (cached)
     try:
         price_data = _fetch_cached(
-            symbol=EXCHANGE_SYMBOLS.get(collateral_symbol, f"{collateral_symbol}/USDT"),
-            display_name=collateral_symbol,
+            strategy_name=strategy_name,
+            collateral_symbol=collateral_symbol,
             timeframe=timeframe,
             start=str(start_date),
             end=str(end_date),
@@ -175,28 +226,44 @@ if run_btn:
     coll_cfg = mp.assets.get(collateral_symbol)
     debt_cfg = mp.assets.get(debt_symbol)
 
-    strategy_config = {
-        "collateral_symbol": collateral_symbol,
-        "debt_symbol": debt_symbol,
-        "initial_collateral": initial_collateral,
-        "num_loops": num_loops,
-        "loop_utilization": loop_utilization,
-        "target_hf": target_hf,
-        "rebalance_hf_low": rebalance_hf_low,
-        "rebalance_hf_high": rebalance_hf_high,
-        "initial_collateral_price": initial_price,
-        "initial_debt_price": 1.0,
-        "hedge_enabled": hedge_enabled,
-        "hedge_hf_trigger": hedge_hf_trigger,
-        "hedge_fraction": hedge_fraction,
-        # Asset params from market config
-        "ltv": coll_cfg.ltv if coll_cfg else 0.75,
-        "liquidation_threshold": coll_cfg.liquidation_threshold if coll_cfg else 0.80,
-        "borrow_factor": debt_cfg.borrow_factor if debt_cfg else 1.0,
-    }
+    if strategy_name == LEVERAGE_LOOP_STRATEGY:
+        strategy_config = {
+            "collateral_symbol": collateral_symbol,
+            "debt_symbol": debt_symbol,
+            "initial_collateral": initial_collateral,
+            "num_loops": num_loops,
+            "loop_utilization": loop_utilization,
+            "target_hf": target_hf,
+            "rebalance_hf_low": rebalance_hf_low,
+            "rebalance_hf_high": rebalance_hf_high,
+            "initial_collateral_price": initial_price,
+            "initial_debt_price": 1.0,
+            "hedge_enabled": hedge_enabled,
+            "hedge_hf_trigger": hedge_hf_trigger,
+            "hedge_fraction": hedge_fraction,
+            # Asset params from market config
+            "ltv": coll_cfg.ltv if coll_cfg else 0.75,
+            "liquidation_threshold": coll_cfg.liquidation_threshold if coll_cfg else 0.80,
+            "borrow_factor": debt_cfg.borrow_factor if debt_cfg else 1.0,
+        }
+    else:
+        strategy_config = build_sol_supertrend_short_config(
+            price_data=price_data,
+            initial_sol_collateral=initial_collateral,
+            supertrend_atr_period=supertrend_atr_period,
+            supertrend_multiplier=supertrend_multiplier,
+            target_bullish_hf=target_bullish_hf,
+            min_rebalance_hf=min_rebalance_hf,
+            max_usdc_debt_to_equity=max_usdc_debt_to_equity,
+            rebalance_threshold=rebalance_threshold,
+            rebalance_cooldown_bars=rebalance_cooldown_bars,
+            swap_fee_bps=mp.swap_fee_bps,
+            full_short_lower_bound=full_short_lower_bound,
+            full_short_upper_bound=full_short_upper_bound,
+        )
 
     if mode == "Single Backtest":
-        result = _run_backtest(price_data, strategy_config, mp)
+        result = _run_backtest(strategy_name, price_data, strategy_config, mp)
 
         # Summary metrics
         m = result.metrics
@@ -244,19 +311,19 @@ if run_btn:
             pv_df = pd.DataFrame(pv_data)
             st.line_chart(_downsample(pv_df))
 
-            st.subheader("Position Levels")
-            pos_cols = {}
-            for col in result.history.columns:
-                if col.startswith("collateral_"):
-                    sym = col.removeprefix("collateral_")
-                    pos_cols[f"Collateral ({sym})"] = result.history[col]
-                elif col.startswith("debt_"):
-                    sym = col.removeprefix("debt_")
-                    pos_cols[f"Debt ({sym})"] = result.history[col]
-            if hedge_enabled and "cash_reserve" in result.history:
-                pos_cols["Cash Reserve (USD)"] = result.history["cash_reserve"]
-            if pos_cols:
-                st.line_chart(_downsample(pd.DataFrame(pos_cols)))
+            st.subheader("Position Values")
+            pos_df = position_value_chart_data(result.history)
+            if not pos_df.empty:
+                st.line_chart(_downsample(pos_df))
+                with st.expander("Position Value Reconciliation"):
+                    reconciliation = result.history[
+                        ["collateral_value", "debt_value", "portfolio_value"]
+                    ].copy()
+                    reconciliation["net_collateral_minus_debt"] = (
+                        reconciliation["collateral_value"]
+                        - reconciliation["debt_value"]
+                    )
+                    st.dataframe(_downsample(reconciliation))
 
             st.subheader("Health Factor")
             hf_df = result.history[["health_factor"]].copy()
@@ -299,19 +366,30 @@ if run_btn:
                         })
                     st.dataframe(pd.DataFrame(liq_rows))
 
+            if result.strategy_events:
+                with st.expander("Strategy Events"):
+                    st.dataframe(pd.DataFrame(result.strategy_events))
+
             with st.expander("Full History"):
                 st.dataframe(result.history)
 
     else:  # Grid Optimization
         try:
-            loops = [int(x.strip()) for x in loop_range.split(",")]
-            hfs = [float(x.strip()) for x in target_hf_range.split(",")]
-            param_grid = {"num_loops": loops, "target_hf": hfs}
-            if hedge_enabled:
-                hedge_hfs = [float(x.strip()) for x in hedge_hf_range.split(",")]
-                hedge_fracs = [float(x.strip()) for x in hedge_frac_range.split(",")]
-                param_grid["hedge_hf_trigger"] = hedge_hfs
-                param_grid["hedge_fraction"] = hedge_fracs
+            if strategy_name == LEVERAGE_LOOP_STRATEGY:
+                loops = [int(x.strip()) for x in loop_range.split(",")]
+                hfs = [float(x.strip()) for x in target_hf_range.split(",")]
+                param_grid = {"num_loops": loops, "target_hf": hfs}
+                if hedge_enabled:
+                    hedge_hfs = [float(x.strip()) for x in hedge_hf_range.split(",")]
+                    hedge_fracs = [float(x.strip()) for x in hedge_frac_range.split(",")]
+                    param_grid["hedge_hf_trigger"] = hedge_hfs
+                    param_grid["hedge_fraction"] = hedge_fracs
+            else:
+                param_grid = {
+                    "supertrend_atr_period": [int(x.strip()) for x in atr_period_range.split(",")],
+                    "supertrend_multiplier": [float(x.strip()) for x in multiplier_range.split(",")],
+                    "rebalance_threshold": [float(x.strip()) for x in threshold_range.split(",")],
+                }
         except ValueError:
             st.error("Invalid grid search ranges. Use comma-separated numbers.")
             st.stop()
@@ -322,24 +400,25 @@ if run_btn:
         st.info(f"Running {total_combos} parameter combinations...")
 
         opt_result = _run_grid_search(
+            strategy_name=strategy_name,
             price_data=price_data,
             param_grid=param_grid,
             base_config=strategy_config,
             _market_params=mp,
-            sort_metric="sharpe_ratio",
+            sort_metric="sortino_ratio",
         )
 
         st.subheader("Optimization Results")
         st.dataframe(
             opt_result.comparison_df.style.highlight_max(
-                subset=["sharpe_ratio", "total_return_pct"], color="lightgreen"
+                subset=["sortino_ratio", "total_return_pct"], color="lightgreen"
             ).highlight_min(subset=["max_drawdown_pct"], color="lightgreen"),
             use_container_width=True,
         )
 
         # Show best result details
         best = opt_result.best_result
-        st.subheader("Best Result (by Sharpe)")
+        st.subheader("Best Result (by Sortino)")
         bm = best.metrics
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Total Return", f"{bm.total_return_pct:+.2f}%")
@@ -384,19 +463,19 @@ if run_btn:
             pv_df = pd.DataFrame(pv_data)
             st.line_chart(_downsample(pv_df))
 
-            st.subheader("Position Levels")
-            pos_cols = {}
-            for col in best.history.columns:
-                if col.startswith("collateral_"):
-                    sym = col.removeprefix("collateral_")
-                    pos_cols[f"Collateral ({sym})"] = best.history[col]
-                elif col.startswith("debt_"):
-                    sym = col.removeprefix("debt_")
-                    pos_cols[f"Debt ({sym})"] = best.history[col]
-            if hedge_enabled and "cash_reserve" in best.history:
-                pos_cols["Cash Reserve (USD)"] = best.history["cash_reserve"]
-            if pos_cols:
-                st.line_chart(_downsample(pd.DataFrame(pos_cols)))
+            st.subheader("Position Values")
+            pos_df = position_value_chart_data(best.history)
+            if not pos_df.empty:
+                st.line_chart(_downsample(pos_df))
+                with st.expander("Position Value Reconciliation"):
+                    reconciliation = best.history[
+                        ["collateral_value", "debt_value", "portfolio_value"]
+                    ].copy()
+                    reconciliation["net_collateral_minus_debt"] = (
+                        reconciliation["collateral_value"]
+                        - reconciliation["debt_value"]
+                    )
+                    st.dataframe(_downsample(reconciliation))
 
             st.subheader("Health Factor")
             hf_df = best.history[["health_factor"]].copy()
@@ -436,6 +515,10 @@ if run_btn:
                             "Resulting HF": f"{e.resulting_hf:.3f}",
                         })
                     st.dataframe(pd.DataFrame(liq_rows))
+
+            if best.strategy_events:
+                with st.expander("Strategy Events"):
+                    st.dataframe(pd.DataFrame(best.strategy_events))
 
             with st.expander("Full History"):
                 st.dataframe(best.history)

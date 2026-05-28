@@ -126,6 +126,19 @@ def test_full_short_uses_higher_regime_confirmation_for_size():
     assert strategy.event_log[-1]["reason"] == "full_short_up"
 
 
+def test_full_short_bounds_are_configurable():
+    strategy, snapshot = _setup_strategy(
+        full_short_lower_bound=0.9,
+        full_short_upper_bound=1.2,
+        signal_by_bar={0: {"green": 0, "bearish_3d": True, "bearish_1w": True}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    eth_borrow = next(a for a in actions if a["type"] == "borrow" and a["symbol"] == "ETH")
+    assert eth_borrow["amount"] == pytest.approx(6.0)
+
+
 def test_eth_short_is_scaled_down_to_preserve_minimum_health_factor():
     strategy, snapshot = _setup_strategy(
         min_rebalance_hf=3.0,

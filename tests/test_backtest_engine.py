@@ -192,6 +192,36 @@ class TestNoOpStrategyRecordsAllBars:
             result.history.index, price_data.index, check_names=False
         )
 
+    def test_position_usd_values_tie_to_portfolio_totals(
+        self, market_params: MarketParams
+    ):
+        price_data = make_multi_symbol_price_data(
+            n_bars=2,
+            symbols_prices={"SOL": 150.0, "USDC": 1.0},
+            drift=0.0,
+        )
+        engine = BacktestEngine(NoOpStrategy())
+        result = engine.run(price_data, market_params=market_params)
+        row = result.history.iloc[-1]
+
+        assert row["collateral_SOL_value"] == pytest.approx(1500.0)
+        assert row["debt_USDC_value"] == pytest.approx(row["debt_value"])
+        collateral_position_value = sum(
+            row[col] for col in result.history.columns
+            if col.startswith("collateral_") and col.endswith("_value")
+            and col != "collateral_value"
+        )
+        debt_position_value = sum(
+            row[col] for col in result.history.columns
+            if col.startswith("debt_") and col.endswith("_value")
+            and col != "debt_value"
+        )
+        assert collateral_position_value == pytest.approx(row["collateral_value"])
+        assert debt_position_value == pytest.approx(row["debt_value"])
+        assert row["portfolio_value"] == pytest.approx(
+            row["collateral_value"] - row["debt_value"] + row["cash_reserve"]
+        )
+
 
 class TestConstantPricesStablePortfolio:
     """With constant prices, portfolio value should stay stable (minus interest)."""
