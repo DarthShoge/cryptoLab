@@ -210,6 +210,36 @@ def _final_position_columns(history: pd.DataFrame, final_sol_price: float) -> di
     return values
 
 
+def final_position_summary(
+    history: pd.DataFrame,
+    final_sol_price: float,
+) -> dict[str, object]:
+    """Return final account positions in native units and USD values."""
+    values = _final_position_columns(history, final_sol_price)
+    return {
+        "net": {
+            "portfolio_value_usd": values["final_portfolio_value_usd"],
+            "sol_equivalent": values["final_sol_equiv"],
+        },
+        "collateral": [
+            {
+                "Asset": symbol,
+                "Amount": values[f"final_collateral_{symbol}"],
+                "Value USD": values[f"final_collateral_{symbol}_value_usd"],
+            }
+            for symbol in ("SOL", "USDC")
+        ],
+        "debt": [
+            {
+                "Asset": symbol,
+                "Amount": values[f"final_debt_{symbol}"],
+                "Value USD": values[f"final_debt_{symbol}_value_usd"],
+            }
+            for symbol in ("ETH", "USDC")
+        ],
+    }
+
+
 def _pandas_timeframe(timeframe: str) -> str:
     if timeframe.lower().endswith("w"):
         return timeframe[:-1] + "W"

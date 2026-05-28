@@ -17,6 +17,7 @@ from arblab.backtest.app_helpers import (
     SOL_SUPERTREND_SHORT_STRATEGY,
     build_price_configs,
     build_sol_supertrend_short_config,
+    final_position_summary,
     position_value_chart_data,
     run_selected_backtest,
     run_selected_grid_search,
@@ -327,6 +328,46 @@ if run_btn:
 
     if mode == "Single Backtest":
         result = _run_backtest(strategy_name, price_data, strategy_config, mp)
+
+        if (
+            strategy_name == SOL_SUPERTREND_SHORT_STRATEGY
+            and not result.history.empty
+        ):
+            final_sol_price = float(
+                price_data[("SOL", "close")]
+                .reindex(result.history.index, method="ffill")
+                .iloc[-1]
+            )
+            final_position = final_position_summary(
+                result.history,
+                final_sol_price=final_sol_price,
+            )
+            st.subheader("Final Portfolio")
+            fp1, fp2 = st.columns(2)
+            fp1.metric(
+                "Net Portfolio Value",
+                f"${final_position['net']['portfolio_value_usd']:,.2f}",
+            )
+            fp2.metric(
+                "SOL Equivalent",
+                f"{final_position['net']['sol_equivalent']:,.2f} SOL",
+            )
+
+            pos_left, pos_right = st.columns(2)
+            with pos_left:
+                st.markdown("**Collateral**")
+                st.dataframe(
+                    pd.DataFrame(final_position["collateral"]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            with pos_right:
+                st.markdown("**Debt**")
+                st.dataframe(
+                    pd.DataFrame(final_position["debt"]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
 
         # Summary metrics
         m = result.metrics

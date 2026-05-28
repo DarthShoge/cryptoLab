@@ -15,6 +15,7 @@ from arblab.backtest.app_helpers import (
     build_price_configs,
     build_sol_supertrend_short_config,
     build_sol_supertrend_signal_by_bar,
+    final_position_summary,
     run_selected_grid_search,
     run_selected_backtest,
     position_value_chart_data,
@@ -339,6 +340,37 @@ def test_sol_supertrend_grid_search_adds_final_position_columns():
     assert row["final_collateral_SOL"] == 100.0
     assert row["final_debt_ETH"] == 0.0
     assert row["final_debt_USDC"] == 0.0
+
+
+def test_final_position_summary_returns_assets_and_mark_to_market_values():
+    history = pd.DataFrame(
+        {
+            "portfolio_value": [15_000.0],
+            "collateral_SOL": [100.0],
+            "collateral_SOL_value": [10_000.0],
+            "collateral_USDC": [10_000.0],
+            "collateral_USDC_value": [10_000.0],
+            "debt_ETH": [2.5],
+            "debt_ETH_value": [5_000.0],
+            "debt_USDC": [0.0],
+            "debt_USDC_value": [0.0],
+        }
+    )
+
+    summary = final_position_summary(history, final_sol_price=100.0)
+
+    assert summary["net"] == {
+        "portfolio_value_usd": 15_000.0,
+        "sol_equivalent": 150.0,
+    }
+    assert summary["collateral"] == [
+        {"Asset": "SOL", "Amount": 100.0, "Value USD": 10_000.0},
+        {"Asset": "USDC", "Amount": 10_000.0, "Value USD": 10_000.0},
+    ]
+    assert summary["debt"] == [
+        {"Asset": "ETH", "Amount": 2.5, "Value USD": 5_000.0},
+        {"Asset": "USDC", "Amount": 0.0, "Value USD": 0.0},
+    ]
 
 
 def test_sol_supertrend_grid_search_groups_full_short_only_when_enabled():
