@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from typing import Dict, List
 
 import pandas as pd
@@ -13,7 +14,10 @@ from arblab.backtest.optimizer import OptimizationResult, grid_search
 from arblab.backtest.results import BacktestResult
 from arblab.backtest.strategy import Strategy
 from arblab.strategies.leverage_loop import LeverageLoopStrategy
-from arblab.strategies.sol_supertrend_short import SolSupertrendShortStrategy
+from arblab.strategies.sol_supertrend_short import (
+    SolSupertrendShortStrategy,
+    supertrend_direction,
+)
 
 
 LEVERAGE_LOOP_STRATEGY = "Leverage Loop"
@@ -106,6 +110,72 @@ def position_value_chart_data(history: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(data, index=history.index)
 
 
+def _pandas_timeframe(timeframe: str) -> str:
+    if timeframe.lower().endswith("w"):
+        return timeframe[:-1] + "W"
+    return timeframe
+
+
+def _resample_ohlcv(price_data: pd.DataFrame, symbol: str, timeframe: str) -> pd.DataFrame:
+    base = price_data[symbol]
+    rule = _pandas_timeframe(timeframe)
+    return pd.DataFrame(
+        {
+            "open": base["open"].resample(rule).first(),
+            "high": base["high"].resample(rule).max(),
+            "low": base["low"].resample(rule).min(),
+            "close": base["close"].resample(rule).last(),
+            "volume": base["volume"].resample(rule).sum(),
+        }
+    ).dropna()
+
+
+def _closed_direction_on_base_index(
+    price_data: pd.DataFrame,
+    timeframe: str,
+    atr_period: int,
+    multiplier: float,
+) -> pd.Series:
+    resampled = _resample_ohlcv(price_data, "SOL", timeframe)
+    if resampled.empty:
+        return pd.Series(True, index=price_data.index)
+    direction = supertrend_direction(resampled, atr_period, multiplier)
+    closed_direction = direction.shift(1)
+    mapped = closed_direction.reindex(price_data.index, method="ffill")
+    return mapped.where(mapped.notna(), True).astype(bool)
+
+
+def build_sol_supertrend_signal_by_bar(
+    price_data: pd.DataFrame,
+    atr_period: int,
+    multiplier: float,
+    timeframes: tuple[str, ...] = ("1h", "4h", "8h", "1d"),
+) -> Dict[int, Dict[str, bool | int]]:
+    """Precompute SOL Supertrend votes once for a full price dataset."""
+    directions = [
+        _closed_direction_on_base_index(
+            price_data, timeframe, atr_period, multiplier
+        )
+        for timeframe in timeframes
+    ]
+    bearish_3d = ~_closed_direction_on_base_index(
+        price_data, "3d", atr_period, multiplier
+    )
+    bearish_1w = ~_closed_direction_on_base_index(
+        price_data, "1w", atr_period, multiplier
+    )
+
+    signals: dict[int, dict[str, bool | int]] = {}
+    for idx, timestamp in enumerate(price_data.index):
+        green = sum(int(bool(direction.loc[timestamp])) for direction in directions)
+        signals[idx] = {
+            "green": green,
+            "bearish_3d": bool(bearish_3d.loc[timestamp]),
+            "bearish_1w": bool(bearish_1w.loc[timestamp]),
+        }
+    return signals
+
+
 def build_sol_supertrend_short_config(
     price_data: pd.DataFrame,
     initial_sol_collateral: float,
@@ -127,6 +197,11 @@ def build_sol_supertrend_short_config(
         "initial_eth_price": float(price_data.iloc[0][("ETH", "close")]),
         "supertrend_atr_period": supertrend_atr_period,
         "supertrend_multiplier": supertrend_multiplier,
+        "signal_by_bar": build_sol_supertrend_signal_by_bar(
+            price_data,
+            atr_period=supertrend_atr_period,
+            multiplier=supertrend_multiplier,
+        ),
         "target_bullish_hf": target_bullish_hf,
         "min_rebalance_hf": min_rebalance_hf,
         "max_usdc_debt_to_equity": max_usdc_debt_to_equity,
@@ -163,6 +238,15 @@ def run_selected_grid_search(
     sort_metric: str = "sortino_ratio",
 ) -> OptimizationResult:
     """Run grid search using the selected strategy."""
+    if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY:
+        return _run_sol_supertrend_grid_search(
+            price_data=price_data,
+            param_grid=param_grid,
+            base_config=base_config,
+            market_params=market_params or MarketParams.kamino_defaults(),
+            sort_metric=sort_metric,
+        )
+
     return grid_search(
         strategy=strategy_for_name(strategy_name),
         price_data=price_data,
@@ -170,4 +254,67 @@ def run_selected_grid_search(
         base_config=base_config,
         market_params=market_params or MarketParams.kamino_defaults(),
         sort_metric=sort_metric,
+    )
+
+
+def _run_sol_supertrend_grid_search(
+    price_data: pd.DataFrame,
+    param_grid: Dict[str, list],
+    base_config: Dict[str, object],
+    market_params: MarketParams,
+    sort_metric: str,
+) -> OptimizationResult:
+    keys = list(param_grid.keys())
+    combos = list(itertools.product(*(param_grid[key] for key in keys)))
+    results: list[BacktestResult] = []
+    grid: list[dict[str, object]] = []
+    rows: list[dict[str, object]] = []
+
+    for combo in combos:
+        params = dict(zip(keys, combo))
+        config = {**base_config, **params}
+        atr_period = int(config.get("supertrend_atr_period", 10))
+        multiplier = float(config.get("supertrend_multiplier", 3.0))
+        config["signal_by_bar"] = build_sol_supertrend_signal_by_bar(
+            price_data,
+            atr_period=atr_period,
+            multiplier=multiplier,
+        )
+        result = BacktestEngine(SolSupertrendShortStrategy()).run(
+            price_data,
+            config,
+            market_params,
+        )
+        grid.append(params)
+        results.append(result)
+
+        m = result.metrics
+        rows.append(
+            {
+                **params,
+                "_result_index": len(results) - 1,
+                "total_return_pct": m.total_return_pct,
+                "max_drawdown_pct": m.max_drawdown_pct,
+                "sharpe_ratio": m.sharpe_ratio,
+                "sortino_ratio": m.sortino_ratio,
+                "min_health_factor": m.min_health_factor,
+                "total_liquidations": m.total_liquidations,
+                "total_interest_paid": m.total_interest_paid,
+                "total_lst_yield_earned": m.total_lst_yield_earned,
+                "liquidated": result.liquidated,
+            }
+        )
+
+    comparison_df = pd.DataFrame(rows).sort_values(
+        sort_metric,
+        ascending=False,
+    ).reset_index(drop=True)
+    best_idx = int(comparison_df.iloc[0]["_result_index"])
+    comparison_df = comparison_df.drop(columns=["_result_index"])
+
+    return OptimizationResult(
+        results=results,
+        param_grid=grid,
+        best_result=results[best_idx],
+        comparison_df=comparison_df,
     )

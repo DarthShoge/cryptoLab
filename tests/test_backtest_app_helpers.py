@@ -10,6 +10,7 @@ from arblab.backtest.app_helpers import (
     SOL_SUPERTREND_SHORT_STRATEGY,
     build_price_configs,
     build_sol_supertrend_short_config,
+    build_sol_supertrend_signal_by_bar,
     run_selected_grid_search,
     run_selected_backtest,
     position_value_chart_data,
@@ -34,6 +35,29 @@ def _price_data() -> pd.DataFrame:
             ("ETH", "low"): [1_990.0, 2_000.0],
             ("ETH", "close"): [2_000.0, 2_010.0],
             ("ETH", "volume"): [1_000.0, 1_000.0],
+        },
+        index=dates,
+    )
+    df.columns = pd.MultiIndex.from_tuples(df.columns)
+    return df
+
+
+def _long_price_data(n: int = 80) -> pd.DataFrame:
+    dates = pd.date_range("2024-01-01", periods=n, freq="h", tz="UTC")
+    sol = pd.Series(range(100, 100 + n), index=dates, dtype=float)
+    eth = pd.Series(range(2_000, 2_000 + n), index=dates, dtype=float)
+    df = pd.DataFrame(
+        {
+            ("SOL", "open"): sol,
+            ("SOL", "high"): sol * 1.01,
+            ("SOL", "low"): sol * 0.99,
+            ("SOL", "close"): sol,
+            ("SOL", "volume"): 1_000.0,
+            ("ETH", "open"): eth,
+            ("ETH", "high"): eth * 1.01,
+            ("ETH", "low"): eth * 0.99,
+            ("ETH", "close"): eth,
+            ("ETH", "volume"): 1_000.0,
         },
         index=dates,
     )
@@ -113,6 +137,22 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["supertrend_multiplier"] == 3.0
     assert config["full_short_lower_bound"] == 1.0
     assert config["full_short_upper_bound"] == 1.5
+    assert isinstance(config["signal_by_bar"], dict)
+
+
+def test_build_sol_supertrend_signal_by_bar_precomputes_all_base_bars():
+    price_data = _long_price_data()
+
+    signals = build_sol_supertrend_signal_by_bar(
+        price_data,
+        atr_period=7,
+        multiplier=2.0,
+    )
+
+    assert set(signals.keys()) == set(range(len(price_data)))
+    assert all(0 <= signal["green"] <= 4 for signal in signals.values())
+    assert all("bearish_3d" in signal for signal in signals.values())
+    assert all("bearish_1w" in signal for signal in signals.values())
 
 
 def test_run_selected_backtest_uses_sol_supertrend_short_strategy():
@@ -135,19 +175,24 @@ def test_run_selected_backtest_uses_sol_supertrend_short_strategy():
 def test_run_selected_grid_search_uses_sortino_for_supertrend_short():
     result = run_selected_grid_search(
         strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
-        price_data=_price_data(),
-        param_grid={"rebalance_threshold": [0.05, 0.10]},
+        price_data=_long_price_data(),
+        param_grid={
+            "supertrend_atr_period": [7, 10],
+            "supertrend_multiplier": [2.0],
+        },
         base_config={
             "initial_sol_collateral": 100.0,
             "initial_sol_price": 100.0,
             "initial_eth_price": 2_000.0,
-            "signal_by_bar": {0: {"green": 1}},
             "rebalance_cooldown_bars": 0,
         },
     )
 
     assert "sortino_ratio" in result.comparison_df.columns
     assert len(result.comparison_df) == 2
+    for result_item in result.results:
+        assert "signal_by_bar" in result_item.strategy_config
+        assert result_item.strategy_config["signal_by_bar"]
 
 
 def test_position_value_chart_data_uses_mark_to_market_values_only():
