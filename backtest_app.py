@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from arblab.backtest.app_helpers import (
+    DEFAULT_END_DATE,
+    DEFAULT_START_DATE,
     DEFAULT_STRATEGY,
     EXCHANGE_SYMBOLS,
     LEVERAGE_LOOP_STRATEGY,
@@ -18,6 +20,7 @@ from arblab.backtest.app_helpers import (
     build_price_configs,
     build_sol_supertrend_short_config,
     final_position_summary,
+    hedge_pnl_chart_data,
     position_value_chart_data,
     run_selected_backtest,
     run_selected_grid_search,
@@ -62,8 +65,8 @@ def _run_grid_search(strategy_name, price_data, param_grid, base_config, _market
 st.sidebar.header("Data Settings")
 exchange_id = st.sidebar.selectbox("Exchange", ["binance", "bybit", "okx"], index=0)
 timeframe = st.sidebar.selectbox("Base Timeframe", ["1h"], index=0)
-start_date = st.sidebar.date_input("Start Date", value=pd.Timestamp("2024-01-01"))
-end_date = st.sidebar.date_input("End Date", value=pd.Timestamp("2024-12-31"))
+start_date = st.sidebar.date_input("Start Date", value=DEFAULT_START_DATE)
+end_date = st.sidebar.date_input("End Date", value=DEFAULT_END_DATE)
 
 st.sidebar.header("Strategy")
 strategy_name = st.sidebar.selectbox(
@@ -462,6 +465,18 @@ if run_btn:
                         - reconciliation["debt_value"]
                     )
                     st.dataframe(_downsample(reconciliation))
+
+            if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY:
+                hedge_charts = hedge_pnl_chart_data(
+                    result.strategy_events,
+                    result.history,
+                )
+                if not hedge_charts["levels"].empty or not hedge_charts["pnl"].empty:
+                    st.subheader("Hedge & PnL")
+                    if not hedge_charts["levels"].empty:
+                        st.line_chart(_downsample(hedge_charts["levels"]))
+                    if not hedge_charts["pnl"].empty:
+                        st.line_chart(_downsample(hedge_charts["pnl"]))
 
             st.subheader("Health Factor")
             hf_df = result.history[["health_factor"]].copy()

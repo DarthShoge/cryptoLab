@@ -23,6 +23,8 @@ from arblab.strategies.sol_supertrend_short import (
 LEVERAGE_LOOP_STRATEGY = "Leverage Loop"
 SOL_SUPERTREND_SHORT_STRATEGY = "SOL Supertrend Short"
 DEFAULT_STRATEGY = SOL_SUPERTREND_SHORT_STRATEGY
+DEFAULT_START_DATE = pd.Timestamp("2021-01-01")
+DEFAULT_END_DATE = pd.Timestamp("2025-12-31")
 
 SOFT_HEDGE_LADDER = {4: 0.0, 3: 0.10, 2: 0.25, 1: 0.50, 0: 0.50}
 
@@ -136,6 +138,58 @@ def position_value_chart_data(history: pd.DataFrame) -> pd.DataFrame:
     if "portfolio_value" in history:
         data["Net Portfolio"] = history["portfolio_value"]
     return pd.DataFrame(data, index=history.index)
+
+
+def hedge_pnl_chart_data(
+    strategy_events: list[dict],
+    history: pd.DataFrame,
+) -> dict[str, pd.DataFrame]:
+    """Build hedge ratio and realized PnL chart data from strategy events."""
+    empty = {"levels": pd.DataFrame(), "pnl": pd.DataFrame()}
+    if not strategy_events:
+        return empty
+
+    events = pd.DataFrame(strategy_events)
+    if "timestamp" not in events:
+        return empty
+    events["timestamp"] = pd.to_datetime(events["timestamp"], utc=True)
+    events = events.set_index("timestamp").sort_index()
+
+    levels = pd.DataFrame(index=events.index)
+    levels["Target ETH Short / SOL Collateral"] = events.get(
+        "target_eth_short_ratio",
+        pd.Series(index=events.index, dtype=float),
+    ).astype(float)
+    levels["Actual ETH Short / SOL Collateral"] = events.get(
+        "current_eth_short_ratio",
+        pd.Series(index=events.index, dtype=float),
+    ).astype(float)
+
+    if {"debt_ETH_value", "collateral_SOL_value"}.issubset(history.columns):
+        aligned = history.reindex(events.index, method="ffill")
+        levels["Mark-to-Market ETH Debt / SOL Collateral"] = (
+            aligned["debt_ETH_value"] / aligned["collateral_SOL_value"]
+        ).replace([float("inf"), float("-inf")], 0.0).fillna(0.0)
+
+    pnl = pd.DataFrame(index=events.index)
+    pnl["Lifetime Realized Hedge PnL"] = events.get(
+        "lifetime_realized_hedge_pnl_usdc",
+        pd.Series(index=events.index, dtype=float),
+    ).astype(float)
+    pnl["Spendable Hedge Profit"] = events.get(
+        "spendable_hedge_profit_usdc",
+        pd.Series(index=events.index, dtype=float),
+    ).astype(float)
+    pnl["Open ETH Short Notional Basis"] = (
+        events.get("open_eth_short_amount", pd.Series(index=events.index, dtype=float))
+        .astype(float)
+        * events.get(
+            "average_eth_short_basis_usdc",
+            pd.Series(index=events.index, dtype=float),
+        ).astype(float)
+    )
+
+    return {"levels": levels, "pnl": pnl}
 
 
 def _series_max_drawdown_pct(values: pd.Series) -> float:

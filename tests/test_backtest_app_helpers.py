@@ -5,7 +5,9 @@ from __future__ import annotations
 import pandas as pd
 
 from arblab.backtest.app_helpers import (
+    DEFAULT_END_DATE,
     DEFAULT_STRATEGY,
+    DEFAULT_START_DATE,
     LEVERAGE_LOOP_STRATEGY,
     SOFT_HEDGE_LADDER,
     SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS,
@@ -16,6 +18,7 @@ from arblab.backtest.app_helpers import (
     build_sol_supertrend_short_config,
     build_sol_supertrend_signal_by_bar,
     final_position_summary,
+    hedge_pnl_chart_data,
     run_selected_grid_search,
     run_selected_backtest,
     position_value_chart_data,
@@ -84,6 +87,11 @@ def test_build_price_configs_requires_sol_and_eth_for_supertrend_short():
 
 def test_default_strategy_is_sol_supertrend_short():
     assert DEFAULT_STRATEGY == SOL_SUPERTREND_SHORT_STRATEGY
+
+
+def test_default_backtest_date_range_matches_long_report_window():
+    assert DEFAULT_START_DATE == pd.Timestamp("2021-01-01")
+    assert DEFAULT_END_DATE == pd.Timestamp("2025-12-31")
 
 
 def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
@@ -455,3 +463,59 @@ def test_position_value_chart_data_uses_mark_to_market_values_only():
         "Debt ETH": [-5_000.0],
         "Net Portfolio": [15_000.0],
     }
+
+
+def test_hedge_pnl_chart_data_returns_ratio_and_pnl_views():
+    events = [
+        {
+            "timestamp": pd.Timestamp("2024-01-01 00:00:00", tz="UTC"),
+            "target_eth_short_ratio": 0.50,
+            "current_eth_short_ratio": 0.25,
+            "lifetime_realized_hedge_pnl_usdc": 100.0,
+            "spendable_hedge_profit_usdc": 50.0,
+            "open_eth_short_amount": 1.5,
+            "average_eth_short_basis_usdc": 2_000.0,
+        },
+        {
+            "timestamp": pd.Timestamp("2024-01-01 04:00:00", tz="UTC"),
+            "target_eth_short_ratio": 0.00,
+            "current_eth_short_ratio": 0.10,
+            "lifetime_realized_hedge_pnl_usdc": 175.0,
+            "spendable_hedge_profit_usdc": 125.0,
+            "open_eth_short_amount": 0.5,
+            "average_eth_short_basis_usdc": 2_000.0,
+        },
+    ]
+    history = pd.DataFrame(
+        {
+            "debt_ETH_value": [1_000.0, 500.0],
+            "collateral_SOL_value": [4_000.0, 5_000.0],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("2024-01-01 00:00:00", tz="UTC"),
+                pd.Timestamp("2024-01-01 04:00:00", tz="UTC"),
+            ],
+            name="timestamp",
+        ),
+    )
+
+    charts = hedge_pnl_chart_data(events, history)
+
+    assert charts["levels"].to_dict("list") == {
+        "Target ETH Short / SOL Collateral": [0.50, 0.00],
+        "Actual ETH Short / SOL Collateral": [0.25, 0.10],
+        "Mark-to-Market ETH Debt / SOL Collateral": [0.25, 0.10],
+    }
+    assert charts["pnl"].to_dict("list") == {
+        "Lifetime Realized Hedge PnL": [100.0, 175.0],
+        "Spendable Hedge Profit": [50.0, 125.0],
+        "Open ETH Short Notional Basis": [3_000.0, 1_000.0],
+    }
+
+
+def test_hedge_pnl_chart_data_returns_empty_views_without_events():
+    charts = hedge_pnl_chart_data([], pd.DataFrame())
+
+    assert charts["levels"].empty
+    assert charts["pnl"].empty
