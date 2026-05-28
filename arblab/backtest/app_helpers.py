@@ -24,6 +24,23 @@ LEVERAGE_LOOP_STRATEGY = "Leverage Loop"
 SOL_SUPERTREND_SHORT_STRATEGY = "SOL Supertrend Short"
 DEFAULT_STRATEGY = SOL_SUPERTREND_SHORT_STRATEGY
 
+SOFT_HEDGE_LADDER = {4: 0.0, 3: 0.10, 2: 0.25, 1: 0.50, 0: 0.50}
+
+SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
+    "supertrend_atr_period": 10,
+    "supertrend_multiplier": 3.0,
+    "hedge_ladder": SOFT_HEDGE_LADDER,
+    "enable_usdc_releverage": False,
+    "max_usdc_debt_to_equity": 0.0,
+    "target_bullish_hf": 1.35,
+    "min_rebalance_hf": 1.75,
+    "rebalance_threshold": 0.10,
+    "rebalance_cooldown_bars": 4,
+    "enable_full_short_mode": True,
+    "full_short_lower_bound": 0.75,
+    "full_short_upper_bound": 1.25,
+}
+
 EXCHANGE_SYMBOLS = {
     "SOL": "SOL/USDT",
     "JitoSOL": "JITOSOL/USDT",
@@ -274,6 +291,7 @@ def build_sol_supertrend_short_config(
     full_short_upper_bound: float,
     enable_full_short_mode: bool = True,
     enable_usdc_releverage: bool = False,
+    hedge_ladder: dict[int, float] | None = None,
 ) -> Dict[str, float | int | bool | dict]:
     """Build strategy config for the SOL Supertrend short strategy."""
     return {
@@ -293,6 +311,7 @@ def build_sol_supertrend_short_config(
         "rebalance_threshold": rebalance_threshold,
         "rebalance_cooldown_bars": rebalance_cooldown_bars,
         "swap_fee_bps": swap_fee_bps,
+        "hedge_ladder": hedge_ladder or SOFT_HEDGE_LADDER,
         "full_short_lower_bound": full_short_lower_bound,
         "full_short_upper_bound": full_short_upper_bound,
         "enable_full_short_mode": enable_full_short_mode,

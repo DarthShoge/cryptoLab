@@ -7,6 +7,8 @@ import pandas as pd
 from arblab.backtest.app_helpers import (
     DEFAULT_STRATEGY,
     LEVERAGE_LOOP_STRATEGY,
+    SOFT_HEDGE_LADDER,
+    SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS,
     SOL_SUPERTREND_SHORT_STRATEGY,
     benchmark_tier,
     benchmark_tier_rank,
@@ -83,6 +85,23 @@ def test_default_strategy_is_sol_supertrend_short():
     assert DEFAULT_STRATEGY == SOL_SUPERTREND_SHORT_STRATEGY
 
 
+def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
+    assert SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS == {
+        "supertrend_atr_period": 10,
+        "supertrend_multiplier": 3.0,
+        "hedge_ladder": SOFT_HEDGE_LADDER,
+        "enable_usdc_releverage": False,
+        "max_usdc_debt_to_equity": 0.0,
+        "target_bullish_hf": 1.35,
+        "min_rebalance_hf": 1.75,
+        "rebalance_threshold": 0.10,
+        "rebalance_cooldown_bars": 4,
+        "enable_full_short_mode": True,
+        "full_short_lower_bound": 0.75,
+        "full_short_upper_bound": 1.25,
+    }
+
+
 def test_sol_supertrend_visible_controls_drop_leverage_loop_controls():
     controls = visible_strategy_controls(SOL_SUPERTREND_SHORT_STRATEGY)
 
@@ -141,6 +160,7 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["min_rebalance_hf"] == 1.25
     assert config["supertrend_atr_period"] == 10
     assert config["supertrend_multiplier"] == 3.0
+    assert config["hedge_ladder"] == SOFT_HEDGE_LADDER
     assert config["full_short_lower_bound"] == 1.0
     assert config["full_short_upper_bound"] == 1.5
     assert config["enable_full_short_mode"] is True

@@ -13,6 +13,7 @@ from arblab.backtest.app_helpers import (
     DEFAULT_STRATEGY,
     EXCHANGE_SYMBOLS,
     LEVERAGE_LOOP_STRATEGY,
+    SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS,
     SOL_SUPERTREND_SHORT_STRATEGY,
     build_price_configs,
     build_sol_supertrend_short_config,
@@ -118,36 +119,84 @@ if strategy_name == LEVERAGE_LOOP_STRATEGY:
         )
 else:
     st.sidebar.header("SOL Supertrend Parameters")
+    sol_defaults = SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS
     initial_collateral = st.sidebar.number_input(
         "Initial SOL Collateral", value=100.0, min_value=1.0, step=10.0
     )
     supertrend_atr_period = st.sidebar.number_input(
-        "Supertrend ATR Period", value=10, min_value=2, max_value=100, step=1
+        "Supertrend ATR Period",
+        value=int(sol_defaults["supertrend_atr_period"]),
+        min_value=2,
+        max_value=100,
+        step=1,
     )
     supertrend_multiplier = st.sidebar.slider(
-        "Supertrend Multiplier", 1.0, 8.0, 3.0, step=0.25
+        "Supertrend Multiplier",
+        1.0,
+        8.0,
+        float(sol_defaults["supertrend_multiplier"]),
+        step=0.25,
     )
     enable_usdc_releverage = st.sidebar.checkbox(
-        "Enable USDC Releverage", value=False
+        "Enable USDC Releverage",
+        value=bool(sol_defaults["enable_usdc_releverage"]),
     )
-    target_bullish_hf = st.sidebar.slider("Target Bullish HF", 1.1, 2.0, 1.35, step=0.05)
-    min_rebalance_hf = st.sidebar.slider("Minimum Rebalance HF", 1.05, 2.0, 1.25, step=0.05)
-    max_usdc_debt_to_equity = 0.0
+    target_bullish_hf = st.sidebar.slider(
+        "Target Bullish HF",
+        1.1,
+        2.0,
+        float(sol_defaults["target_bullish_hf"]),
+        step=0.05,
+    )
+    min_rebalance_hf = st.sidebar.slider(
+        "Minimum Rebalance HF",
+        1.05,
+        2.0,
+        float(sol_defaults["min_rebalance_hf"]),
+        step=0.05,
+    )
+    max_usdc_debt_to_equity = float(sol_defaults["max_usdc_debt_to_equity"])
     if enable_usdc_releverage:
-        max_usdc_debt_to_equity = st.sidebar.slider("Max USDC Debt / Equity", 0.25, 2.0, 1.0, step=0.25)
-    rebalance_threshold = st.sidebar.slider("Rebalance Threshold", 0.01, 0.25, 0.10, step=0.01)
-    rebalance_cooldown_bars = st.sidebar.slider("Cooldown Bars", 0, 24, 4)
-    enable_full_short_mode = st.sidebar.checkbox(
-        "Enable Full Short Mode", value=True
+        max_usdc_debt_to_equity = st.sidebar.slider(
+            "Max USDC Debt / Equity",
+            0.25,
+            2.0,
+            max(float(sol_defaults["max_usdc_debt_to_equity"]), 0.25),
+            step=0.25,
+        )
+    rebalance_threshold = st.sidebar.slider(
+        "Rebalance Threshold",
+        0.01,
+        0.25,
+        float(sol_defaults["rebalance_threshold"]),
+        step=0.01,
     )
-    full_short_lower_bound = 1.0
-    full_short_upper_bound = 1.5
+    rebalance_cooldown_bars = st.sidebar.slider(
+        "Cooldown Bars",
+        0,
+        24,
+        int(sol_defaults["rebalance_cooldown_bars"]),
+    )
+    enable_full_short_mode = st.sidebar.checkbox(
+        "Enable Full Short Mode",
+        value=bool(sol_defaults["enable_full_short_mode"]),
+    )
+    full_short_lower_bound = float(sol_defaults["full_short_lower_bound"])
+    full_short_upper_bound = float(sol_defaults["full_short_upper_bound"])
     if enable_full_short_mode:
         full_short_lower_bound = st.sidebar.slider(
-            "Full Short Lower Bound", 0.75, 1.5, 1.0, step=0.05
+            "Full Short Lower Bound",
+            0.75,
+            1.5,
+            float(sol_defaults["full_short_lower_bound"]),
+            step=0.05,
         )
         full_short_upper_bound = st.sidebar.slider(
-            "Full Short Upper Bound", 1.0, 2.5, 1.5, step=0.05
+            "Full Short Upper Bound",
+            1.0,
+            2.5,
+            float(sol_defaults["full_short_upper_bound"]),
+            step=0.05,
         )
 
 st.sidebar.header("Market Overrides")
@@ -273,6 +322,7 @@ if run_btn:
             full_short_upper_bound=full_short_upper_bound,
             enable_full_short_mode=enable_full_short_mode,
             enable_usdc_releverage=enable_usdc_releverage,
+            hedge_ladder=sol_defaults["hedge_ladder"],
         )
 
     if mode == "Single Backtest":
