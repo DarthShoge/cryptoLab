@@ -263,7 +263,8 @@ class SolSupertrendShortStrategy(Strategy):
         return not bool(direction.iloc[-1])
 
     def _target_eth_ratio(self, vote: TrendVote) -> tuple[float, str]:
-        full_short_entry = vote.green == 0 and vote.bearish_3d
+        full_short_enabled = bool(self._config.get("enable_full_short_mode", True))
+        full_short_entry = full_short_enabled and vote.green == 0 and vote.bearish_3d
 
         if self.in_full_short_mode or full_short_entry:
             self.in_full_short_mode = True
@@ -361,6 +362,9 @@ class SolSupertrendShortStrategy(Strategy):
         snapshot: AccountSnapshot,
         bar: BarData,
     ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_usdc_releverage", False)):
+            return []
+
         target_hf = float(self._config.get("target_bullish_hf", 1.35))
         equity = snapshot.total_collateral_value() - snapshot.total_debt_value()
         max_debt = equity * float(self._config.get("max_usdc_debt_to_equity", 1.0))

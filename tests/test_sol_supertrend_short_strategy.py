@@ -118,6 +118,7 @@ def test_eth_short_proceeds_are_posted_as_usdc_collateral():
 
 def test_strong_bullish_vote_adds_usdc_debt_to_buy_sol():
     strategy, snapshot = _setup_strategy(
+        enable_usdc_releverage=True,
         signal_by_bar={0: {"green": 4, "bearish_3d": False, "bearish_1w": False}},
     )
 
@@ -130,6 +131,18 @@ def test_strong_bullish_vote_adds_usdc_debt_to_buy_sol():
     assert actions[0]["amount"] > 0
     assert actions[1]["amount"] > 0
     assert strategy.event_log[-1]["reason"] == "bullish_relever"
+
+
+def test_usdc_releverage_can_be_disabled():
+    strategy, snapshot = _setup_strategy(
+        enable_usdc_releverage=False,
+        signal_by_bar={0: {"green": 4, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    assert actions == []
+    assert strategy.event_log == []
 
 
 def test_full_short_uses_higher_regime_confirmation_for_size():
@@ -145,6 +158,21 @@ def test_full_short_uses_higher_regime_confirmation_for_size():
     assert usdc_deposit["amount"] == pytest.approx(14_985.0)
     assert strategy.in_full_short_mode is True
     assert strategy.event_log[-1]["reason"] == "full_short_up"
+
+
+def test_full_short_can_be_disabled_without_disabling_core_hedge():
+    strategy, snapshot = _setup_strategy(
+        enable_full_short_mode=False,
+        signal_by_bar={0: {"green": 0, "bearish_3d": True, "bearish_1w": True}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    eth_borrow = next(a for a in actions if a["type"] == "borrow" and a["symbol"] == "ETH")
+    assert eth_borrow["amount"] == pytest.approx(3.75)
+    assert strategy.in_full_short_mode is False
+    assert strategy.event_log[-1]["reason"] == "hedge_up"
+    assert strategy.event_log[-1]["target_eth_short_ratio"] == pytest.approx(0.75)
 
 
 def test_full_short_bounds_are_configurable():

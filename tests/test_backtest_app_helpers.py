@@ -88,6 +88,8 @@ def test_sol_supertrend_visible_controls_drop_leverage_loop_controls():
 
     assert "Supertrend ATR Period" in controls
     assert "Supertrend Multiplier" in controls
+    assert "Enable USDC Releverage" in controls
+    assert "Enable Full Short Mode" in controls
     assert "Full Short Lower Bound" in controls
     assert "Leverage Loops" not in controls
     assert "Loop Utilization" not in controls
@@ -128,6 +130,8 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
         swap_fee_bps=10.0,
         full_short_lower_bound=1.0,
         full_short_upper_bound=1.5,
+        enable_full_short_mode=True,
+        enable_usdc_releverage=False,
     )
 
     assert config["initial_sol_collateral"] == 50.0
@@ -139,6 +143,8 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["supertrend_multiplier"] == 3.0
     assert config["full_short_lower_bound"] == 1.0
     assert config["full_short_upper_bound"] == 1.5
+    assert config["enable_full_short_mode"] is True
+    assert config["enable_usdc_releverage"] is False
     assert isinstance(config["signal_by_bar"], dict)
 
 
@@ -256,6 +262,8 @@ def test_sol_supertrend_grid_search_adds_benchmark_tier_columns():
             "initial_eth_price": 2_000.0,
             "rebalance_cooldown_bars": 0,
             "max_usdc_debt_to_equity": 0.0,
+            "enable_usdc_releverage": False,
+            "enable_full_short_mode": False,
             "full_short_lower_bound": 0.0,
             "full_short_upper_bound": 0.0,
         },
@@ -274,6 +282,46 @@ def test_sol_supertrend_grid_search_adds_benchmark_tier_columns():
         "reject",
     }
     assert row["experiment_group"] == "core_hedge"
+
+
+def test_sol_supertrend_grid_search_groups_full_short_only_when_enabled():
+    price_data = _long_price_data()
+
+    hedge_only = run_selected_grid_search(
+        strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
+        price_data=price_data,
+        param_grid={"supertrend_atr_period": [10]},
+        base_config={
+            "initial_sol_collateral": 100.0,
+            "initial_sol_price": 100.0,
+            "initial_eth_price": 2_000.0,
+            "signal_by_bar": build_sol_supertrend_signal_by_bar(price_data, 10, 3.0),
+            "enable_full_short_mode": False,
+            "full_short_lower_bound": 1.0,
+            "full_short_upper_bound": 1.5,
+            "enable_usdc_releverage": False,
+            "max_usdc_debt_to_equity": 0.0,
+        },
+    )
+    full_short = run_selected_grid_search(
+        strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
+        price_data=price_data,
+        param_grid={"supertrend_atr_period": [10]},
+        base_config={
+            "initial_sol_collateral": 100.0,
+            "initial_sol_price": 100.0,
+            "initial_eth_price": 2_000.0,
+            "signal_by_bar": build_sol_supertrend_signal_by_bar(price_data, 10, 3.0),
+            "enable_full_short_mode": True,
+            "full_short_lower_bound": 1.0,
+            "full_short_upper_bound": 1.5,
+            "enable_usdc_releverage": False,
+            "max_usdc_debt_to_equity": 0.0,
+        },
+    )
+
+    assert hedge_only.comparison_df.iloc[0]["experiment_group"] == "core_hedge"
+    assert full_short.comparison_df.iloc[0]["experiment_group"] == "core_full_short"
 
 
 def test_position_value_chart_data_uses_mark_to_market_values_only():

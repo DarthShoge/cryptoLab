@@ -127,17 +127,28 @@ else:
     supertrend_multiplier = st.sidebar.slider(
         "Supertrend Multiplier", 1.0, 8.0, 3.0, step=0.25
     )
+    enable_usdc_releverage = st.sidebar.checkbox(
+        "Enable USDC Releverage", value=False
+    )
     target_bullish_hf = st.sidebar.slider("Target Bullish HF", 1.1, 2.0, 1.35, step=0.05)
     min_rebalance_hf = st.sidebar.slider("Minimum Rebalance HF", 1.05, 2.0, 1.25, step=0.05)
-    max_usdc_debt_to_equity = st.sidebar.slider("Max USDC Debt / Equity", 0.25, 2.0, 1.0, step=0.25)
+    max_usdc_debt_to_equity = 0.0
+    if enable_usdc_releverage:
+        max_usdc_debt_to_equity = st.sidebar.slider("Max USDC Debt / Equity", 0.25, 2.0, 1.0, step=0.25)
     rebalance_threshold = st.sidebar.slider("Rebalance Threshold", 0.01, 0.25, 0.10, step=0.01)
     rebalance_cooldown_bars = st.sidebar.slider("Cooldown Bars", 0, 24, 4)
-    full_short_lower_bound = st.sidebar.slider(
-        "Full Short Lower Bound", 0.75, 1.5, 1.0, step=0.05
+    enable_full_short_mode = st.sidebar.checkbox(
+        "Enable Full Short Mode", value=True
     )
-    full_short_upper_bound = st.sidebar.slider(
-        "Full Short Upper Bound", 1.0, 2.5, 1.5, step=0.05
-    )
+    full_short_lower_bound = 1.0
+    full_short_upper_bound = 1.5
+    if enable_full_short_mode:
+        full_short_lower_bound = st.sidebar.slider(
+            "Full Short Lower Bound", 0.75, 1.5, 1.0, step=0.05
+        )
+        full_short_upper_bound = st.sidebar.slider(
+            "Full Short Upper Bound", 1.0, 2.5, 1.5, step=0.05
+        )
 
 st.sidebar.header("Market Overrides")
 borrow_rate = st.sidebar.slider(
@@ -260,6 +271,8 @@ if run_btn:
             swap_fee_bps=mp.swap_fee_bps,
             full_short_lower_bound=full_short_lower_bound,
             full_short_upper_bound=full_short_upper_bound,
+            enable_full_short_mode=enable_full_short_mode,
+            enable_usdc_releverage=enable_usdc_releverage,
         )
 
     if mode == "Single Backtest":

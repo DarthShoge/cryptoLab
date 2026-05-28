@@ -39,11 +39,13 @@ def visible_strategy_controls(strategy_name: str) -> List[str]:
             "Initial SOL Collateral",
             "Supertrend ATR Period",
             "Supertrend Multiplier",
+            "Enable USDC Releverage",
             "Target Bullish HF",
             "Minimum Rebalance HF",
             "Max USDC Debt / Equity",
             "Rebalance Threshold",
             "Cooldown Bars",
+            "Enable Full Short Mode",
             "Full Short Lower Bound",
             "Full Short Upper Bound",
         ]
@@ -149,13 +151,12 @@ def benchmark_tier_rank(tier: str) -> int:
 
 
 def _experiment_group(config: Dict[str, object]) -> str:
-    if float(config.get("max_usdc_debt_to_equity", 0.0)) > 0.0:
-        return "usdc_releverage"
     if (
-        bool(config.get("enable_full_short_mode", False))
-        or float(config.get("full_short_lower_bound", 0.0)) > 0.0
-        or float(config.get("full_short_upper_bound", 0.0)) > 0.0
+        bool(config.get("enable_usdc_releverage", False))
+        and float(config.get("max_usdc_debt_to_equity", 0.0)) > 0.0
     ):
+        return "usdc_releverage"
+    if bool(config.get("enable_full_short_mode", True)):
         return "core_full_short"
     return "core_hedge"
 
@@ -239,7 +240,9 @@ def build_sol_supertrend_short_config(
     swap_fee_bps: float,
     full_short_lower_bound: float,
     full_short_upper_bound: float,
-) -> Dict[str, float | int]:
+    enable_full_short_mode: bool = True,
+    enable_usdc_releverage: bool = False,
+) -> Dict[str, float | int | bool | dict]:
     """Build strategy config for the SOL Supertrend short strategy."""
     return {
         "initial_sol_collateral": initial_sol_collateral,
@@ -260,6 +263,8 @@ def build_sol_supertrend_short_config(
         "swap_fee_bps": swap_fee_bps,
         "full_short_lower_bound": full_short_lower_bound,
         "full_short_upper_bound": full_short_upper_bound,
+        "enable_full_short_mode": enable_full_short_mode,
+        "enable_usdc_releverage": enable_usdc_releverage,
     }
 
 
