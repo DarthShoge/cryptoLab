@@ -97,6 +97,11 @@ def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
         "min_rebalance_hf": 1.75,
         "rebalance_threshold": 0.10,
         "rebalance_cooldown_bars": 4,
+        "enable_surplus_usdc_reinvestment": True,
+        "realized_hedge_profit_gate_pct": 0.10,
+        "surplus_reinvestment_ladder": {3: 0.25, 4: 0.50},
+        "max_surplus_reinvestment_pct_of_sol_collateral": 0.05,
+        "surplus_reinvestment_min_hf": 2.0,
         "enable_full_short_mode": True,
         "full_short_lower_bound": 0.75,
         "full_short_upper_bound": 1.25,
@@ -109,6 +114,10 @@ def test_sol_supertrend_visible_controls_drop_leverage_loop_controls():
     assert "Supertrend ATR Period" in controls
     assert "Supertrend Multiplier" in controls
     assert "Enable USDC Releverage" in controls
+    assert "Enable Surplus USDC Reinvestment" in controls
+    assert "Realized Hedge Profit Gate" in controls
+    assert "Max Surplus Reinvestment / SOL Collateral" in controls
+    assert "Surplus Reinvestment Min HF" in controls
     assert "Enable Full Short Mode" in controls
     assert "Full Short Lower Bound" in controls
     assert "Leverage Loops" not in controls
@@ -152,6 +161,11 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
         full_short_upper_bound=1.5,
         enable_full_short_mode=True,
         enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        realized_hedge_profit_gate_pct=0.10,
+        surplus_reinvestment_ladder={3: 0.25, 4: 0.50},
+        max_surplus_reinvestment_pct_of_sol_collateral=0.05,
+        surplus_reinvestment_min_hf=2.0,
     )
 
     assert config["initial_sol_collateral"] == 50.0
@@ -166,6 +180,11 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["full_short_upper_bound"] == 1.5
     assert config["enable_full_short_mode"] is True
     assert config["enable_usdc_releverage"] is False
+    assert config["enable_surplus_usdc_reinvestment"] is True
+    assert config["realized_hedge_profit_gate_pct"] == 0.10
+    assert config["surplus_reinvestment_ladder"] == {3: 0.25, 4: 0.50}
+    assert config["max_surplus_reinvestment_pct_of_sol_collateral"] == 0.05
+    assert config["surplus_reinvestment_min_hf"] == 2.0
     assert isinstance(config["signal_by_bar"], dict)
 
 

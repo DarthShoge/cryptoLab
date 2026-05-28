@@ -216,6 +216,11 @@ class SolSupertrendShortStrategy(Strategy):
             if actions:
                 reason = "bullish_relever"
 
+        if not actions and vote.green >= 3 and not self.in_full_short_mode:
+            actions.extend(self._surplus_usdc_reinvestment(snapshot, vote, bar))
+            if actions:
+                reason = "surplus_reinvestment"
+
         if actions:
             self._last_rebalance_bar = bar.bar_index
             self._record_event(bar, snapshot, vote, target_ratio, reason, actions)
@@ -410,6 +415,73 @@ class SolSupertrendShortStrategy(Strategy):
             {"type": "borrow", "symbol": "USDC", "amount": borrow_usd},
             {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
         ]
+
+    def _surplus_usdc_reinvestment(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_surplus_usdc_reinvestment", False)):
+            return []
+
+        sol_value = self._collateral_value(snapshot, "SOL")
+        sol_price = bar.prices["SOL"].close
+        if sol_value <= 0 or sol_price <= 0:
+            return []
+
+        spendable_profit = self._spendable_hedge_profit_usdc()
+        gate = sol_value * float(self._config.get("realized_hedge_profit_gate_pct", 0.10))
+        if spendable_profit < gate:
+            return []
+
+        ladder = self._config.get("surplus_reinvestment_ladder", {3: 0.25, 4: 0.50})
+        reinvest_fraction = float(ladder.get(vote.green, 0.0))
+        if reinvest_fraction <= 0:
+            return []
+
+        spend_usdc = min(
+            spendable_profit * reinvest_fraction,
+            sol_value
+            * float(
+                self._config.get("max_surplus_reinvestment_pct_of_sol_collateral", 0.05)
+            ),
+            self._collateral_amount(snapshot, "USDC"),
+        )
+        spend_usdc = self._cap_spend_to_min_health_factor(snapshot, spend_usdc, sol_price)
+        if spend_usdc <= 0:
+            return []
+
+        self._consumed_hedge_profit_usdc += spend_usdc
+        sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
+            {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
+        ]
+
+    def _cap_spend_to_min_health_factor(
+        self,
+        snapshot: AccountSnapshot,
+        desired_spend_usdc: float,
+        sol_price: float,
+    ) -> float:
+        min_hf = float(self._config.get("surplus_reinvestment_min_hf", 2.0))
+        if desired_spend_usdc <= 0 or snapshot.risk_adjusted_debt_value() <= 0:
+            return desired_spend_usdc
+
+        usdc_ltv = self._collateral_ltv(snapshot, "USDC")
+        sol_ltv = self._collateral_ltv(snapshot, "SOL")
+        credit_loss_per_usdc = usdc_ltv - (sol_ltv * (1.0 - self._swap_fee()))
+        if credit_loss_per_usdc <= 0:
+            return desired_spend_usdc
+
+        current_buffer = snapshot.borrow_limit() - (
+            min_hf * snapshot.risk_adjusted_debt_value()
+        )
+        if current_buffer <= 0:
+            return 0.0
+        max_safe_spend = current_buffer / credit_loss_per_usdc
+        return min(desired_spend_usdc, max_safe_spend)
 
     def _defensive_usdc_repay(
         self,

@@ -36,6 +36,11 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
     "min_rebalance_hf": 1.75,
     "rebalance_threshold": 0.10,
     "rebalance_cooldown_bars": 4,
+    "enable_surplus_usdc_reinvestment": True,
+    "realized_hedge_profit_gate_pct": 0.10,
+    "surplus_reinvestment_ladder": {3: 0.25, 4: 0.50},
+    "max_surplus_reinvestment_pct_of_sol_collateral": 0.05,
+    "surplus_reinvestment_min_hf": 2.0,
     "enable_full_short_mode": True,
     "full_short_lower_bound": 0.75,
     "full_short_upper_bound": 1.25,
@@ -62,6 +67,10 @@ def visible_strategy_controls(strategy_name: str) -> List[str]:
             "Max USDC Debt / Equity",
             "Rebalance Threshold",
             "Cooldown Bars",
+            "Enable Surplus USDC Reinvestment",
+            "Realized Hedge Profit Gate",
+            "Max Surplus Reinvestment / SOL Collateral",
+            "Surplus Reinvestment Min HF",
             "Enable Full Short Mode",
             "Full Short Lower Bound",
             "Full Short Upper Bound",
@@ -321,6 +330,11 @@ def build_sol_supertrend_short_config(
     full_short_upper_bound: float,
     enable_full_short_mode: bool = True,
     enable_usdc_releverage: bool = False,
+    enable_surplus_usdc_reinvestment: bool = True,
+    realized_hedge_profit_gate_pct: float = 0.10,
+    surplus_reinvestment_ladder: dict[int, float] | None = None,
+    max_surplus_reinvestment_pct_of_sol_collateral: float = 0.05,
+    surplus_reinvestment_min_hf: float = 2.0,
     hedge_ladder: dict[int, float] | None = None,
 ) -> Dict[str, float | int | bool | dict]:
     """Build strategy config for the SOL Supertrend short strategy."""
@@ -346,6 +360,13 @@ def build_sol_supertrend_short_config(
         "full_short_upper_bound": full_short_upper_bound,
         "enable_full_short_mode": enable_full_short_mode,
         "enable_usdc_releverage": enable_usdc_releverage,
+        "enable_surplus_usdc_reinvestment": enable_surplus_usdc_reinvestment,
+        "realized_hedge_profit_gate_pct": realized_hedge_profit_gate_pct,
+        "surplus_reinvestment_ladder": surplus_reinvestment_ladder or {3: 0.25, 4: 0.50},
+        "max_surplus_reinvestment_pct_of_sol_collateral": (
+            max_surplus_reinvestment_pct_of_sol_collateral
+        ),
+        "surplus_reinvestment_min_hf": surplus_reinvestment_min_hf,
     }
 
 

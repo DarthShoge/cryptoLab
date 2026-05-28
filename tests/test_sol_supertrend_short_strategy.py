@@ -155,6 +155,47 @@ def test_eth_short_cover_realizes_pnl_and_spendable_profit():
     assert strategy.event_log[-1]["lifetime_realized_hedge_pnl_usdc"] == pytest.approx(expected_pnl)
 
 
+def test_profitable_hedge_unwind_reinvests_surplus_usdc_into_sol_without_usdc_releverage():
+    strategy, snapshot = _setup_strategy(
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        realized_hedge_profit_gate_pct=0.10,
+        surplus_reinvestment_ladder={3: 0.25, 4: 0.50},
+        max_surplus_reinvestment_pct_of_sol_collateral=0.05,
+        surplus_reinvestment_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 0, "bearish_3d": True, "bearish_1w": True},
+            1: {"green": 4, "bearish_3d": True, "bearish_1w": True},
+            2: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+
+    from arblab.kamino_risk import apply_actions
+
+    open_actions = strategy.on_bar(snapshot, _bar(0, eth_price=2_000.0))
+    snapshot = apply_actions(snapshot, open_actions)
+    close_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+    snapshot = apply_actions(snapshot, close_actions)
+    reinvest_actions = strategy.on_bar(snapshot, _bar(2, sol_price=100.0, eth_price=1_500.0))
+
+    assert [a["type"] for a in reinvest_actions] == [
+        "withdraw_collateral",
+        "deposit_collateral",
+    ]
+    assert reinvest_actions[0]["symbol"] == "USDC"
+    assert reinvest_actions[0]["amount"] == pytest.approx(500.0)
+    assert reinvest_actions[1] == {
+        "type": "deposit_collateral",
+        "symbol": "SOL",
+        "amount": pytest.approx(4.995),
+    }
+    expected_realized_pnl = 7.5 * (1_998.0 - 1_501.5)
+    assert strategy.hedge_accounting_state()["spendable_hedge_profit_usdc"] == pytest.approx(
+        expected_realized_pnl - 500.0
+    )
+    assert strategy.event_log[-1]["reason"] == "surplus_reinvestment"
+
+
 def test_strong_bullish_vote_adds_usdc_debt_to_buy_sol():
     strategy, snapshot = _setup_strategy(
         enable_usdc_releverage=True,

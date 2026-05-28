@@ -178,6 +178,33 @@ else:
         24,
         int(sol_defaults["rebalance_cooldown_bars"]),
     )
+    enable_surplus_usdc_reinvestment = st.sidebar.checkbox(
+        "Enable Surplus USDC Reinvestment",
+        value=bool(sol_defaults["enable_surplus_usdc_reinvestment"]),
+    )
+    realized_hedge_profit_gate_pct = st.sidebar.slider(
+        "Realized Hedge Profit Gate",
+        0.0,
+        0.50,
+        float(sol_defaults["realized_hedge_profit_gate_pct"]),
+        step=0.01,
+        format="%.2f",
+    )
+    max_surplus_reinvestment_pct_of_sol_collateral = st.sidebar.slider(
+        "Max Surplus Reinvestment / SOL Collateral",
+        0.01,
+        0.25,
+        float(sol_defaults["max_surplus_reinvestment_pct_of_sol_collateral"]),
+        step=0.01,
+        format="%.2f",
+    )
+    surplus_reinvestment_min_hf = st.sidebar.slider(
+        "Surplus Reinvestment Min HF",
+        1.25,
+        3.0,
+        float(sol_defaults["surplus_reinvestment_min_hf"]),
+        step=0.05,
+    )
     enable_full_short_mode = st.sidebar.checkbox(
         "Enable Full Short Mode",
         value=bool(sol_defaults["enable_full_short_mode"]),
@@ -323,6 +350,13 @@ if run_btn:
             full_short_upper_bound=full_short_upper_bound,
             enable_full_short_mode=enable_full_short_mode,
             enable_usdc_releverage=enable_usdc_releverage,
+            enable_surplus_usdc_reinvestment=enable_surplus_usdc_reinvestment,
+            realized_hedge_profit_gate_pct=realized_hedge_profit_gate_pct,
+            surplus_reinvestment_ladder=sol_defaults["surplus_reinvestment_ladder"],
+            max_surplus_reinvestment_pct_of_sol_collateral=(
+                max_surplus_reinvestment_pct_of_sol_collateral
+            ),
+            surplus_reinvestment_min_hf=surplus_reinvestment_min_hf,
             hedge_ladder=sol_defaults["hedge_ladder"],
         )
 
