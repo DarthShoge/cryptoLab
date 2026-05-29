@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 
 from arblab.backtest.app_helpers import (
@@ -73,6 +75,29 @@ def _long_price_data(n: int = 80) -> pd.DataFrame:
     return df
 
 
+def _drawdown_price_data(n: int = 2_201) -> pd.DataFrame:
+    dates = pd.date_range("2024-01-01", periods=n, freq="h", tz="UTC")
+    sol = pd.Series([150.0] * (n - 1) + [100.0], index=dates)
+    eth = pd.Series([2_000.0] * n, index=dates)
+    df = pd.DataFrame(
+        {
+            ("SOL", "open"): sol,
+            ("SOL", "high"): 150.0,
+            ("SOL", "low"): sol,
+            ("SOL", "close"): sol,
+            ("SOL", "volume"): 1_000.0,
+            ("ETH", "open"): eth,
+            ("ETH", "high"): eth * 1.01,
+            ("ETH", "low"): eth * 0.99,
+            ("ETH", "close"): eth,
+            ("ETH", "volume"): 1_000.0,
+        },
+        index=dates,
+    )
+    df.columns = pd.MultiIndex.from_tuples(df.columns)
+    return df
+
+
 def test_build_price_configs_requires_sol_and_eth_for_supertrend_short():
     configs = build_price_configs(
         strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
@@ -102,7 +127,7 @@ def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
         "enable_usdc_releverage": False,
         "max_usdc_debt_to_equity": 0.0,
         "target_bullish_hf": 1.35,
-        "min_rebalance_hf": 1.75,
+        "min_rebalance_hf": 2.00,
         "rebalance_threshold": 0.10,
         "rebalance_cooldown_bars": 4,
         "enable_surplus_usdc_reinvestment": True,
@@ -113,6 +138,36 @@ def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
         "enable_full_short_mode": True,
         "full_short_lower_bound": 0.75,
         "full_short_upper_bound": 1.25,
+        "enable_crisis_mode": True,
+        "crisis_sol_drawdown_threshold": 0.25,
+        "crisis_portfolio_drawdown_threshold": 0.20,
+        "crisis_hedge_floor_base": 0.75,
+        "crisis_hedge_floor_3d": 1.0,
+        "crisis_hedge_floor_3d_1w": 1.25,
+        "crisis_exit_sol_equiv_recovery_gap": 0.10,
+        "partial_fill_min_hf": 2.50,
+        "crisis_partial_fill_budget_pct": 0.00,
+        "enable_profit_lock": True,
+        "profit_lock_metric": "portfolio",
+        "profit_lock_min_gain_pct": 0.25,
+        "profit_lock_drawdown_threshold": 0.05,
+        "profit_lock_near_high_threshold": 0.01,
+        "profit_lock_stateful": True,
+        "profit_lock_stateful_exit_gap": 0.05,
+        "profit_lock_hedge_floor": 0.35,
+        "profit_lock_max_green": 3,
+        "enable_froth_reserve": False,
+        "froth_reserve_min_sol_collateral": 100.0,
+        "froth_reserve_tiers": {1.0: 0.05, 3.0: 0.05},
+        "froth_reserve_rebuy_drawdown_threshold": 0.35,
+        "froth_reserve_rebuy_fraction": 0.25,
+        "enable_drawdown_containment": False,
+        "drawdown_containment_trigger": 0.20,
+        "drawdown_containment_exit_gap": 0.10,
+        "drawdown_containment_hedge_floor": 0.75,
+        "drawdown_containment_block_rebuy": True,
+        "drawdown_containment_block_reinvestment": True,
+        "drawdown_containment_block_releverage": True,
     }
 
 
@@ -128,10 +183,45 @@ def test_sol_supertrend_visible_controls_drop_leverage_loop_controls():
     assert "Surplus Reinvestment Min HF" in controls
     assert "Enable Full Short Mode" in controls
     assert "Full Short Lower Bound" in controls
+    assert "Enable Crisis Mode" in controls
+    assert "Crisis SOL Drawdown Threshold" in controls
+    assert "Crisis Base Hedge Floor" in controls
+    assert "Crisis 3d Hedge Floor" in controls
+    assert "Crisis 3d+1w Hedge Floor" in controls
+    assert "Crisis Exit Recovery Gap" in controls
+    assert "Partial Fill Min HF" in controls
+    assert "Crisis Partial Fill Budget" in controls
+    assert "Enable Profit Lock" in controls
+    assert "Profit Lock Metric" in controls
+    assert "Profit Lock Min Gain" in controls
+    assert "Profit Lock Drawdown" in controls
+    assert "Profit Lock Near High" in controls
+    assert "Stateful Profit Lock" in controls
+    assert "Profit Lock Exit Gap" in controls
+    assert "Profit Lock Hedge Floor" in controls
+    assert "Profit Lock Max Green" in controls
+    assert "Enable Froth Reserve" in controls
+    assert "Froth Reserve Min SOL" in controls
+    assert "Froth Reserve Rebuy Drawdown" in controls
+    assert "Froth Reserve Rebuy Fraction" in controls
+    assert "Enable Drawdown Containment" in controls
+    assert "Drawdown Containment Trigger" in controls
+    assert "Drawdown Containment Exit Gap" in controls
+    assert "Drawdown Containment Hedge Floor" in controls
     assert "Leverage Loops" not in controls
     assert "Loop Utilization" not in controls
     assert "Collateral Asset" not in controls
     assert "Debt Asset" not in controls
+
+
+def test_froth_reserve_rebuy_fraction_is_rendered_with_froth_reserve_controls():
+    app_source = Path("backtest_app.py").read_text()
+
+    froth_section = app_source.index("if enable_froth_reserve:")
+    rebuy_fraction = app_source.index('"Froth Reserve Rebuy Fraction"')
+    drawdown_section = app_source.index("if enable_drawdown_containment:")
+
+    assert froth_section < rebuy_fraction < drawdown_section
 
 
 def test_build_price_configs_keeps_single_asset_for_leverage_loop():
@@ -174,6 +264,36 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
         surplus_reinvestment_ladder={3: 0.25, 4: 0.50},
         max_surplus_reinvestment_pct_of_sol_collateral=0.05,
         surplus_reinvestment_min_hf=2.0,
+        enable_crisis_mode=True,
+        crisis_sol_drawdown_threshold=0.25,
+        crisis_portfolio_drawdown_threshold=0.20,
+        crisis_hedge_floor_base=0.75,
+        crisis_hedge_floor_3d=1.0,
+        crisis_hedge_floor_3d_1w=1.25,
+        crisis_exit_sol_equiv_recovery_gap=0.10,
+        partial_fill_min_hf=2.50,
+        crisis_partial_fill_budget_pct=0.00,
+        enable_profit_lock=True,
+        profit_lock_metric="portfolio",
+        profit_lock_min_gain_pct=0.25,
+        profit_lock_drawdown_threshold=0.10,
+        profit_lock_near_high_threshold=0.03,
+        profit_lock_stateful=True,
+        profit_lock_stateful_exit_gap=0.04,
+        profit_lock_hedge_floor=0.35,
+        profit_lock_max_green=3,
+        enable_froth_reserve=True,
+        froth_reserve_min_sol_collateral=125.0,
+        froth_reserve_tiers={1.0: 0.05},
+        froth_reserve_rebuy_drawdown_threshold=0.40,
+        froth_reserve_rebuy_fraction=0.50,
+        enable_drawdown_containment=True,
+        drawdown_containment_trigger=0.15,
+        drawdown_containment_exit_gap=0.08,
+        drawdown_containment_hedge_floor=0.75,
+        drawdown_containment_block_rebuy=True,
+        drawdown_containment_block_reinvestment=True,
+        drawdown_containment_block_releverage=True,
     )
 
     assert config["initial_sol_collateral"] == 50.0
@@ -193,6 +313,36 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["surplus_reinvestment_ladder"] == {3: 0.25, 4: 0.50}
     assert config["max_surplus_reinvestment_pct_of_sol_collateral"] == 0.05
     assert config["surplus_reinvestment_min_hf"] == 2.0
+    assert config["enable_crisis_mode"] is True
+    assert config["crisis_sol_drawdown_threshold"] == 0.25
+    assert config["crisis_portfolio_drawdown_threshold"] == 0.20
+    assert config["crisis_hedge_floor_base"] == 0.75
+    assert config["crisis_hedge_floor_3d"] == 1.0
+    assert config["crisis_hedge_floor_3d_1w"] == 1.25
+    assert config["crisis_exit_sol_equiv_recovery_gap"] == 0.10
+    assert config["partial_fill_min_hf"] == 2.50
+    assert config["crisis_partial_fill_budget_pct"] == 0.00
+    assert config["enable_profit_lock"] is True
+    assert config["profit_lock_metric"] == "portfolio"
+    assert config["profit_lock_min_gain_pct"] == 0.25
+    assert config["profit_lock_drawdown_threshold"] == 0.10
+    assert config["profit_lock_near_high_threshold"] == 0.03
+    assert config["profit_lock_stateful"] is True
+    assert config["profit_lock_stateful_exit_gap"] == 0.04
+    assert config["profit_lock_hedge_floor"] == 0.35
+    assert config["profit_lock_max_green"] == 3
+    assert config["enable_froth_reserve"] is True
+    assert config["froth_reserve_min_sol_collateral"] == 125.0
+    assert config["froth_reserve_tiers"] == {1.0: 0.05}
+    assert config["froth_reserve_rebuy_drawdown_threshold"] == 0.40
+    assert config["froth_reserve_rebuy_fraction"] == 0.50
+    assert config["enable_drawdown_containment"] is True
+    assert config["drawdown_containment_trigger"] == 0.15
+    assert config["drawdown_containment_exit_gap"] == 0.08
+    assert config["drawdown_containment_hedge_floor"] == 0.75
+    assert config["drawdown_containment_block_rebuy"] is True
+    assert config["drawdown_containment_block_reinvestment"] is True
+    assert config["drawdown_containment_block_releverage"] is True
     assert isinstance(config["signal_by_bar"], dict)
 
 
@@ -207,6 +357,7 @@ def test_build_sol_supertrend_signal_by_bar_precomputes_all_base_bars():
 
     assert set(signals.keys()) == set(range(len(price_data)))
     assert all(0 <= signal["green"] <= 4 for signal in signals.values())
+    assert all("bearish_1d" in signal for signal in signals.values())
     assert all("bearish_3d" in signal for signal in signals.values())
     assert all("bearish_1w" in signal for signal in signals.values())
 
@@ -228,6 +379,31 @@ def test_run_selected_backtest_uses_sol_supertrend_short_strategy():
     assert result.strategy_events[0]["reason"] == "hedge_up"
 
 
+def test_run_selected_backtest_gives_crisis_mode_enough_history():
+    price_data = _drawdown_price_data()
+    result = run_selected_backtest(
+        strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
+        price_data=price_data,
+        strategy_config={
+            "initial_sol_collateral": 100.0,
+            "initial_sol_price": 150.0,
+            "initial_eth_price": 2_000.0,
+            "enable_crisis_mode": True,
+            "signal_by_bar": {
+                len(price_data) - 1: {
+                    "green": 3,
+                    "bearish_1d": True,
+                    "bearish_3d": True,
+                    "bearish_1w": False,
+                }
+            },
+            "rebalance_cooldown_bars": 0,
+        },
+    )
+
+    assert result.strategy_events[-1]["reason"] == "crisis_hedge_up"
+
+
 def test_run_selected_grid_search_uses_sortino_for_supertrend_short():
     result = run_selected_grid_search(
         strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
@@ -245,10 +421,29 @@ def test_run_selected_grid_search_uses_sortino_for_supertrend_short():
     )
 
     assert "sortino_ratio" in result.comparison_df.columns
-    assert len(result.comparison_df) == 2
+    assert len(result.comparison_df) == 4
     for result_item in result.results:
         assert "signal_by_bar" in result_item.strategy_config
         assert result_item.strategy_config["signal_by_bar"]
+
+
+def test_sol_supertrend_grid_search_compares_crisis_on_and_off_by_default():
+    result = run_selected_grid_search(
+        strategy_name=SOL_SUPERTREND_SHORT_STRATEGY,
+        price_data=_long_price_data(),
+        param_grid={"supertrend_atr_period": [10]},
+        base_config={
+            "initial_sol_collateral": 100.0,
+            "initial_sol_price": 100.0,
+            "initial_eth_price": 2_000.0,
+            "rebalance_cooldown_bars": 0,
+            "enable_full_short_mode": False,
+            "enable_usdc_releverage": False,
+        },
+    )
+
+    assert set(result.comparison_df["enable_crisis_mode"]) == {True, False}
+    assert len(result.comparison_df) == 2
 
 
 def test_benchmark_tier_uses_sol_relative_usd_compounding_rules():

@@ -14,8 +14,77 @@ from arblab.kamino_risk import AccountSnapshot, CollateralPosition, DebtPosition
 @dataclass(frozen=True)
 class TrendVote:
     green: int
+    bearish_1d: bool = False
     bearish_3d: bool = False
     bearish_1w: bool = False
+    crisis_exit_1w_green: bool = False
+
+
+@dataclass
+class CrisisState:
+    active: bool = False
+    entry_reason: str | None = None
+    exit_reason: str | None = None
+    hedge_floor: float = 0.0
+    under_hedged: bool = False
+    saw_bearish_1w: bool = False
+    max_sol_equiv_drawdown: float = 0.0
+    partial_fill_added_usd: float = 0.0
+
+
+@dataclass
+class DrawdownContainmentState:
+    active: bool = False
+    hedge_floor: float = 0.0
+
+
+@dataclass(frozen=True)
+class HedgeTargetOverlay:
+    floor: float
+    up_reason: str
+    down_reason: str | None = None
+
+
+@dataclass
+class PortfolioObservationWindow:
+    max_bars: int
+    portfolio_values: list[float] | None = None
+    sol_equivalent_values: list[float] | None = None
+
+    def __post_init__(self) -> None:
+        self.portfolio_values = list(self.portfolio_values or [])
+        self.sol_equivalent_values = list(self.sol_equivalent_values or [])
+
+    def record(self, portfolio_value: float, sol_price: float) -> None:
+        sol_equivalent = portfolio_value / sol_price if sol_price > 0 else 0.0
+        self.portfolio_values.append(portfolio_value)
+        self.sol_equivalent_values.append(sol_equivalent)
+        self.portfolio_values = self.portfolio_values[-self.max_bars :]
+        self.sol_equivalent_values = self.sol_equivalent_values[-self.max_bars :]
+
+    def portfolio_drawdown_from_high(self) -> float:
+        return self._drawdown_from_high(self.portfolio_values)
+
+    def sol_equivalent_drawdown_from_high(self) -> float:
+        return self._drawdown_from_high(self.sol_equivalent_values)
+
+    def sol_equivalent_recovered(self, recovery_gap: float) -> bool:
+        if not self.sol_equivalent_values:
+            return False
+        peak = max(self.sol_equivalent_values)
+        if peak <= 0:
+            return False
+        return self.sol_equivalent_values[-1] >= peak * (1.0 - recovery_gap)
+
+    @staticmethod
+    def _drawdown_from_high(values: list[float] | None) -> float:
+        if not values:
+            return 0.0
+        current = values[-1]
+        peak = max(values)
+        if peak <= 0:
+            return 0.0
+        return max(0.0, (peak - current) / peak)
 
 
 def supertrend_direction(
@@ -125,16 +194,33 @@ class SolSupertrendShortStrategy(Strategy):
         1: 1.0,
         0: None,
     }
+    DRAWDOWN_CONTAINMENT_BLOCK_CONFIG = {
+        "rebuy": "drawdown_containment_block_rebuy",
+        "reinvestment": "drawdown_containment_block_reinvestment",
+        "releverage": "drawdown_containment_block_releverage",
+    }
 
     def __init__(self) -> None:
         self._config: Dict[str, Any] = {}
         self.event_log: list[dict[str, Any]] = []
         self.in_full_short_mode = False
+        self.crisis_state = CrisisState()
         self._last_rebalance_bar: int | None = None
         self._open_eth_short_amount = 0.0
         self._average_eth_short_basis_usdc = 0.0
         self._lifetime_realized_hedge_pnl_usdc = 0.0
         self._consumed_hedge_profit_usdc = 0.0
+        self._last_effective_hedge_target = 0.0
+        self._observation_window = PortfolioObservationWindow(max_bars=1)
+        self._pending_crisis_transition_reason: str | None = None
+        self._initial_portfolio_value = 0.0
+        self._initial_sol_equivalent = 0.0
+        self._profit_lock_active = False
+        self._profit_lock_hedge_floor = 0.0
+        self._profit_lock_stateful_active = False
+        self._froth_reserve_usdc = 0.0
+        self._froth_reserve_executed_tiers: set[float] = set()
+        self.drawdown_containment_state = DrawdownContainmentState()
 
     def setup(
         self, snapshot: AccountSnapshot, config: Dict[str, Any]
@@ -142,15 +228,29 @@ class SolSupertrendShortStrategy(Strategy):
         self._config = dict(config)
         self.event_log = []
         self.in_full_short_mode = False
+        self.crisis_state = CrisisState()
         self._last_rebalance_bar = None
         self._open_eth_short_amount = 0.0
         self._average_eth_short_basis_usdc = 0.0
         self._lifetime_realized_hedge_pnl_usdc = 0.0
         self._consumed_hedge_profit_usdc = 0.0
+        self._last_effective_hedge_target = 0.0
+        self._observation_window = PortfolioObservationWindow(
+            max_bars=self._observation_window_bars()
+        )
+        self._pending_crisis_transition_reason = None
+        self._profit_lock_active = False
+        self._profit_lock_hedge_floor = 0.0
+        self._profit_lock_stateful_active = False
+        self._froth_reserve_usdc = 0.0
+        self._froth_reserve_executed_tiers = set()
+        self.drawdown_containment_state = DrawdownContainmentState()
 
         sol_price = float(config.get("initial_sol_price", 150.0))
         eth_price = float(config.get("initial_eth_price", 2_000.0))
         initial_sol = float(config.get("initial_sol_collateral", 100.0))
+        self._initial_portfolio_value = initial_sol * sol_price
+        self._initial_sol_equivalent = initial_sol
 
         sol_ltv, sol_liq = self._asset_risk("SOL", 0.75, 0.80)
         usdc_ltv, usdc_liq = self._asset_risk("USDC", 0.90, 0.93)
@@ -176,11 +276,49 @@ class SolSupertrendShortStrategy(Strategy):
             "spendable_hedge_profit_usdc": self._spendable_hedge_profit_usdc(),
         }
 
+    def history_fields(self) -> dict[str, float | bool]:
+        return {
+            "in_crisis_mode": self.crisis_state.active,
+            "crisis_hedge_floor": self.crisis_state.hedge_floor,
+            "effective_hedge_target": self._last_effective_hedge_target,
+            "under_hedged_crisis": self.crisis_state.under_hedged,
+            "crisis_partial_fill_added_usd": self.crisis_state.partial_fill_added_usd,
+            "in_profit_lock_mode": self._profit_lock_active,
+            "profit_lock_hedge_floor": self._profit_lock_hedge_floor,
+            "froth_reserve_usdc": self._froth_reserve_usdc,
+            "in_drawdown_containment": self.drawdown_containment_state.active,
+            "drawdown_containment_hedge_floor": (
+                self.drawdown_containment_state.hedge_floor
+            ),
+        }
+
     def on_bar(
         self, snapshot: AccountSnapshot, bar: BarData
     ) -> List[Dict[str, Any]]:
+        self._pending_crisis_transition_reason = None
+        self._record_portfolio_observations(snapshot, bar)
         vote = self._vote(bar)
         target_ratio, reason = self._target_eth_ratio(vote)
+        target_ratio, reason = self._apply_profit_lock_target(
+            snapshot,
+            vote,
+            target_ratio,
+            reason,
+        )
+        target_ratio, reason = self._apply_drawdown_containment_target(
+            snapshot,
+            vote,
+            target_ratio,
+            reason,
+        )
+        target_ratio, reason = self._apply_crisis_target(
+            snapshot,
+            bar,
+            vote,
+            target_ratio,
+            reason,
+        )
+        self._last_effective_hedge_target = target_ratio
         current_ratio = self._eth_short_ratio(snapshot)
         threshold = float(self._config.get("rebalance_threshold", 0.10))
         actions: list[dict[str, Any]] = []
@@ -199,14 +337,29 @@ class SolSupertrendShortStrategy(Strategy):
             return []
 
         if abs(target_ratio - current_ratio) > threshold:
-            if target_ratio > current_ratio:
+            if self._is_under_hedged_crisis(snapshot, target_ratio, current_ratio):
+                self.crisis_state.under_hedged = True
+                actions.extend(self._under_hedged_crisis_cleanup(snapshot, bar))
+                if actions:
+                    if any(
+                        action["type"] == "borrow" and action["symbol"] == "ETH"
+                        for action in actions
+                    ):
+                        reason = "under_hedged_crisis_partial_fill"
+                    else:
+                        reason = "under_hedged_crisis_cleanup"
+            elif target_ratio > current_ratio:
+                self.crisis_state.under_hedged = False
                 actions.extend(
                     self._increase_eth_short(snapshot, target_ratio - current_ratio, bar)
                 )
             else:
+                self.crisis_state.under_hedged = False
                 actions.extend(
                     self._decrease_eth_short(snapshot, current_ratio - target_ratio, bar)
                 )
+        elif self.crisis_state.active:
+            self.crisis_state.under_hedged = False
 
         if vote.green <= 1:
             actions.extend(self._defensive_usdc_repay(snapshot, vote))
@@ -216,12 +369,32 @@ class SolSupertrendShortStrategy(Strategy):
             if actions:
                 reason = "green_regime_usdc_debt_cleanup"
 
-        if not actions and vote.green == 4 and not self.in_full_short_mode:
+        if (
+            not actions
+            and vote.green == 4
+            and not self.in_full_short_mode
+            and not self._drawdown_containment_blocks("releverage")
+        ):
             actions.extend(self._bullish_relever(snapshot, bar))
             if actions:
                 reason = "bullish_relever"
 
-        if not actions and vote.green >= 3 and not self.in_full_short_mode:
+        if not actions and not self._drawdown_containment_blocks("rebuy"):
+            actions.extend(self._froth_reserve_rebuy(snapshot, bar))
+            if actions:
+                reason = "froth_reserve_rebuy"
+
+        if not actions:
+            actions.extend(self._froth_reserve_rotation(snapshot, bar))
+            if actions:
+                reason = "froth_reserve_rotate"
+
+        if (
+            not actions
+            and vote.green >= 3
+            and not self.in_full_short_mode
+            and not self._drawdown_containment_blocks("reinvestment")
+        ):
             actions.extend(self._surplus_usdc_reinvestment(snapshot, vote, bar))
             if actions:
                 reason = "surplus_reinvestment"
@@ -229,6 +402,15 @@ class SolSupertrendShortStrategy(Strategy):
         if actions:
             self._last_rebalance_bar = bar.bar_index
             self._record_event(bar, snapshot, vote, target_ratio, reason, actions)
+        elif self._pending_crisis_transition_reason is not None:
+            self._record_event(
+                bar,
+                snapshot,
+                vote,
+                target_ratio,
+                self._pending_crisis_transition_reason,
+                [],
+            )
 
         return actions
 
@@ -257,8 +439,10 @@ class SolSupertrendShortStrategy(Strategy):
                 return TrendVote(green=4)
             return TrendVote(
                 green=int(raw.get("green", 4)),
+                bearish_1d=bool(raw.get("bearish_1d", False)),
                 bearish_3d=bool(raw.get("bearish_3d", False)),
                 bearish_1w=bool(raw.get("bearish_1w", False)),
+                crisis_exit_1w_green=bool(raw.get("crisis_exit_1w_green", False)),
             )
 
         atr_period = int(self._config.get("supertrend_atr_period", 10))
@@ -271,9 +455,15 @@ class SolSupertrendShortStrategy(Strategy):
             direction = supertrend_direction(closed, atr_period, multiplier)
             green += int(bool(direction.iloc[-1]))
 
+        bearish_1d = self._higher_timeframe_bearish(bar, "1d", atr_period, multiplier)
         bearish_3d = self._higher_timeframe_bearish(bar, "3d", atr_period, multiplier)
         bearish_1w = self._higher_timeframe_bearish(bar, "1w", atr_period, multiplier)
-        return TrendVote(green=green, bearish_3d=bearish_3d, bearish_1w=bearish_1w)
+        return TrendVote(
+            green=green,
+            bearish_1d=bearish_1d,
+            bearish_3d=bearish_3d,
+            bearish_1w=bearish_1w,
+        )
 
     def _higher_timeframe_bearish(
         self,
@@ -312,17 +502,423 @@ class SolSupertrendShortStrategy(Strategy):
         reason = "hedge_up" if target > 0 else "hedge_down"
         return target, reason
 
+    def _resolve_target_overlay(
+        self,
+        snapshot: AccountSnapshot,
+        normal_target: float,
+        normal_reason: str,
+        overlay: HedgeTargetOverlay,
+    ) -> tuple[float, str]:
+        effective_target = max(normal_target, overlay.floor)
+        if effective_target <= normal_target:
+            return effective_target, normal_reason
+        current_ratio = self._eth_short_ratio(snapshot)
+        if overlay.down_reason is not None and effective_target < current_ratio:
+            return effective_target, overlay.down_reason
+        return effective_target, overlay.up_reason
+
+    def _apply_profit_lock_target(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        normal_target: float,
+        normal_reason: str,
+    ) -> tuple[float, str]:
+        self._profit_lock_active = False
+        self._profit_lock_hedge_floor = 0.0
+        if not bool(self._config.get("enable_profit_lock", False)):
+            self._profit_lock_stateful_active = False
+            return normal_target, normal_reason
+        triggered = self._profit_lock_triggered(vote)
+        if bool(self._config.get("profit_lock_stateful", False)):
+            if triggered:
+                self._profit_lock_stateful_active = True
+            elif self._profit_lock_stateful_active and self._profit_lock_stateful_exit(vote):
+                self._profit_lock_stateful_active = False
+            active = triggered or self._profit_lock_stateful_active
+        else:
+            self._profit_lock_stateful_active = False
+            active = triggered
+        if not active:
+            return normal_target, normal_reason
+
+        floor = float(self._config.get("profit_lock_hedge_floor", 0.35))
+        self._profit_lock_active = True
+        self._profit_lock_hedge_floor = floor
+        return self._resolve_target_overlay(
+            snapshot=snapshot,
+            normal_target=normal_target,
+            normal_reason=normal_reason,
+            overlay=HedgeTargetOverlay(floor=floor, up_reason="profit_lock_hedge_up"),
+        )
+
+    def _profit_lock_triggered(self, vote: TrendVote) -> bool:
+        trend_weak = vote.green <= int(
+            self._config.get("profit_lock_max_green", 2)
+        ) or vote.bearish_1d
+        if not trend_weak:
+            return False
+        metric = str(self._config.get("profit_lock_metric", "portfolio"))
+        if metric == "both":
+            return self._profit_lock_metric_triggered(
+                "portfolio"
+            ) and self._profit_lock_metric_triggered("sol_equivalent")
+        return self._profit_lock_metric_triggered(metric)
+
+    def _profit_lock_metric_triggered(self, metric: str) -> bool:
+        if metric == "sol_equivalent":
+            values = self._observation_window.sol_equivalent_values
+            initial = self._initial_sol_equivalent
+        else:
+            values = self._observation_window.portfolio_values
+            initial = self._initial_portfolio_value
+        if not values or initial <= 0:
+            return False
+        lookback = int(self._config.get("profit_lock_lookback_bars", 90 * 24))
+        window = values[-lookback:]
+        peak = max(window)
+        current = window[-1]
+        if peak <= 0:
+            return False
+        gain = (peak / initial) - 1.0
+        drawdown = (peak - current) / peak
+        if gain < float(self._config.get("profit_lock_min_gain_pct", 0.25)):
+            return False
+        if drawdown >= float(self._config.get("profit_lock_drawdown_threshold", 0.10)):
+            return True
+        near_high_threshold = float(
+            self._config.get("profit_lock_near_high_threshold", 0.0)
+        )
+        return near_high_threshold > 0.0 and drawdown <= near_high_threshold
+
+    def _profit_lock_stateful_exit(self, vote: TrendVote) -> bool:
+        if vote.green <= int(self._config.get("profit_lock_max_green", 2)):
+            return False
+        if vote.bearish_1d:
+            return False
+        metric = str(self._config.get("profit_lock_metric", "portfolio"))
+        if metric == "both":
+            return self._profit_lock_metric_recovered(
+                "portfolio"
+            ) and self._profit_lock_metric_recovered("sol_equivalent")
+        return self._profit_lock_metric_recovered(metric)
+
+    def _profit_lock_metric_recovered(self, metric: str) -> bool:
+        values = (
+            self._observation_window.sol_equivalent_values
+            if metric == "sol_equivalent"
+            else self._observation_window.portfolio_values
+        )
+        if not values:
+            return False
+        lookback = int(self._config.get("profit_lock_lookback_bars", 90 * 24))
+        window = values[-lookback:]
+        peak = max(window)
+        if peak <= 0:
+            return False
+        exit_gap = float(self._config.get("profit_lock_stateful_exit_gap", 0.02))
+        return window[-1] >= peak * (1.0 - exit_gap)
+
+    def _apply_drawdown_containment_target(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        normal_target: float,
+        normal_reason: str,
+    ) -> tuple[float, str]:
+        if not bool(self._config.get("enable_drawdown_containment", False)):
+            self.drawdown_containment_state = DrawdownContainmentState()
+            return normal_target, normal_reason
+
+        drawdown = self._portfolio_drawdown_from_rolling_high()
+        trigger = float(self._config.get("drawdown_containment_trigger", 0.20))
+        if not self.drawdown_containment_state.active and drawdown >= trigger:
+            self.drawdown_containment_state.active = True
+        elif (
+            self.drawdown_containment_state.active
+            and self._drawdown_containment_recovered(vote)
+        ):
+            self.drawdown_containment_state = DrawdownContainmentState()
+            return normal_target, normal_reason
+
+        if not self.drawdown_containment_state.active:
+            self.drawdown_containment_state.hedge_floor = 0.0
+            return normal_target, normal_reason
+
+        floor = float(self._config.get("drawdown_containment_hedge_floor", 0.75))
+        self.drawdown_containment_state.hedge_floor = floor
+        return self._resolve_target_overlay(
+            snapshot=snapshot,
+            normal_target=normal_target,
+            normal_reason=normal_reason,
+            overlay=HedgeTargetOverlay(
+                floor=floor,
+                up_reason="drawdown_containment_hedge_up",
+                down_reason="drawdown_containment_hedge_down",
+            ),
+        )
+
+    def _drawdown_containment_recovered(self, vote: TrendVote) -> bool:
+        if vote.green < 4 or vote.bearish_1d:
+            return False
+        values = self._observation_window.portfolio_values
+        if not values:
+            return False
+        peak = max(values)
+        if peak <= 0:
+            return False
+        exit_gap = float(self._config.get("drawdown_containment_exit_gap", 0.10))
+        return values[-1] >= peak * (1.0 - exit_gap)
+
+    def _drawdown_containment_blocks(self, action: str) -> bool:
+        if not self.drawdown_containment_state.active:
+            return False
+        config_key = self.DRAWDOWN_CONTAINMENT_BLOCK_CONFIG.get(action)
+        if config_key is None:
+            raise ValueError(f"Unknown drawdown containment action: {action}")
+        return bool(self._config.get(config_key, True))
+
+    def _apply_crisis_target(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+        vote: TrendVote,
+        normal_target: float,
+        normal_reason: str,
+    ) -> tuple[float, str]:
+        if not bool(self._config.get("enable_crisis_mode", False)):
+            self.crisis_state = CrisisState()
+            return normal_target, normal_reason
+
+        just_entered_crisis = False
+        if not self.crisis_state.active and self._should_enter_crisis(bar, vote):
+            self.crisis_state.active = True
+            self.crisis_state.entry_reason = (
+                self.crisis_state.entry_reason or "sol_drawdown_with_bearish_trend"
+            )
+            self.crisis_state.exit_reason = None
+            self.crisis_state.saw_bearish_1w = vote.bearish_1w
+            self.crisis_state.partial_fill_added_usd = 0.0
+            self.crisis_state.max_sol_equiv_drawdown = (
+                self._sol_equivalent_drawdown_from_rolling_high()
+            )
+            self._pending_crisis_transition_reason = "crisis_enter"
+            just_entered_crisis = True
+
+        if not self.crisis_state.active:
+            self.crisis_state.hedge_floor = 0.0
+            self.crisis_state.under_hedged = False
+            return normal_target, normal_reason
+
+        if vote.bearish_1w:
+            self.crisis_state.saw_bearish_1w = True
+        self.crisis_state.max_sol_equiv_drawdown = max(
+            self.crisis_state.max_sol_equiv_drawdown,
+            self._sol_equivalent_drawdown_from_rolling_high(),
+        )
+        exit_reason = None if just_entered_crisis else self._crisis_exit_reason(vote)
+        if exit_reason is not None:
+            self.crisis_state.active = False
+            self.crisis_state.exit_reason = exit_reason
+            self.crisis_state.hedge_floor = 0.0
+            self.crisis_state.under_hedged = False
+            self.crisis_state.partial_fill_added_usd = 0.0
+            self._pending_crisis_transition_reason = "crisis_exit"
+            return normal_target, normal_reason
+
+        floor = self._crisis_hedge_floor(vote)
+        self.crisis_state.hedge_floor = floor
+        return self._resolve_target_overlay(
+            snapshot=snapshot,
+            normal_target=normal_target,
+            normal_reason=normal_reason,
+            overlay=HedgeTargetOverlay(
+                floor=floor,
+                up_reason="crisis_hedge_up",
+                down_reason="crisis_hedge_down",
+            ),
+        )
+
+    def _should_enter_crisis(self, bar: BarData, vote: TrendVote) -> bool:
+        if not self._crisis_lookback_ready(bar):
+            return False
+        if (
+            (vote.bearish_3d or vote.bearish_1w)
+            and self._sol_equivalent_drawdown_from_rolling_high()
+            >= float(self._config.get("crisis_sol_equiv_drawdown_threshold", 0.25))
+        ):
+            self.crisis_state.entry_reason = "sol_equivalent_drawdown"
+            return True
+        if not vote.bearish_1d:
+            return False
+        sol_drawdown = self._sol_drawdown_from_rolling_high(bar)
+        threshold = float(self._config.get("crisis_sol_drawdown_threshold", 0.25))
+        if sol_drawdown < threshold:
+            return False
+        if vote.bearish_3d:
+            self.crisis_state.entry_reason = "sol_drawdown_with_bearish_trend"
+            return True
+        if self._portfolio_drawdown_from_rolling_high() >= float(
+            self._config.get("crisis_portfolio_drawdown_threshold", 0.20)
+        ):
+            self.crisis_state.entry_reason = "sol_drawdown_with_portfolio_damage"
+            return True
+        return False
+
+    def _crisis_exit_reason(self, vote: TrendVote) -> str | None:
+        if vote.crisis_exit_1w_green:
+            return "weekly_recovery"
+        recovery_gap = float(
+            self._config.get("crisis_exit_sol_equiv_recovery_gap", 0.10)
+        )
+        if self._sol_equivalent_recovered(recovery_gap):
+            return "sol_equivalent_recovery"
+        if not bool(self._config.get("crisis_exit_on_1w_green", True)):
+            return None
+        if self.crisis_state.saw_bearish_1w and not vote.bearish_1w:
+            return "weekly_recovery"
+        return None
+
+    def _record_portfolio_observations(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+    ) -> None:
+        portfolio_value = snapshot.total_collateral_value() - snapshot.total_debt_value()
+        sol_price = float(bar.prices["SOL"].close)
+        self._observation_window.max_bars = self._observation_window_bars()
+        self._observation_window.record(portfolio_value, sol_price)
+
+    def _observation_window_bars(self) -> int:
+        return max(
+            int(self._config.get("crisis_portfolio_drawdown_lookback_bars", 30 * 24)),
+            int(self._config.get("crisis_sol_equivalent_drawdown_lookback_bars", 90 * 24)),
+        )
+
+    def _portfolio_drawdown_from_rolling_high(self) -> float:
+        return self._observation_window.portfolio_drawdown_from_high()
+
+    def _sol_equivalent_drawdown_from_rolling_high(self) -> float:
+        return self._observation_window.sol_equivalent_drawdown_from_high()
+
+    def _sol_equivalent_recovered(self, recovery_gap: float) -> bool:
+        if self.crisis_state.max_sol_equiv_drawdown < float(
+            self._config.get("crisis_sol_equiv_drawdown_threshold", 0.25)
+        ):
+            return False
+        return self._observation_window.sol_equivalent_recovered(recovery_gap)
+
+    def _crisis_lookback_ready(self, bar: BarData) -> bool:
+        required = max(
+            int(self._config.get("crisis_sol_drawdown_lookback_bars", 60 * 24)),
+            int(self._config.get("crisis_portfolio_drawdown_lookback_bars", 30 * 24)),
+            int(self._config.get("crisis_sol_equivalent_drawdown_lookback_bars", 90 * 24)),
+        )
+        return len(bar.history) >= required
+
+    def _sol_drawdown_from_rolling_high(self, bar: BarData) -> float:
+        lookback = int(self._config.get("crisis_sol_drawdown_lookback_bars", 60 * 24))
+        if "SOL" not in bar.history.columns.get_level_values(0):
+            return 0.0
+        sol_history = bar.history["SOL"].tail(lookback)
+        if sol_history.empty:
+            return 0.0
+        rolling_high = float(sol_history["high"].max())
+        current_price = float(bar.prices["SOL"].close)
+        if rolling_high <= 0:
+            return 0.0
+        return max(0.0, (rolling_high - current_price) / rolling_high)
+
+    def _crisis_hedge_floor(self, vote: TrendVote) -> float:
+        if vote.bearish_3d and vote.bearish_1w:
+            return float(self._config.get("crisis_hedge_floor_3d_1w", 1.25))
+        if vote.bearish_3d:
+            return float(self._config.get("crisis_hedge_floor_3d", 1.0))
+        return float(self._config.get("crisis_hedge_floor_base", 0.75))
+
     def _eth_short_ratio(self, snapshot: AccountSnapshot) -> float:
         sol_value = self._collateral_value(snapshot, "SOL")
         if sol_value <= 0:
             return 0.0
         return self._debt_value(snapshot, "ETH") / sol_value
 
+    def _is_under_hedged_crisis(
+        self,
+        snapshot: AccountSnapshot,
+        target_ratio: float,
+        current_ratio: float,
+    ) -> bool:
+        if not self.crisis_state.active or target_ratio <= current_ratio:
+            return False
+        sol_value = self._collateral_value(snapshot, "SOL")
+        desired_short_usd = sol_value * (target_ratio - current_ratio)
+        if desired_short_usd <= 0:
+            return False
+        max_short_usd = self._max_additional_eth_short_usd(snapshot)
+        return max_short_usd + 1e-9 < desired_short_usd
+
+    def _under_hedged_crisis_cleanup(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        actions = self._green_regime_usdc_debt_cleanup(snapshot)
+        if actions:
+            return actions
+
+        sol_value = self._collateral_value(snapshot, "SOL")
+        if sol_value <= 0:
+            return []
+        partial_fill_min_hf = float(
+            self._config.get(
+                "partial_fill_min_hf",
+                max(float(self._config.get("min_rebalance_hf", 1.25)), 2.5),
+            )
+        )
+        budget_usd = sol_value * float(
+            self._config.get("crisis_partial_fill_budget_pct", 0.25)
+        )
+        remaining_budget_usd = max(
+            0.0,
+            budget_usd - self.crisis_state.partial_fill_added_usd,
+        )
+        max_short_usd = min(
+            self._max_additional_eth_short_usd(snapshot, partial_fill_min_hf),
+            remaining_budget_usd,
+        )
+        max_safe_ratio_delta = max_short_usd / sol_value
+        if max_safe_ratio_delta > 0:
+            actions = self._increase_eth_short(
+                snapshot,
+                max_safe_ratio_delta,
+                bar,
+                min_hf=partial_fill_min_hf,
+            )
+            self.crisis_state.partial_fill_added_usd += self._borrowed_eth_usd(
+                actions,
+                bar,
+            )
+            return actions
+        return []
+
+    def _borrowed_eth_usd(
+        self,
+        actions: list[dict[str, Any]],
+        bar: BarData,
+    ) -> float:
+        eth_price = float(bar.prices["ETH"].close)
+        return sum(
+            float(action["amount"]) * eth_price
+            for action in actions
+            if action["type"] == "borrow" and action["symbol"] == "ETH"
+        )
+
     def _increase_eth_short(
         self,
         snapshot: AccountSnapshot,
         ratio_delta: float,
         bar: BarData,
+        min_hf: float | None = None,
     ) -> list[dict[str, Any]]:
         sol_value = self._collateral_value(snapshot, "SOL")
         eth_price = bar.prices["ETH"].close
@@ -330,7 +926,7 @@ class SolSupertrendShortStrategy(Strategy):
         desired_short_usd = sol_value * ratio_delta
         short_usd = min(
             desired_short_usd,
-            self._max_additional_eth_short_usd(snapshot),
+            self._max_additional_eth_short_usd(snapshot, min_hf),
         )
         if short_usd <= 0 or eth_price <= 0:
             return []
@@ -342,8 +938,16 @@ class SolSupertrendShortStrategy(Strategy):
             {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
         ]
 
-    def _max_additional_eth_short_usd(self, snapshot: AccountSnapshot) -> float:
-        min_hf = float(self._config.get("min_rebalance_hf", 1.25))
+    def _max_additional_eth_short_usd(
+        self,
+        snapshot: AccountSnapshot,
+        min_hf: float | None = None,
+    ) -> float:
+        min_hf = (
+            float(self._config.get("min_rebalance_hf", 1.25))
+            if min_hf is None
+            else min_hf
+        )
         borrow_limit = snapshot.borrow_limit()
         risk_debt = snapshot.risk_adjusted_debt_value()
         available_buffer = borrow_limit - (min_hf * risk_debt)
@@ -464,6 +1068,88 @@ class SolSupertrendShortStrategy(Strategy):
             {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
         ]
 
+    def _froth_reserve_rotation(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_froth_reserve", False)):
+            return []
+        if not self._profit_lock_active:
+            return []
+        sol_price = float(bar.prices["SOL"].close)
+        if sol_price <= 0:
+            return []
+        initial = self._initial_portfolio_value
+        portfolio_value = snapshot.total_collateral_value() - snapshot.total_debt_value()
+        if initial <= 0:
+            return []
+        gain_multiple = (portfolio_value / initial) - 1.0
+        tiers = self._config.get("froth_reserve_tiers", {})
+        eligible = sorted(
+            float(tier)
+            for tier in tiers
+            if gain_multiple >= float(tier)
+            and float(tier) not in self._froth_reserve_executed_tiers
+        )
+        if not eligible:
+            return []
+        tier = eligible[0]
+        rotate_fraction = float(tiers[tier])
+        if rotate_fraction <= 0:
+            self._froth_reserve_executed_tiers.add(tier)
+            return []
+        sol_amount = self._collateral_amount(snapshot, "SOL")
+        min_sol = float(
+            self._config.get(
+                "froth_reserve_min_sol_collateral",
+                self._config.get("initial_sol_collateral", 100.0),
+            )
+        )
+        max_sell_sol = max(0.0, sol_amount - min_sol)
+        sell_sol = min(sol_amount * rotate_fraction, max_sell_sol)
+        if sell_sol <= 0:
+            return []
+        usdc_proceeds = sell_sol * sol_price * (1.0 - self._swap_fee())
+        self._froth_reserve_usdc += usdc_proceeds
+        self._froth_reserve_executed_tiers.add(tier)
+        return [
+            {"type": "withdraw_collateral", "symbol": "SOL", "amount": sell_sol},
+            {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
+        ]
+
+    def _froth_reserve_rebuy(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_froth_reserve", False)):
+            return []
+        if self._froth_reserve_usdc <= 0:
+            return []
+        drawdown = self._sol_drawdown_from_rolling_high(bar)
+        threshold = float(
+            self._config.get("froth_reserve_rebuy_drawdown_threshold", 0.35)
+        )
+        if drawdown < threshold:
+            return []
+        usdc_available = self._collateral_amount(snapshot, "USDC")
+        spend_usdc = min(
+            self._froth_reserve_usdc
+            * float(self._config.get("froth_reserve_rebuy_fraction", 0.25)),
+            self._froth_reserve_usdc,
+            usdc_available,
+        )
+        sol_price = float(bar.prices["SOL"].close)
+        if spend_usdc <= 0 or sol_price <= 0:
+            return []
+        self._froth_reserve_usdc -= spend_usdc
+        sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
+            {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
+        ]
+
     def _cap_spend_to_min_health_factor(
         self,
         snapshot: AccountSnapshot,
@@ -543,6 +1229,21 @@ class SolSupertrendShortStrategy(Strategy):
                 "bearish_3d": vote.bearish_3d,
                 "bearish_1w": vote.bearish_1w,
                 "target_eth_short_ratio": target_ratio,
+                "in_crisis_mode": self.crisis_state.active,
+                "crisis_entry_reason": self.crisis_state.entry_reason,
+                "crisis_exit_reason": self.crisis_state.exit_reason,
+                "crisis_hedge_floor": self.crisis_state.hedge_floor,
+                "under_hedged_crisis": self.crisis_state.under_hedged,
+                "crisis_partial_fill_added_usd": (
+                    self.crisis_state.partial_fill_added_usd
+                ),
+                "in_profit_lock_mode": self._profit_lock_active,
+                "profit_lock_hedge_floor": self._profit_lock_hedge_floor,
+                "froth_reserve_usdc": self._froth_reserve_usdc,
+                "in_drawdown_containment": self.drawdown_containment_state.active,
+                "drawdown_containment_hedge_floor": (
+                    self.drawdown_containment_state.hedge_floor
+                ),
                 "current_eth_short_ratio": self._eth_short_ratio(snapshot),
                 "health_factor": snapshot.health_factor(),
                 "reason": reason,

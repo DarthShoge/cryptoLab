@@ -8,7 +8,7 @@ from typing import Dict, List
 import pandas as pd
 
 from arblab.backtest.data import OHLCVConfig
-from arblab.backtest.engine import BacktestEngine
+from arblab.backtest.engine import BacktestEngine, EngineConfig
 from arblab.backtest.market import MarketParams
 from arblab.backtest.optimizer import OptimizationResult, grid_search
 from arblab.backtest.results import BacktestResult
@@ -25,6 +25,7 @@ SOL_SUPERTREND_SHORT_STRATEGY = "SOL Supertrend Short"
 DEFAULT_STRATEGY = SOL_SUPERTREND_SHORT_STRATEGY
 DEFAULT_START_DATE = pd.Timestamp("2021-01-01")
 DEFAULT_END_DATE = pd.Timestamp("2025-12-31")
+SOL_SUPERTREND_LOOKBACK_BARS = 90 * 24
 
 SOFT_HEDGE_LADDER = {4: 0.0, 3: 0.10, 2: 0.25, 1: 0.50, 0: 0.50}
 
@@ -35,7 +36,7 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
     "enable_usdc_releverage": False,
     "max_usdc_debt_to_equity": 0.0,
     "target_bullish_hf": 1.35,
-    "min_rebalance_hf": 1.75,
+    "min_rebalance_hf": 2.00,
     "rebalance_threshold": 0.10,
     "rebalance_cooldown_bars": 4,
     "enable_surplus_usdc_reinvestment": True,
@@ -46,6 +47,36 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
     "enable_full_short_mode": True,
     "full_short_lower_bound": 0.75,
     "full_short_upper_bound": 1.25,
+    "enable_crisis_mode": True,
+    "crisis_sol_drawdown_threshold": 0.25,
+    "crisis_portfolio_drawdown_threshold": 0.20,
+    "crisis_hedge_floor_base": 0.75,
+    "crisis_hedge_floor_3d": 1.0,
+    "crisis_hedge_floor_3d_1w": 1.25,
+    "crisis_exit_sol_equiv_recovery_gap": 0.10,
+    "partial_fill_min_hf": 2.50,
+    "crisis_partial_fill_budget_pct": 0.00,
+    "enable_profit_lock": True,
+    "profit_lock_metric": "portfolio",
+    "profit_lock_min_gain_pct": 0.25,
+    "profit_lock_drawdown_threshold": 0.05,
+    "profit_lock_near_high_threshold": 0.01,
+    "profit_lock_stateful": True,
+    "profit_lock_stateful_exit_gap": 0.05,
+    "profit_lock_hedge_floor": 0.35,
+    "profit_lock_max_green": 3,
+    "enable_froth_reserve": False,
+    "froth_reserve_min_sol_collateral": 100.0,
+    "froth_reserve_tiers": {1.0: 0.05, 3.0: 0.05},
+    "froth_reserve_rebuy_drawdown_threshold": 0.35,
+    "froth_reserve_rebuy_fraction": 0.25,
+    "enable_drawdown_containment": False,
+    "drawdown_containment_trigger": 0.20,
+    "drawdown_containment_exit_gap": 0.10,
+    "drawdown_containment_hedge_floor": 0.75,
+    "drawdown_containment_block_rebuy": True,
+    "drawdown_containment_block_reinvestment": True,
+    "drawdown_containment_block_releverage": True,
 }
 
 EXCHANGE_SYMBOLS = {
@@ -76,6 +107,32 @@ def visible_strategy_controls(strategy_name: str) -> List[str]:
             "Enable Full Short Mode",
             "Full Short Lower Bound",
             "Full Short Upper Bound",
+            "Enable Crisis Mode",
+            "Crisis SOL Drawdown Threshold",
+            "Crisis Portfolio Drawdown Threshold",
+            "Crisis Base Hedge Floor",
+            "Crisis 3d Hedge Floor",
+            "Crisis 3d+1w Hedge Floor",
+            "Crisis Exit Recovery Gap",
+            "Partial Fill Min HF",
+            "Crisis Partial Fill Budget",
+            "Enable Profit Lock",
+            "Profit Lock Metric",
+            "Profit Lock Min Gain",
+            "Profit Lock Drawdown",
+            "Profit Lock Near High",
+            "Stateful Profit Lock",
+            "Profit Lock Exit Gap",
+            "Profit Lock Hedge Floor",
+            "Profit Lock Max Green",
+            "Enable Froth Reserve",
+            "Froth Reserve Min SOL",
+            "Froth Reserve Rebuy Drawdown",
+            "Froth Reserve Rebuy Fraction",
+            "Enable Drawdown Containment",
+            "Drawdown Containment Trigger",
+            "Drawdown Containment Exit Gap",
+            "Drawdown Containment Hedge Floor",
         ]
     return [
         "Initial Collateral",
@@ -351,6 +408,9 @@ def build_sol_supertrend_signal_by_bar(
         )
         for timeframe in timeframes
     ]
+    bearish_1d = ~_closed_direction_on_base_index(
+        price_data, "1d", atr_period, multiplier
+    )
     bearish_3d = ~_closed_direction_on_base_index(
         price_data, "3d", atr_period, multiplier
     )
@@ -363,6 +423,7 @@ def build_sol_supertrend_signal_by_bar(
         green = sum(int(bool(direction.loc[timestamp])) for direction in directions)
         signals[idx] = {
             "green": green,
+            "bearish_1d": bool(bearish_1d.loc[timestamp]),
             "bearish_3d": bool(bearish_3d.loc[timestamp]),
             "bearish_1w": bool(bearish_1w.loc[timestamp]),
         }
@@ -390,6 +451,36 @@ def build_sol_supertrend_short_config(
     max_surplus_reinvestment_pct_of_sol_collateral: float = 0.05,
     surplus_reinvestment_min_hf: float = 2.0,
     hedge_ladder: dict[int, float] | None = None,
+    enable_crisis_mode: bool = True,
+    crisis_sol_drawdown_threshold: float = 0.25,
+    crisis_portfolio_drawdown_threshold: float = 0.20,
+    crisis_hedge_floor_base: float = 0.75,
+    crisis_hedge_floor_3d: float = 1.0,
+    crisis_hedge_floor_3d_1w: float = 1.25,
+    crisis_exit_sol_equiv_recovery_gap: float = 0.10,
+    partial_fill_min_hf: float = 2.50,
+    crisis_partial_fill_budget_pct: float = 0.25,
+    enable_profit_lock: bool = False,
+    profit_lock_metric: str = "portfolio",
+    profit_lock_min_gain_pct: float = 0.25,
+    profit_lock_drawdown_threshold: float = 0.10,
+    profit_lock_near_high_threshold: float = 0.00,
+    profit_lock_stateful: bool = False,
+    profit_lock_stateful_exit_gap: float = 0.02,
+    profit_lock_hedge_floor: float = 0.35,
+    profit_lock_max_green: int = 3,
+    enable_froth_reserve: bool = False,
+    froth_reserve_min_sol_collateral: float = 100.0,
+    froth_reserve_tiers: dict[float, float] | None = None,
+    froth_reserve_rebuy_drawdown_threshold: float = 0.35,
+    froth_reserve_rebuy_fraction: float = 0.25,
+    enable_drawdown_containment: bool = False,
+    drawdown_containment_trigger: float = 0.20,
+    drawdown_containment_exit_gap: float = 0.10,
+    drawdown_containment_hedge_floor: float = 0.75,
+    drawdown_containment_block_rebuy: bool = True,
+    drawdown_containment_block_reinvestment: bool = True,
+    drawdown_containment_block_releverage: bool = True,
 ) -> Dict[str, float | int | bool | dict]:
     """Build strategy config for the SOL Supertrend short strategy."""
     return {
@@ -421,6 +512,40 @@ def build_sol_supertrend_short_config(
             max_surplus_reinvestment_pct_of_sol_collateral
         ),
         "surplus_reinvestment_min_hf": surplus_reinvestment_min_hf,
+        "enable_crisis_mode": enable_crisis_mode,
+        "crisis_sol_drawdown_threshold": crisis_sol_drawdown_threshold,
+        "crisis_portfolio_drawdown_threshold": crisis_portfolio_drawdown_threshold,
+        "crisis_hedge_floor_base": crisis_hedge_floor_base,
+        "crisis_hedge_floor_3d": crisis_hedge_floor_3d,
+        "crisis_hedge_floor_3d_1w": crisis_hedge_floor_3d_1w,
+        "crisis_exit_sol_equiv_recovery_gap": crisis_exit_sol_equiv_recovery_gap,
+        "partial_fill_min_hf": partial_fill_min_hf,
+        "crisis_partial_fill_budget_pct": crisis_partial_fill_budget_pct,
+        "enable_profit_lock": enable_profit_lock,
+        "profit_lock_metric": profit_lock_metric,
+        "profit_lock_min_gain_pct": profit_lock_min_gain_pct,
+        "profit_lock_drawdown_threshold": profit_lock_drawdown_threshold,
+        "profit_lock_near_high_threshold": profit_lock_near_high_threshold,
+        "profit_lock_stateful": profit_lock_stateful,
+        "profit_lock_stateful_exit_gap": profit_lock_stateful_exit_gap,
+        "profit_lock_hedge_floor": profit_lock_hedge_floor,
+        "profit_lock_max_green": profit_lock_max_green,
+        "enable_froth_reserve": enable_froth_reserve,
+        "froth_reserve_min_sol_collateral": froth_reserve_min_sol_collateral,
+        "froth_reserve_tiers": froth_reserve_tiers or {1.0: 0.05, 3.0: 0.05},
+        "froth_reserve_rebuy_drawdown_threshold": (
+            froth_reserve_rebuy_drawdown_threshold
+        ),
+        "froth_reserve_rebuy_fraction": froth_reserve_rebuy_fraction,
+        "enable_drawdown_containment": enable_drawdown_containment,
+        "drawdown_containment_trigger": drawdown_containment_trigger,
+        "drawdown_containment_exit_gap": drawdown_containment_exit_gap,
+        "drawdown_containment_hedge_floor": drawdown_containment_hedge_floor,
+        "drawdown_containment_block_rebuy": drawdown_containment_block_rebuy,
+        "drawdown_containment_block_reinvestment": (
+            drawdown_containment_block_reinvestment
+        ),
+        "drawdown_containment_block_releverage": drawdown_containment_block_releverage,
     }
 
 
@@ -432,7 +557,12 @@ def run_selected_backtest(
 ) -> BacktestResult:
     """Run a backtest using the selected strategy."""
     strategy = strategy_for_name(strategy_name)
-    engine = BacktestEngine(strategy)
+    engine_config = (
+        EngineConfig(lookback_bars=SOL_SUPERTREND_LOOKBACK_BARS)
+        if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY
+        else None
+    )
+    engine = BacktestEngine(strategy, engine_config)
     return engine.run(
         price_data,
         strategy_config,
@@ -475,8 +605,12 @@ def _run_sol_supertrend_grid_search(
     market_params: MarketParams,
     sort_metric: str,
 ) -> OptimizationResult:
-    keys = list(param_grid.keys())
-    combos = list(itertools.product(*(param_grid[key] for key in keys)))
+    grid_params = dict(param_grid)
+    if "enable_crisis_mode" not in grid_params:
+        grid_params["enable_crisis_mode"] = [True, False]
+
+    keys = list(grid_params.keys())
+    combos = list(itertools.product(*(grid_params[key] for key in keys)))
     results: list[BacktestResult] = []
     grid: list[dict[str, object]] = []
     rows: list[dict[str, object]] = []
@@ -501,7 +635,10 @@ def _run_sol_supertrend_grid_search(
             atr_period=atr_period,
             multiplier=multiplier,
         )
-        result = BacktestEngine(SolSupertrendShortStrategy()).run(
+        result = BacktestEngine(
+            SolSupertrendShortStrategy(),
+            EngineConfig(lookback_bars=SOL_SUPERTREND_LOOKBACK_BARS),
+        ).run(
             price_data,
             config,
             market_params,

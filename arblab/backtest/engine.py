@@ -148,6 +148,7 @@ class BacktestEngine:
             records.append(self._record(
                 timestamp, snapshot, len(actions), interest_usd,
                 lst_yield_usd, liq_penalty_usd, cash_reserve,
+                self._strategy_history_fields(),
             ))
 
         history = pd.DataFrame(records)
@@ -235,6 +236,12 @@ class BacktestEngine:
             cash_reserve=cash_reserve,
         )
 
+    def _strategy_history_fields(self) -> Dict[str, Any]:
+        fields_fn = getattr(self.strategy, "history_fields", None)
+        if fields_fn is None:
+            return {}
+        return dict(fields_fn())
+
     @staticmethod
     def _record(
         timestamp: Any,
@@ -244,6 +251,7 @@ class BacktestEngine:
         lst_yield: float,
         liquidation_penalty: float,
         cash_reserve: float = 0.0,
+        strategy_fields: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         report = scenario_report(snapshot)
         record: Dict[str, Any] = {
@@ -271,4 +279,6 @@ class BacktestEngine:
         for pos in snapshot.debt:
             record[f"debt_{pos.symbol}"] = pos.amount
             record[f"debt_{pos.symbol}_value"] = pos.value()
+        if strategy_fields:
+            record.update(strategy_fields)
         return record

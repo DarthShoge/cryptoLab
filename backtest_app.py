@@ -229,6 +229,228 @@ else:
             float(sol_defaults["full_short_upper_bound"]),
             step=0.05,
         )
+    enable_crisis_mode = st.sidebar.checkbox(
+        "Enable Crisis Mode",
+        value=bool(sol_defaults["enable_crisis_mode"]),
+    )
+    crisis_sol_drawdown_threshold = float(sol_defaults["crisis_sol_drawdown_threshold"])
+    crisis_portfolio_drawdown_threshold = float(
+        sol_defaults["crisis_portfolio_drawdown_threshold"]
+    )
+    crisis_hedge_floor_base = float(sol_defaults["crisis_hedge_floor_base"])
+    crisis_hedge_floor_3d = float(sol_defaults["crisis_hedge_floor_3d"])
+    crisis_hedge_floor_3d_1w = float(sol_defaults["crisis_hedge_floor_3d_1w"])
+    crisis_exit_sol_equiv_recovery_gap = float(
+        sol_defaults["crisis_exit_sol_equiv_recovery_gap"]
+    )
+    partial_fill_min_hf = float(sol_defaults["partial_fill_min_hf"])
+    crisis_partial_fill_budget_pct = float(
+        sol_defaults["crisis_partial_fill_budget_pct"]
+    )
+    if enable_crisis_mode:
+        crisis_sol_drawdown_threshold = st.sidebar.slider(
+            "Crisis SOL Drawdown Threshold",
+            0.05,
+            0.60,
+            crisis_sol_drawdown_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        crisis_portfolio_drawdown_threshold = st.sidebar.slider(
+            "Crisis Portfolio Drawdown Threshold",
+            0.05,
+            0.60,
+            crisis_portfolio_drawdown_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        crisis_hedge_floor_base = st.sidebar.slider(
+            "Crisis Base Hedge Floor",
+            0.25,
+            1.50,
+            crisis_hedge_floor_base,
+            step=0.05,
+        )
+        crisis_hedge_floor_3d = st.sidebar.slider(
+            "Crisis 3d Hedge Floor",
+            0.50,
+            2.00,
+            crisis_hedge_floor_3d,
+            step=0.05,
+        )
+        crisis_hedge_floor_3d_1w = st.sidebar.slider(
+            "Crisis 3d+1w Hedge Floor",
+            0.75,
+            2.50,
+            crisis_hedge_floor_3d_1w,
+            step=0.05,
+        )
+        crisis_exit_sol_equiv_recovery_gap = st.sidebar.slider(
+            "Crisis Exit Recovery Gap",
+            0.02,
+            0.30,
+            crisis_exit_sol_equiv_recovery_gap,
+            step=0.01,
+            format="%.2f",
+        )
+        partial_fill_min_hf = st.sidebar.slider(
+            "Partial Fill Min HF",
+            1.50,
+            4.00,
+            partial_fill_min_hf,
+            step=0.05,
+        )
+        crisis_partial_fill_budget_pct = st.sidebar.slider(
+            "Crisis Partial Fill Budget",
+            0.0,
+            1.0,
+            crisis_partial_fill_budget_pct,
+            step=0.05,
+            format="%.2f",
+        )
+    enable_profit_lock = st.sidebar.checkbox(
+        "Enable Profit Lock",
+        value=bool(sol_defaults["enable_profit_lock"]),
+    )
+    profit_lock_metric = str(sol_defaults["profit_lock_metric"])
+    profit_lock_min_gain_pct = float(sol_defaults["profit_lock_min_gain_pct"])
+    profit_lock_drawdown_threshold = float(
+        sol_defaults["profit_lock_drawdown_threshold"]
+    )
+    profit_lock_near_high_threshold = float(
+        sol_defaults["profit_lock_near_high_threshold"]
+    )
+    profit_lock_stateful = bool(sol_defaults["profit_lock_stateful"])
+    profit_lock_stateful_exit_gap = float(sol_defaults["profit_lock_stateful_exit_gap"])
+    profit_lock_hedge_floor = float(sol_defaults["profit_lock_hedge_floor"])
+    profit_lock_max_green = int(sol_defaults["profit_lock_max_green"])
+    if enable_profit_lock:
+        profit_lock_metric = st.sidebar.selectbox(
+            "Profit Lock Metric",
+            ["portfolio", "sol_equivalent", "both"],
+            index=["portfolio", "sol_equivalent", "both"].index(profit_lock_metric),
+        )
+        profit_lock_min_gain_pct = st.sidebar.slider(
+            "Profit Lock Min Gain",
+            0.05,
+            2.0,
+            profit_lock_min_gain_pct,
+            step=0.05,
+            format="%.2f",
+        )
+        profit_lock_drawdown_threshold = st.sidebar.slider(
+            "Profit Lock Drawdown",
+            0.02,
+            0.50,
+            profit_lock_drawdown_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        profit_lock_near_high_threshold = st.sidebar.slider(
+            "Profit Lock Near High",
+            0.00,
+            0.10,
+            profit_lock_near_high_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        profit_lock_stateful = st.sidebar.checkbox(
+            "Stateful Profit Lock",
+            value=profit_lock_stateful,
+        )
+        if profit_lock_stateful:
+            profit_lock_stateful_exit_gap = st.sidebar.slider(
+                "Profit Lock Exit Gap",
+                0.00,
+                0.10,
+                profit_lock_stateful_exit_gap,
+                step=0.01,
+                format="%.2f",
+            )
+        profit_lock_hedge_floor = st.sidebar.slider(
+            "Profit Lock Hedge Floor",
+            0.10,
+            1.00,
+            profit_lock_hedge_floor,
+            step=0.05,
+        )
+        profit_lock_max_green = st.sidebar.slider(
+            "Profit Lock Max Green",
+            0,
+            4,
+            profit_lock_max_green,
+        )
+    enable_froth_reserve = st.sidebar.checkbox(
+        "Enable Froth Reserve",
+        value=bool(sol_defaults["enable_froth_reserve"]),
+    )
+    froth_reserve_min_sol_collateral = float(
+        sol_defaults["froth_reserve_min_sol_collateral"]
+    )
+    froth_reserve_rebuy_drawdown_threshold = float(
+        sol_defaults["froth_reserve_rebuy_drawdown_threshold"]
+    )
+    froth_reserve_rebuy_fraction = float(sol_defaults["froth_reserve_rebuy_fraction"])
+    if enable_froth_reserve:
+        froth_reserve_min_sol_collateral = st.sidebar.number_input(
+            "Froth Reserve Min SOL",
+            min_value=0.0,
+            value=froth_reserve_min_sol_collateral,
+            step=10.0,
+        )
+        froth_reserve_rebuy_drawdown_threshold = st.sidebar.slider(
+            "Froth Reserve Rebuy Drawdown",
+            0.10,
+            0.80,
+            froth_reserve_rebuy_drawdown_threshold,
+            step=0.05,
+            format="%.2f",
+        )
+        froth_reserve_rebuy_fraction = st.sidebar.slider(
+            "Froth Reserve Rebuy Fraction",
+            0.10,
+            1.00,
+            froth_reserve_rebuy_fraction,
+            step=0.05,
+            format="%.2f",
+        )
+    enable_drawdown_containment = st.sidebar.checkbox(
+        "Enable Drawdown Containment",
+        value=bool(sol_defaults["enable_drawdown_containment"]),
+    )
+    drawdown_containment_trigger = float(
+        sol_defaults["drawdown_containment_trigger"]
+    )
+    drawdown_containment_exit_gap = float(
+        sol_defaults["drawdown_containment_exit_gap"]
+    )
+    drawdown_containment_hedge_floor = float(
+        sol_defaults["drawdown_containment_hedge_floor"]
+    )
+    if enable_drawdown_containment:
+        drawdown_containment_trigger = st.sidebar.slider(
+            "Drawdown Containment Trigger",
+            0.05,
+            0.50,
+            drawdown_containment_trigger,
+            step=0.01,
+            format="%.2f",
+        )
+        drawdown_containment_exit_gap = st.sidebar.slider(
+            "Drawdown Containment Exit Gap",
+            0.02,
+            0.30,
+            drawdown_containment_exit_gap,
+            step=0.01,
+            format="%.2f",
+        )
+        drawdown_containment_hedge_floor = st.sidebar.slider(
+            "Drawdown Containment Hedge Floor",
+            0.00,
+            1.50,
+            drawdown_containment_hedge_floor,
+            step=0.05,
+        )
 
 st.sidebar.header("Market Overrides")
 borrow_rate = st.sidebar.slider(
@@ -361,6 +583,44 @@ if run_btn:
             ),
             surplus_reinvestment_min_hf=surplus_reinvestment_min_hf,
             hedge_ladder=sol_defaults["hedge_ladder"],
+            enable_crisis_mode=enable_crisis_mode,
+            crisis_sol_drawdown_threshold=crisis_sol_drawdown_threshold,
+            crisis_portfolio_drawdown_threshold=crisis_portfolio_drawdown_threshold,
+            crisis_hedge_floor_base=crisis_hedge_floor_base,
+            crisis_hedge_floor_3d=crisis_hedge_floor_3d,
+            crisis_hedge_floor_3d_1w=crisis_hedge_floor_3d_1w,
+            crisis_exit_sol_equiv_recovery_gap=crisis_exit_sol_equiv_recovery_gap,
+            partial_fill_min_hf=partial_fill_min_hf,
+            crisis_partial_fill_budget_pct=crisis_partial_fill_budget_pct,
+            enable_profit_lock=enable_profit_lock,
+            profit_lock_metric=profit_lock_metric,
+            profit_lock_min_gain_pct=profit_lock_min_gain_pct,
+            profit_lock_drawdown_threshold=profit_lock_drawdown_threshold,
+            profit_lock_near_high_threshold=profit_lock_near_high_threshold,
+            profit_lock_stateful=profit_lock_stateful,
+            profit_lock_stateful_exit_gap=profit_lock_stateful_exit_gap,
+            profit_lock_hedge_floor=profit_lock_hedge_floor,
+            profit_lock_max_green=profit_lock_max_green,
+            enable_froth_reserve=enable_froth_reserve,
+            froth_reserve_min_sol_collateral=froth_reserve_min_sol_collateral,
+            froth_reserve_tiers=sol_defaults["froth_reserve_tiers"],
+            froth_reserve_rebuy_drawdown_threshold=(
+                froth_reserve_rebuy_drawdown_threshold
+            ),
+            froth_reserve_rebuy_fraction=froth_reserve_rebuy_fraction,
+            enable_drawdown_containment=enable_drawdown_containment,
+            drawdown_containment_trigger=drawdown_containment_trigger,
+            drawdown_containment_exit_gap=drawdown_containment_exit_gap,
+            drawdown_containment_hedge_floor=drawdown_containment_hedge_floor,
+            drawdown_containment_block_rebuy=sol_defaults[
+                "drawdown_containment_block_rebuy"
+            ],
+            drawdown_containment_block_reinvestment=sol_defaults[
+                "drawdown_containment_block_reinvestment"
+            ],
+            drawdown_containment_block_releverage=sol_defaults[
+                "drawdown_containment_block_releverage"
+            ],
         )
 
     if mode == "Single Backtest":
