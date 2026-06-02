@@ -69,6 +69,32 @@ def auto_loop_deposit(
     return (borrow_amount * borrow_price) / target_price
 
 
+def hedge_withdraw_amount(
+    total_debt: float,
+    liq_value: float,
+    target_hf: float,
+    collateral_price: float,
+    liq_threshold: float,
+) -> float:
+    """Tokens of collateral to withdraw so HF drops to *target_hf*.
+
+    liq_value_after / total_debt = target_hf
+    liq_value_after = liq_value - withdraw * price * liq_threshold
+    withdraw = (liq_value - target_hf * total_debt) / (price * liq_threshold)
+    """
+    if collateral_price <= 0 or liq_threshold <= 0 or total_debt <= 0:
+        return 0.0
+    raw = (liq_value - target_hf * total_debt) / (collateral_price * liq_threshold)
+    return max(raw, 0.0)
+
+
+def hedge_deploy_amount(cash_usd: float, collateral_price: float) -> float:
+    """Tokens of collateral purchasable with *cash_usd* at current price."""
+    if collateral_price <= 0:
+        return 0.0
+    return cash_usd / collateral_price
+
+
 def collateral_rebalance(
     withdraw_delta: float,
     source_price: float,

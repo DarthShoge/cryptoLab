@@ -184,8 +184,8 @@ def test_multi_collateral_one_wipes_out():
         {"type": "set_price", "symbol": "SOL", "price": 0.0},
     ])
 
-    # Only USDC liq_value remains: 1000 * 0.85 = 850
-    expected_hf = 850.0 / 500.0
+    # Only USDC borrow_limit remains: 1000 * 0.80 = 800
+    expected_hf = 800.0 / 500.0
     assert crashed.health_factor() == approx(expected_hf)
 
 
@@ -202,8 +202,8 @@ def test_whale_million_sol():
     )
 
     hf = snap.health_factor()
-    # liq_value = 1e6 * 150 * 0.75 = 112_500_000
-    expected_hf = 112_500_000 / 80_000_000
+    # borrow_limit = 1e6 * 150 * 0.65 = 97_500_000
+    expected_hf = 97_500_000 / 80_000_000
     assert hf == approx(expected_hf)
     assert hf > 1.0
 
@@ -221,8 +221,8 @@ def test_dust_position():
     )
 
     hf = snap.health_factor()
-    # liq_value = 0.000001 * 150 * 0.75 = 0.0001125
-    expected = 0.0001125 / 0.0001
+    # borrow_limit = 0.000001 * 150 * 0.65 = 0.0000975
+    expected = 0.0000975 / 0.0001
     assert hf == approx(expected)
     assert snap.liquidation_buffer() == approx(0.0001125 - 0.0001)
 
@@ -248,10 +248,10 @@ def test_price_crash_recover_crash_again():
 
     # Recover: repay enough to reach target
     deficit1 = compute_deficit(
-        crashed1.total_debt_value(), crashed1.liquidation_value(), target_hf
+        crashed1.risk_adjusted_debt_value(), crashed1.borrow_limit(), target_hf
     )
     repay1 = recovery_repay_usd(
-        crashed1.total_debt_value(), crashed1.liquidation_value(), target_hf
+        crashed1.risk_adjusted_debt_value(), crashed1.borrow_limit(), target_hf
     )
     recovered = apply_actions(crashed1, [
         {"type": "repay", "symbol": "USDC", "amount": repay1},
@@ -266,7 +266,7 @@ def test_price_crash_recover_crash_again():
 
     # Can still compute a new recovery
     repay2 = recovery_repay_usd(
-        crashed2.total_debt_value(), crashed2.liquidation_value(), target_hf
+        crashed2.risk_adjusted_debt_value(), crashed2.borrow_limit(), target_hf
     )
     assert repay2 > 0
     final = apply_actions(crashed2, [
@@ -301,7 +301,7 @@ def test_correlated_pair_sol_msol_drop():
     hf_after = dropped.health_factor()
 
     # Both collateral values dropped 20%, debt unchanged.
-    # New liq_value = 0.8 * old_liq_value, so new HF = 0.8 * old HF
+    # New borrow_limit = 0.8 * old_borrow_limit, so new HF = 0.8 * old HF
     assert hf_after == approx(hf_before * 0.8, rel=1e-9)
 
 
@@ -313,8 +313,8 @@ def test_correlated_pair_sol_msol_drop():
 def test_auto_loop_after_crash_improves_hf():
     """SOL crashes to $120, borrow USDC, auto-loop into SOL.
 
-    Leverage looping with liq_threshold < 1 always pulls HF toward
-    1/liq_threshold. When HF > 1/liq_threshold it decreases; the test
+    Leverage looping with ltv < 1 always pulls HF toward
+    1/ltv. When HF > 1/ltv it decreases; the test
     verifies more SOL exposure while HF stays safely above 1.
     """
     snap = make_snapshot(
@@ -327,7 +327,7 @@ def test_auto_loop_after_crash_improves_hf():
         {"type": "set_price", "symbol": "SOL", "price": 120.0},
     ])
     hf_before = crashed.health_factor()
-    # HF = 20*120*0.75 / 800 = 1800/800 = 2.25
+    # HF = 20*120*0.65 / 800 = 1560/800 = 1.95
 
     # Auto-loop: borrow 300 USDC, buy SOL at $120
     borrow_usd = 300.0
@@ -375,17 +375,18 @@ def test_adding_collateral_lowers_liq_price():
 
 @pytest.mark.scenario
 def test_hf_exactly_one():
-    """Engineer HF = 1.0 exactly. Buffer should be 0."""
-    # Need liq_value == total_debt.
-    # 10 SOL @ $100 with liq_threshold = 0.80 => liq_value = 800
-    # debt = 800 => HF = 1.0
+    """Engineer HF = 1.0 exactly."""
+    # Need borrow_limit == risk_adjusted_debt.
+    # 10 SOL @ $100 with ltv = 0.65 => borrow_limit = 650
+    # debt = 650 => HF = 1.0
     snap = make_snapshot(
         collateral=[make_collateral("SOL", 10, 100, 0.65, 0.80)],
-        debt=[make_debt("USDC", 800, 1.0)],
+        debt=[make_debt("USDC", 650, 1.0)],
     )
 
     assert snap.health_factor() == approx(1.0)
-    assert snap.liquidation_buffer() == approx(0.0)
+    # liquidation_buffer uses liq_value - debt = 800 - 650 = 150
+    assert snap.liquidation_buffer() == approx(150.0)
 
 
 # ---------------------------------------------------------------------------
@@ -394,16 +395,17 @@ def test_hf_exactly_one():
 
 @pytest.mark.scenario
 def test_hf_just_below_one():
-    """HF = ~0.9999. Buffer slightly negative."""
-    # liq_value = 10 * 100 * 0.80 = 800, debt = 800.08
+    """HF = ~0.9999. Buffer positive (liquidation not yet triggered)."""
+    # borrow_limit = 10 * 100 * 0.65 = 650, debt = 650.08
     snap = make_snapshot(
         collateral=[make_collateral("SOL", 10, 100, 0.65, 0.80)],
-        debt=[make_debt("USDC", 800.08, 1.0)],
+        debt=[make_debt("USDC", 650.08, 1.0)],
     )
 
     assert snap.health_factor() < 1.0
-    assert snap.health_factor() == approx(800 / 800.08, rel=1e-6)
-    assert snap.liquidation_buffer() < 0
+    assert snap.health_factor() == approx(650 / 650.08, rel=1e-6)
+    # liquidation_buffer = liq_value - debt = 800 - 650.08 = 149.92 (still positive)
+    assert snap.liquidation_buffer() > 0
 
 
 # ---------------------------------------------------------------------------
@@ -415,10 +417,10 @@ def test_sequential_recovery_partial_then_full():
     """HF drops, deposit half needed collateral, then repay remaining debt to reach target."""
     target_hf = 1.30
     sol_price = 150.0
-    liq_threshold = 0.75
+    ltv = 0.65
 
     snap = make_snapshot(
-        collateral=[make_collateral("SOL", 10, sol_price, 0.65, liq_threshold)],
+        collateral=[make_collateral("SOL", 10, sol_price, ltv, 0.75)],
         debt=[make_debt("USDC", 1000, 1.0)],
     )
 
@@ -430,9 +432,9 @@ def test_sequential_recovery_partial_then_full():
 
     # Step 1: deposit half the needed SOL collateral
     deficit = compute_deficit(
-        crashed.total_debt_value(), crashed.liquidation_value(), target_hf
+        crashed.risk_adjusted_debt_value(), crashed.borrow_limit(), target_hf
     )
-    full_deposit = recovery_deposit_tokens(deficit, 100.0, liq_threshold)
+    full_deposit = recovery_deposit_tokens(deficit, 100.0, ltv)
     half_deposit = full_deposit / 2.0
 
     partial = apply_actions(crashed, [
@@ -444,11 +446,11 @@ def test_sequential_recovery_partial_then_full():
 
     # Step 2: repay remaining debt to reach target
     remaining_deficit = compute_deficit(
-        partial.total_debt_value(), partial.liquidation_value(), target_hf
+        partial.risk_adjusted_debt_value(), partial.borrow_limit(), target_hf
     )
     assert remaining_deficit > 0
     repay_amount = recovery_repay_usd(
-        partial.total_debt_value(), partial.liquidation_value(), target_hf
+        partial.risk_adjusted_debt_value(), partial.borrow_limit(), target_hf
     )
 
     final = apply_actions(partial, [

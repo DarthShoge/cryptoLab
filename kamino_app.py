@@ -225,11 +225,19 @@ report = scenario_report(snapshot)
 hf = report["health_factor"]
 hf_color = _health_color(hf)
 
+# Row 1: Core metrics
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Health Factor", _fmt(hf) if hf != float("inf") else "Safe (no debt)")
-m2.metric("Current LTV", _pct(report["current_ltv"]) if report["current_ltv"] != float("inf") else "N/A")
-m3.metric("Borrow Limit", _fmt_usd(report["borrow_limit"]))
-m4.metric("Liquidation Buffer", _fmt_usd(report["liquidation_buffer"]))
+m2.metric("Borrow Limit", _fmt_usd(report["borrow_limit"]))
+m3.metric("Liquidation Buffer", _fmt_usd(report["liquidation_buffer"]))
+m4.metric("", "")  # Empty for spacing
+
+# Row 2: LTV metrics
+ltv1, ltv2, ltv3, ltv4 = st.columns(4)
+ltv1.metric("Current LTV", _pct(report["current_ltv"]) if report["current_ltv"] != float("inf") else "N/A")
+ltv2.metric("Borrow LTV (Kamino)", _pct(report["borrow_ltv"]) if report["borrow_ltv"] != float("inf") else "N/A")
+ltv3.metric("Liquidation LTV", _pct(report["liquidation_ltv"]))
+ltv4.metric("", "")  # Empty for spacing
 
 if hf != float("inf"):
     if hf < 1.1:
@@ -286,8 +294,53 @@ market_reserves: list[ReserveConfig] = st.session_state.get("market_reserves", [
 all_symbols = list({p.symbol for p in snapshot.collateral} | {p.symbol for p in snapshot.debt})
 all_symbols.sort()
 
+# Stablecoins (excluded from market-wide moves)
+STABLECOINS = {"USDC", "USDT", "USDG", "DAI", "USDS"}
+
 # Price adjustments
 with st.expander("Price Changes", expanded=True):
+    # Market-wide move for all crypto assets (excludes stablecoins)
+
+    market_move_pct = st.slider(
+        "Market Move % (all crypto assets)",
+        min_value=-90.0,
+        max_value=200.0,
+        value=0.0,
+        step=1.0,
+        help="Move all crypto assets (excluding stablecoins) by this percentage",
+        key=f"market_move_v{_v}",
+    )
+
+    # Update individual slider session state when market move changes
+    prev_market_move = st.session_state.get(f"_prev_market_move_v{_v}", 0.0)
+    if abs(market_move_pct - prev_market_move) > 0.01:
+        # Market move changed - update all crypto asset slider values
+        for symbol in all_symbols:
+            if symbol not in STABLECOINS:
+                current = next(
+                    (p.price for p in snapshot.collateral if p.symbol == symbol),
+                    next((p.price for p in snapshot.debt if p.symbol == symbol), 0),
+                )
+                if current > 0:
+                    new_price = current * (1.0 + market_move_pct / 100.0)
+                    st.session_state[f"price_{symbol}_v{_v}"] = new_price
+        st.session_state[f"_prev_market_move_v{_v}"] = market_move_pct
+
+    # Apply market move to all crypto assets
+    if abs(market_move_pct) > 0.01:
+        for symbol in all_symbols:
+            if symbol not in STABLECOINS:
+                current = next(
+                    (p.price for p in snapshot.collateral if p.symbol == symbol),
+                    next((p.price for p in snapshot.debt if p.symbol == symbol), 0),
+                )
+                if current > 0:
+                    new_price = current * (1.0 + market_move_pct / 100.0)
+                    actions.append({"type": "set_price", "symbol": symbol, "price": new_price})
+
+    st.divider()
+    st.caption("Individual Asset Prices (override market move if needed)")
+
     price_cols = st.columns(min(len(all_symbols), 4))
     for i, symbol in enumerate(all_symbols):
         col = price_cols[i % len(price_cols)]
@@ -305,13 +358,21 @@ with st.expander("Price Changes", expanded=True):
                 format=f"$%.{'2' if current >= 1 else '6'}f",
                 key=f"price_{symbol}_v{_v}",
             )
+            # Individual slider overrides market move for this specific asset
             if abs(new_price - current) > current * 0.001:
                 actions.append({"type": "set_price", "symbol": symbol, "price": new_price})
 
-# Effective simulated prices (accounts for price slider changes)
+# Effective simulated prices (accounts for market move + individual slider changes)
 sim_prices = {}
 for p in snapshot.collateral:
-    sim_prices[p.symbol] = st.session_state.get(f"price_{p.symbol}_v{_v}", p.price)
+    # Start with base price
+    base_price = p.price
+    # Apply market move if applicable
+    if abs(market_move_pct) > 0.01 and p.symbol not in STABLECOINS:
+        base_price = p.price * (1.0 + market_move_pct / 100.0)
+    # Override with individual slider value if different
+    slider_price = st.session_state.get(f"price_{p.symbol}_v{_v}", base_price)
+    sim_prices[p.symbol] = slider_price
 
 # Collateral adjustments
 collateral_symbols = [p.symbol for p in snapshot.collateral]
@@ -486,6 +547,11 @@ if market_reserves:
 # Build the simulation snapshot: start from baseline, add new positions, then apply actions
 has_changes = bool(actions) or bool(new_collateral) or bool(new_debt)
 
+# Debug: show what actions will be applied
+if actions:
+    with st.expander("🐛 Debug: Actions to Apply"):
+        st.json(actions)
+
 if has_changes:
     try:
         # Start from baseline snapshot, add new positions, then apply actions
@@ -503,14 +569,14 @@ if has_changes:
 
     st.subheader("Scenario Results")
 
-    s1, s2, s3, s4 = st.columns(4)
-
     def _delta_str(new: float, old: float) -> str:
         diff = new - old
         if abs(diff) < 0.0001:
             return ""
         return f"{diff:+.2f}"
 
+    # Row 1: Core metrics
+    s1, s2, s3, s4 = st.columns(4)
     hf_delta = _delta_str(sim_hf, hf) if hf != float("inf") and sim_hf != float("inf") else ""
     s1.metric(
         "Health Factor",
@@ -518,23 +584,42 @@ if has_changes:
         delta=hf_delta or None,
         delta_color="normal",
     )
-    ltv_delta = _delta_str(sim_report["current_ltv"], report["current_ltv"]) if report["current_ltv"] != float("inf") else ""
     s2.metric(
-        "Current LTV",
-        _pct(sim_report["current_ltv"]) if sim_report["current_ltv"] != float("inf") else "N/A",
-        delta=ltv_delta or None,
-        delta_color="inverse",
-    )
-    s3.metric(
         "Borrow Limit",
         _fmt_usd(sim_report["borrow_limit"]),
         delta=_delta_str(sim_report["borrow_limit"], report["borrow_limit"]) or None,
     )
-    s4.metric(
+    s3.metric(
         "Liq. Buffer",
         _fmt_usd(sim_report["liquidation_buffer"]),
         delta=_delta_str(sim_report["liquidation_buffer"], report["liquidation_buffer"]) or None,
     )
+    s4.metric("", "")  # Empty for spacing
+
+    # Row 2: LTV metrics
+    ltv1, ltv2, ltv3, ltv4 = st.columns(4)
+    current_ltv_delta = _delta_str(sim_report["current_ltv"], report["current_ltv"]) if report["current_ltv"] != float("inf") else ""
+    ltv1.metric(
+        "Current LTV",
+        _pct(sim_report["current_ltv"]) if sim_report["current_ltv"] != float("inf") else "N/A",
+        delta=current_ltv_delta or None,
+        delta_color="inverse",
+    )
+    borrow_ltv_delta = _delta_str(sim_report["borrow_ltv"], report["borrow_ltv"]) if report["borrow_ltv"] != float("inf") else ""
+    ltv2.metric(
+        "Borrow LTV (Kamino)",
+        _pct(sim_report["borrow_ltv"]) if sim_report["borrow_ltv"] != float("inf") else "N/A",
+        delta=borrow_ltv_delta or None,
+        delta_color="inverse",
+    )
+    liq_ltv_delta = _delta_str(sim_report["liquidation_ltv"], report["liquidation_ltv"])
+    ltv3.metric(
+        "Liquidation LTV",
+        _pct(sim_report["liquidation_ltv"]),
+        delta=liq_ltv_delta or None,
+        delta_color="normal",
+    )
+    ltv4.metric("", "")  # Empty for spacing
 
     if sim_hf != float("inf"):
         if sim_hf < 1.0:
@@ -575,12 +660,12 @@ if has_changes:
             key=f"target_hf_v{_v}",
         )
 
-        sim_total_debt = sim_report["total_debt_value"]
-        sim_liq_value = sim_snapshot.liquidation_value()
-        deficit = compute_deficit(sim_total_debt, sim_liq_value, target_hf)
+        sim_weighted_debt = sim_snapshot.risk_adjusted_debt_value()
+        sim_borrow_limit = sim_snapshot.borrow_limit()
+        deficit = compute_deficit(sim_weighted_debt, sim_borrow_limit, target_hf)
 
         if deficit > 0:
-            repay_usd = recovery_repay_usd(sim_total_debt, sim_liq_value, target_hf)
+            repay_usd = recovery_repay_usd(sim_weighted_debt, sim_borrow_limit, target_hf)
 
             st.markdown("**Option A — Repay debt:**")
             for dp in sim_snapshot.debt:
@@ -601,10 +686,10 @@ if has_changes:
 
             st.markdown("**Option B — Repay debt with collateral (swap):**")
             for cp in sim_snapshot.collateral:
-                if cp.price <= 0 or cp.liquidation_threshold <= 0:
+                if cp.price <= 0 or cp.ltv <= 0:
                     continue
                 withdraw_tokens = recovery_swap_withdraw(
-                    deficit, cp.price, target_hf, cp.liquidation_threshold, cp.amount,
+                    deficit, cp.price, target_hf, cp.ltv, cp.amount,
                 )
                 if withdraw_tokens <= 0:
                     continue
@@ -630,8 +715,8 @@ if has_changes:
 
             st.markdown("**Option C — Deposit more collateral:**")
             for cp in sim_snapshot.collateral:
-                if cp.price > 0 and cp.liquidation_threshold > 0:
-                    deposit_tokens = recovery_deposit_tokens(deficit, cp.price, cp.liquidation_threshold)
+                if cp.price > 0 and cp.ltv > 0:
+                    deposit_tokens = recovery_deposit_tokens(deficit, cp.price, cp.ltv)
                     col_label, col_btn = st.columns([3, 1])
                     col_label.markdown(
                         f"Deposit **{_fmt(deposit_tokens, 4)} {cp.symbol}** "

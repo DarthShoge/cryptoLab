@@ -10,6 +10,8 @@ import subprocess
 import time
 
 import pytest
+
+playwright = pytest.importorskip("playwright")
 from playwright.sync_api import sync_playwright
 
 

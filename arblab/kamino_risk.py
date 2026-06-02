@@ -25,9 +25,14 @@ class DebtPosition:
     symbol: str
     amount: float
     price: float
+    borrow_factor: float = 1.0
 
     def value(self) -> float:
         return self.amount * self.price
+
+    def risk_adjusted_value(self) -> float:
+        """Value adjusted by borrow factor (used in Kamino LTV calculation)."""
+        return self.value() * self.borrow_factor
 
 
 @dataclass(frozen=True)
@@ -41,6 +46,10 @@ class AccountSnapshot:
     def total_debt_value(self) -> float:
         return sum(position.value() for position in self.debt)
 
+    def risk_adjusted_debt_value(self) -> float:
+        """Total debt value adjusted by borrow factors (Kamino's borrowFactorAdjustedDebtValueSf)."""
+        return sum(position.risk_adjusted_value() for position in self.debt)
+
     def liquidation_value(self) -> float:
         return sum(position.liquidation_value() for position in self.collateral)
 
@@ -48,13 +57,51 @@ class AccountSnapshot:
         return sum(position.borrow_limit_value() for position in self.collateral)
 
     def current_ltv(self) -> float:
+        """LTV relative to total collateral value (debt / collateral)."""
         total_collateral = self.total_collateral_value()
         if total_collateral == 0:
             return float("inf")
         return self.total_debt_value() / total_collateral
 
+    def borrow_ltv(self) -> float:
+        """Risk-adjusted LTV (risk_adjusted_debt / collateral).
+
+        This uses borrowFactorAdjustedDebtValueSf from Kamino's protocol.
+        Kamino displays this as 'LTV' in their UI (e.g., 69.25%).
+        """
+        total_collateral = self.total_collateral_value()
+        if total_collateral == 0:
+            return float("inf")
+        return self.risk_adjusted_debt_value() / total_collateral
+
+    def liquidation_ltv(self) -> float:
+        """Weighted average liquidation threshold (liquidation_value / collateral).
+
+        This is the LTV at which liquidation would occur (when HF = 1.0).
+        """
+        total_collateral = self.total_collateral_value()
+        if total_collateral == 0:
+            return 0.0
+        return self.liquidation_value() / total_collateral
+
     def health_factor(self) -> float:
-        total_debt = self.total_debt_value()
+        """Borrow-weighted health factor matching Kamino's UI.
+
+        HF = borrow_limit / risk_adjusted_debt.
+        When HF < 1.0 the position exceeds its borrow capacity.
+        """
+        total_debt = self.risk_adjusted_debt_value()
+        if total_debt == 0:
+            return float("inf")
+        return self.borrow_limit() / total_debt
+
+    def liquidation_health_factor(self) -> float:
+        """Liquidation health factor used for on-chain liquidation checks.
+
+        LHF = liquidation_value / risk_adjusted_debt.
+        When LHF < 1.0 the position is eligible for liquidation.
+        """
+        total_debt = self.risk_adjusted_debt_value()
         if total_debt == 0:
             return float("inf")
         return self.liquidation_value() / total_debt
@@ -160,6 +207,9 @@ def scenario_report(snapshot: AccountSnapshot) -> Dict[str, float]:
         "total_debt_value": snapshot.total_debt_value(),
         "borrow_limit": snapshot.borrow_limit(),
         "current_ltv": snapshot.current_ltv(),
+        "borrow_ltv": snapshot.borrow_ltv(),
+        "liquidation_ltv": snapshot.liquidation_ltv(),
         "health_factor": snapshot.health_factor(),
+        "liquidation_health_factor": snapshot.liquidation_health_factor(),
         "liquidation_buffer": snapshot.liquidation_buffer(),
     }

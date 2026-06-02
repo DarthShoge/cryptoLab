@@ -177,6 +177,7 @@ package-lock.json
 
 # Screenshots (test artifacts)
 *.png
+!docs/*.png
 
 # Claude Code
 .claude/
@@ -186,3 +187,15 @@ package-lock.json
 *.swp
 *.swo
 *~
+
+# Price data cache (backtest)
+.price_cache/
+
+# Local agent/process artifacts
+docs/superpowers/
+temp/
+
+# Generated backtest sweep artifacts. Keep human-readable report.md files
+# versionable, but do not show raw traces and generated tables by default.
+reports/sol_supertrend_3y/**/*.csv
+reports/sol_supertrend_3y/**/*.json

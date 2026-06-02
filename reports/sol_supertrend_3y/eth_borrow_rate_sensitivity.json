@@ -1,0 +1,54 @@
+[
+  {
+    "eth_borrow_apy": 0.0,
+    "final_usd": 17380.17101008969,
+    "final_sol_equiv": 210.13385334409008,
+    "sol_equiv_return_pct": 110.1338533440901,
+    "max_drawdown_pct": 46.66192115299309,
+    "sortino_ratio": 1.8254935286935332,
+    "min_health_factor": 1.7350106855459595,
+    "bars_below_hf_1": 0,
+    "liquidations": 0,
+    "interest_paid": 0.0,
+    "final_eth_debt_value": 0.0
+  },
+  {
+    "eth_borrow_apy": 0.05,
+    "final_usd": 16814.408820139783,
+    "final_sol_equiv": 203.2935415323393,
+    "sol_equiv_return_pct": 103.29354153233932,
+    "max_drawdown_pct": 47.175795249038075,
+    "sortino_ratio": 1.8023105314901111,
+    "min_health_factor": 1.7350047138084665,
+    "bars_below_hf_1": 0,
+    "liquidations": 0,
+    "interest_paid": 564.2950712840973,
+    "final_eth_debt_value": 0.0
+  },
+  {
+    "eth_borrow_apy": 0.1,
+    "final_usd": 16283.650268144445,
+    "final_sol_equiv": 196.87643898131358,
+    "sol_equiv_return_pct": 96.87643898131357,
+    "max_drawdown_pct": 47.69735932478914,
+    "sortino_ratio": 1.7799899877410408,
+    "min_health_factor": 1.7321544343252473,
+    "bars_below_hf_1": 0,
+    "liquidations": 0,
+    "interest_paid": 1129.31643010327,
+    "final_eth_debt_value": 0.0
+  },
+  {
+    "eth_borrow_apy": 0.2,
+    "final_usd": 15134.525050370003,
+    "final_sol_equiv": 182.98301354576236,
+    "sol_equiv_return_pct": 82.98301354576236,
+    "max_drawdown_pct": 49.715593852473575,
+    "sortino_ratio": 1.7302390030903856,
+    "min_health_factor": 1.7344991635318074,
+    "bars_below_hf_1": 0,
+    "liquidations": 0,
+    "interest_paid": 2262.5736378508286,
+    "final_eth_debt_value": 0.0
+  }
+]

@@ -1,0 +1,1224 @@
+"""Kamino Lending Strategy Backtester - Streamlit UI."""
+
+import os
+
+import numpy as np
+import pandas as pd
+import streamlit as st
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from arblab.backtest.app_helpers import (
+    DEFAULT_END_DATE,
+    DEFAULT_START_DATE,
+    DEFAULT_STRATEGY,
+    EXCHANGE_SYMBOLS,
+    LEVERAGE_LOOP_STRATEGY,
+    SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS,
+    SOL_SUPERTREND_SHORT_STRATEGY,
+    build_price_configs,
+    build_sol_supertrend_short_config,
+    final_position_summary,
+    hedge_pnl_chart_data,
+    position_value_chart_data,
+    run_selected_backtest,
+    run_selected_grid_search,
+)
+from arblab.backtest.data import fetch_ohlcv
+from arblab.backtest.market import MarketParams
+
+st.set_page_config(page_title="Kamino Backtester", layout="wide")
+st.title("Kamino Lending Strategy Backtester")
+
+MAX_CHART_POINTS = 200
+
+
+def _downsample(df: pd.DataFrame, max_points: int = MAX_CHART_POINTS) -> pd.DataFrame:
+    """Reduce chart data to *max_points* rows using evenly-spaced sampling."""
+    if len(df) <= max_points:
+        return df
+    idx = np.linspace(0, len(df) - 1, max_points, dtype=int)
+    return df.iloc[idx]
+
+
+@st.cache_data(show_spinner="Fetching price data...")
+def _fetch_cached(strategy_name: str, collateral_symbol: str, timeframe: str, start: str, end: str, exchange_id: str):
+    symbols = build_price_configs(strategy_name, collateral_symbol)
+    return fetch_ohlcv(symbols=symbols, timeframe=timeframe, start=start, end=end, exchange_id=exchange_id)
+
+
+@st.cache_data(show_spinner="Running backtest...")
+def _run_backtest(strategy_name, price_data, strategy_config, _market_params):
+    return run_selected_backtest(strategy_name, price_data, strategy_config, _market_params)
+
+
+@st.cache_data(show_spinner="Running grid search...")
+def _run_grid_search(strategy_name, price_data, param_grid, base_config, _market_params, sort_metric):
+    return run_selected_grid_search(
+        strategy_name=strategy_name, price_data=price_data, param_grid=param_grid,
+        base_config=base_config, market_params=_market_params, sort_metric=sort_metric,
+    )
+
+# ── Sidebar ──────────────────────────────────────────────────────────────
+
+st.sidebar.header("Data Settings")
+exchange_id = st.sidebar.selectbox("Exchange", ["binance", "bybit", "okx"], index=0)
+timeframe = st.sidebar.selectbox("Base Timeframe", ["1h"], index=0)
+start_date = st.sidebar.date_input("Start Date", value=DEFAULT_START_DATE)
+end_date = st.sidebar.date_input("End Date", value=DEFAULT_END_DATE)
+
+st.sidebar.header("Strategy")
+strategy_name = st.sidebar.selectbox(
+    "Strategy",
+    [LEVERAGE_LOOP_STRATEGY, SOL_SUPERTREND_SHORT_STRATEGY],
+    index=[LEVERAGE_LOOP_STRATEGY, SOL_SUPERTREND_SHORT_STRATEGY].index(DEFAULT_STRATEGY),
+)
+
+if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY:
+    collateral_symbol = "SOL"
+    debt_symbol = "USDC"
+else:
+    st.sidebar.header("Assets")
+    collateral_symbol = st.sidebar.selectbox(
+        "Collateral Asset",
+        ["SOL", "JitoSOL", "mSOL", "ETH"],
+        index=0,
+    )
+    debt_symbol = st.sidebar.selectbox(
+        "Debt Asset",
+        ["USDC", "USDT"],
+        index=0,
+    )
+
+hedge_enabled = False
+
+if strategy_name == LEVERAGE_LOOP_STRATEGY:
+    st.sidebar.header("Leverage Loop Parameters")
+    initial_collateral = st.sidebar.number_input(
+        "Initial Collateral (tokens)", value=100.0, min_value=1.0, step=10.0
+    )
+    num_loops = st.sidebar.slider("Leverage Loops", 1, 6, 3)
+    loop_utilization = st.sidebar.slider(
+        "Loop Utilization", 0.5, 0.95, 0.85, step=0.05
+    )
+    target_hf = st.sidebar.slider("Target HF", 1.1, 2.0, 1.3, step=0.05)
+    rebalance_hf_low = st.sidebar.slider(
+        "Delever Trigger (HF low)", 1.0, 1.5, 1.15, step=0.05
+    )
+    rebalance_hf_high = st.sidebar.slider(
+        "Re-lever Trigger (HF high)", 1.5, 5.0, 2.5, step=0.1
+    )
+
+    st.sidebar.header("Hedge / Take Profit")
+    hedge_enabled = st.sidebar.checkbox("Enable Hedge", value=False)
+    hedge_hf_trigger = 2.5
+    hedge_fraction = 1.0
+    if hedge_enabled:
+        hedge_hf_trigger = st.sidebar.slider(
+            "Hedge HF Trigger", 1.5, 5.0, 2.5, step=0.1
+        )
+        hedge_fraction = st.sidebar.slider(
+            "Hedge Fraction", 0.1, 1.0, 1.0, step=0.1
+        )
+else:
+    st.sidebar.header("SOL Supertrend Parameters")
+    sol_defaults = SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS
+    initial_collateral = st.sidebar.number_input(
+        "Initial SOL Collateral", value=100.0, min_value=1.0, step=10.0
+    )
+    supertrend_atr_period = st.sidebar.number_input(
+        "Supertrend ATR Period",
+        value=int(sol_defaults["supertrend_atr_period"]),
+        min_value=2,
+        max_value=100,
+        step=1,
+    )
+    supertrend_multiplier = st.sidebar.slider(
+        "Supertrend Multiplier",
+        1.0,
+        8.0,
+        float(sol_defaults["supertrend_multiplier"]),
+        step=0.25,
+    )
+    enable_usdc_releverage = st.sidebar.checkbox(
+        "Enable USDC Releverage",
+        value=bool(sol_defaults["enable_usdc_releverage"]),
+    )
+    target_bullish_hf = st.sidebar.slider(
+        "Target Bullish HF",
+        1.1,
+        2.0,
+        float(sol_defaults["target_bullish_hf"]),
+        step=0.05,
+    )
+    min_rebalance_hf = st.sidebar.slider(
+        "Minimum Rebalance HF",
+        1.05,
+        2.0,
+        float(sol_defaults["min_rebalance_hf"]),
+        step=0.05,
+    )
+    max_usdc_debt_to_equity = float(sol_defaults["max_usdc_debt_to_equity"])
+    if enable_usdc_releverage:
+        max_usdc_debt_to_equity = st.sidebar.slider(
+            "Max USDC Debt / Equity",
+            0.25,
+            2.0,
+            max(float(sol_defaults["max_usdc_debt_to_equity"]), 0.25),
+            step=0.25,
+        )
+    rebalance_threshold = st.sidebar.slider(
+        "Rebalance Threshold",
+        0.01,
+        0.25,
+        float(sol_defaults["rebalance_threshold"]),
+        step=0.01,
+    )
+    rebalance_cooldown_bars = st.sidebar.slider(
+        "Cooldown Bars",
+        0,
+        24,
+        int(sol_defaults["rebalance_cooldown_bars"]),
+    )
+    enable_surplus_usdc_reinvestment = st.sidebar.checkbox(
+        "Enable Surplus USDC Reinvestment",
+        value=bool(sol_defaults["enable_surplus_usdc_reinvestment"]),
+    )
+    realized_hedge_profit_gate_pct = st.sidebar.slider(
+        "Realized Hedge Profit Gate",
+        0.0,
+        0.50,
+        float(sol_defaults["realized_hedge_profit_gate_pct"]),
+        step=0.01,
+        format="%.2f",
+    )
+    max_surplus_reinvestment_pct_of_sol_collateral = st.sidebar.slider(
+        "Max Surplus Reinvestment / SOL Collateral",
+        0.01,
+        0.25,
+        float(sol_defaults["max_surplus_reinvestment_pct_of_sol_collateral"]),
+        step=0.01,
+        format="%.2f",
+    )
+    surplus_reinvestment_min_hf = st.sidebar.slider(
+        "Surplus Reinvestment Min HF",
+        1.25,
+        3.0,
+        float(sol_defaults["surplus_reinvestment_min_hf"]),
+        step=0.05,
+    )
+    enable_full_short_mode = st.sidebar.checkbox(
+        "Enable Full Short Mode",
+        value=bool(sol_defaults["enable_full_short_mode"]),
+    )
+    full_short_lower_bound = float(sol_defaults["full_short_lower_bound"])
+    full_short_upper_bound = float(sol_defaults["full_short_upper_bound"])
+    if enable_full_short_mode:
+        full_short_lower_bound = st.sidebar.slider(
+            "Full Short Lower Bound",
+            0.75,
+            1.5,
+            float(sol_defaults["full_short_lower_bound"]),
+            step=0.05,
+        )
+        full_short_upper_bound = st.sidebar.slider(
+            "Full Short Upper Bound",
+            1.0,
+            2.5,
+            float(sol_defaults["full_short_upper_bound"]),
+            step=0.05,
+        )
+    enable_crisis_mode = st.sidebar.checkbox(
+        "Enable Crisis Mode",
+        value=bool(sol_defaults["enable_crisis_mode"]),
+    )
+    crisis_sol_drawdown_threshold = float(sol_defaults["crisis_sol_drawdown_threshold"])
+    crisis_portfolio_drawdown_threshold = float(
+        sol_defaults["crisis_portfolio_drawdown_threshold"]
+    )
+    crisis_hedge_floor_base = float(sol_defaults["crisis_hedge_floor_base"])
+    crisis_hedge_floor_3d = float(sol_defaults["crisis_hedge_floor_3d"])
+    crisis_hedge_floor_3d_1w = float(sol_defaults["crisis_hedge_floor_3d_1w"])
+    crisis_exit_sol_equiv_recovery_gap = float(
+        sol_defaults["crisis_exit_sol_equiv_recovery_gap"]
+    )
+    partial_fill_min_hf = float(sol_defaults["partial_fill_min_hf"])
+    crisis_partial_fill_budget_pct = float(
+        sol_defaults["crisis_partial_fill_budget_pct"]
+    )
+    if enable_crisis_mode:
+        crisis_sol_drawdown_threshold = st.sidebar.slider(
+            "Crisis SOL Drawdown Threshold",
+            0.05,
+            0.60,
+            crisis_sol_drawdown_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        crisis_portfolio_drawdown_threshold = st.sidebar.slider(
+            "Crisis Portfolio Drawdown Threshold",
+            0.05,
+            0.60,
+            crisis_portfolio_drawdown_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        crisis_hedge_floor_base = st.sidebar.slider(
+            "Crisis Base Hedge Floor",
+            0.25,
+            1.50,
+            crisis_hedge_floor_base,
+            step=0.05,
+        )
+        crisis_hedge_floor_3d = st.sidebar.slider(
+            "Crisis 3d Hedge Floor",
+            0.50,
+            2.00,
+            crisis_hedge_floor_3d,
+            step=0.05,
+        )
+        crisis_hedge_floor_3d_1w = st.sidebar.slider(
+            "Crisis 3d+1w Hedge Floor",
+            0.75,
+            2.50,
+            crisis_hedge_floor_3d_1w,
+            step=0.05,
+        )
+        crisis_exit_sol_equiv_recovery_gap = st.sidebar.slider(
+            "Crisis Exit Recovery Gap",
+            0.02,
+            0.30,
+            crisis_exit_sol_equiv_recovery_gap,
+            step=0.01,
+            format="%.2f",
+        )
+        partial_fill_min_hf = st.sidebar.slider(
+            "Partial Fill Min HF",
+            1.50,
+            4.00,
+            partial_fill_min_hf,
+            step=0.05,
+        )
+        crisis_partial_fill_budget_pct = st.sidebar.slider(
+            "Crisis Partial Fill Budget",
+            0.0,
+            1.0,
+            crisis_partial_fill_budget_pct,
+            step=0.05,
+            format="%.2f",
+        )
+    enable_profit_lock = st.sidebar.checkbox(
+        "Enable Profit Lock",
+        value=bool(sol_defaults["enable_profit_lock"]),
+    )
+    profit_lock_metric = str(sol_defaults["profit_lock_metric"])
+    profit_lock_min_gain_pct = float(sol_defaults["profit_lock_min_gain_pct"])
+    profit_lock_drawdown_threshold = float(
+        sol_defaults["profit_lock_drawdown_threshold"]
+    )
+    profit_lock_near_high_threshold = float(
+        sol_defaults["profit_lock_near_high_threshold"]
+    )
+    profit_lock_stateful = bool(sol_defaults["profit_lock_stateful"])
+    profit_lock_stateful_exit_gap = float(sol_defaults["profit_lock_stateful_exit_gap"])
+    profit_lock_hedge_floor = float(sol_defaults["profit_lock_hedge_floor"])
+    profit_lock_max_green = int(sol_defaults["profit_lock_max_green"])
+    if enable_profit_lock:
+        profit_lock_metric = st.sidebar.selectbox(
+            "Profit Lock Metric",
+            ["portfolio", "sol_equivalent", "both"],
+            index=["portfolio", "sol_equivalent", "both"].index(profit_lock_metric),
+        )
+        profit_lock_min_gain_pct = st.sidebar.slider(
+            "Profit Lock Min Gain",
+            0.05,
+            2.0,
+            profit_lock_min_gain_pct,
+            step=0.05,
+            format="%.2f",
+        )
+        profit_lock_drawdown_threshold = st.sidebar.slider(
+            "Profit Lock Drawdown",
+            0.02,
+            0.50,
+            profit_lock_drawdown_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        profit_lock_near_high_threshold = st.sidebar.slider(
+            "Profit Lock Near High",
+            0.00,
+            0.10,
+            profit_lock_near_high_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        profit_lock_stateful = st.sidebar.checkbox(
+            "Stateful Profit Lock",
+            value=profit_lock_stateful,
+        )
+        if profit_lock_stateful:
+            profit_lock_stateful_exit_gap = st.sidebar.slider(
+                "Profit Lock Exit Gap",
+                0.00,
+                0.10,
+                profit_lock_stateful_exit_gap,
+                step=0.01,
+                format="%.2f",
+            )
+        profit_lock_hedge_floor = st.sidebar.slider(
+            "Profit Lock Hedge Floor",
+            0.10,
+            1.00,
+            profit_lock_hedge_floor,
+            step=0.05,
+        )
+        profit_lock_max_green = st.sidebar.slider(
+            "Profit Lock Max Green",
+            0,
+            4,
+            profit_lock_max_green,
+        )
+    enable_fast_break_overlay = st.sidebar.checkbox(
+        "Enable Fast Break Overlay",
+        value=bool(sol_defaults["enable_fast_break_overlay"]),
+    )
+    fast_break_return_lookback_bars = int(
+        sol_defaults["fast_break_return_lookback_bars"]
+    )
+    fast_break_return_threshold = float(sol_defaults["fast_break_return_threshold"])
+    fast_break_use_donchian_break = bool(sol_defaults["fast_break_use_donchian_break"])
+    fast_break_donchian_lookback_bars = int(
+        sol_defaults["fast_break_donchian_lookback_bars"]
+    )
+    fast_break_vol_lookback_bars = int(sol_defaults["fast_break_vol_lookback_bars"])
+    fast_break_vol_median_bars = int(sol_defaults["fast_break_vol_median_bars"])
+    fast_break_vol_multiplier = float(sol_defaults["fast_break_vol_multiplier"])
+    fast_break_max_green = int(sol_defaults["fast_break_max_green"])
+    fast_break_hedge_floor = float(sol_defaults["fast_break_hedge_floor"])
+    fast_break_hold_bars = int(sol_defaults["fast_break_hold_bars"])
+    fast_break_exit_min_green = int(sol_defaults["fast_break_exit_min_green"])
+    fast_break_add_min_hf = sol_defaults["fast_break_add_min_hf"]
+    fast_break_decay_enabled = bool(sol_defaults["fast_break_decay_enabled"])
+    fast_break_decay_floors = sol_defaults["fast_break_decay_floors"]
+    enable_fast_break_partial_fill = bool(
+        sol_defaults["enable_fast_break_partial_fill"]
+    )
+    fast_break_partial_fill_requires_crisis = bool(
+        sol_defaults["fast_break_partial_fill_requires_crisis"]
+    )
+    fast_break_partial_fill_min_hf = float(
+        sol_defaults["fast_break_partial_fill_min_hf"]
+    )
+    fast_break_partial_fill_budget_pct = float(
+        sol_defaults["fast_break_partial_fill_budget_pct"]
+    )
+    enable_weekly_bearish_reserve = bool(
+        sol_defaults["enable_weekly_bearish_reserve"]
+    )
+    weekly_bearish_reserve_sell_fraction = float(
+        sol_defaults["weekly_bearish_reserve_sell_fraction"]
+    )
+    weekly_bearish_reserve_max_fraction = float(
+        sol_defaults["weekly_bearish_reserve_max_fraction"]
+    )
+    weekly_bearish_reserve_min_sol_collateral = float(
+        sol_defaults["weekly_bearish_reserve_min_sol_collateral"]
+    )
+    weekly_bearish_reserve_rebuy_fraction = float(
+        sol_defaults["weekly_bearish_reserve_rebuy_fraction"]
+    )
+    enable_profit_lock_reserve = bool(sol_defaults["enable_profit_lock_reserve"])
+    profit_lock_reserve_sell_fraction = float(
+        sol_defaults["profit_lock_reserve_sell_fraction"]
+    )
+    profit_lock_reserve_escalation_sell_fraction = float(
+        sol_defaults["profit_lock_reserve_escalation_sell_fraction"]
+    )
+    profit_lock_reserve_max_fraction = float(
+        sol_defaults["profit_lock_reserve_max_fraction"]
+    )
+    profit_lock_reserve_min_sol_collateral = float(
+        sol_defaults["profit_lock_reserve_min_sol_collateral"]
+    )
+    profit_lock_reserve_min_gain_pct = float(
+        sol_defaults["profit_lock_reserve_min_gain_pct"]
+    )
+    profit_lock_reserve_near_high_threshold = float(
+        sol_defaults["profit_lock_reserve_near_high_threshold"]
+    )
+    profit_lock_reserve_escalation_drawdown = float(
+        sol_defaults["profit_lock_reserve_escalation_drawdown"]
+    )
+    profit_lock_reserve_rebuy_fraction = float(
+        sol_defaults["profit_lock_reserve_rebuy_fraction"]
+    )
+    if enable_fast_break_overlay:
+        fast_break_return_threshold = st.sidebar.slider(
+            "Fast Break Return Threshold",
+            -0.20,
+            -0.02,
+            fast_break_return_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        fast_break_vol_multiplier = st.sidebar.slider(
+            "Fast Break Vol Multiplier",
+            1.0,
+            3.0,
+            fast_break_vol_multiplier,
+            step=0.25,
+        )
+        fast_break_hedge_floor = st.sidebar.slider(
+            "Fast Break Hedge Floor",
+            0.25,
+            1.50,
+            fast_break_hedge_floor,
+            step=0.05,
+        )
+        fast_break_hold_bars = st.sidebar.slider(
+            "Fast Break Hold Bars",
+            12,
+            168,
+            fast_break_hold_bars,
+            step=12,
+        )
+        fast_break_add_min_hf = st.sidebar.slider(
+            "Fast Break Add Min HF",
+            1.25,
+            3.0,
+            float(fast_break_add_min_hf or min_rebalance_hf),
+            step=0.05,
+        )
+        fast_break_decay_enabled = st.sidebar.checkbox(
+            "Fast Break Staged Decay",
+            value=fast_break_decay_enabled,
+        )
+        enable_fast_break_partial_fill = st.sidebar.checkbox(
+            "Fast Break Partial Fill",
+            value=enable_fast_break_partial_fill,
+        )
+        if enable_fast_break_partial_fill:
+            fast_break_partial_fill_requires_crisis = st.sidebar.checkbox(
+                "Fast Break Partial Fill Requires Crisis",
+                value=fast_break_partial_fill_requires_crisis,
+            )
+            fast_break_partial_fill_min_hf = st.sidebar.slider(
+                "Fast Break Partial Fill Min HF",
+                1.25,
+                3.0,
+                fast_break_partial_fill_min_hf,
+                step=0.05,
+            )
+            fast_break_partial_fill_budget_pct = st.sidebar.slider(
+                "Fast Break Partial Fill Budget",
+                0.0,
+                1.0,
+                fast_break_partial_fill_budget_pct,
+                step=0.05,
+            )
+    enable_weekly_bearish_reserve = st.sidebar.checkbox(
+        "Enable Weekly Bearish Reserve",
+        value=enable_weekly_bearish_reserve,
+    )
+    if enable_weekly_bearish_reserve:
+        weekly_bearish_reserve_sell_fraction = st.sidebar.slider(
+            "Weekly Bearish Reserve Sell Fraction",
+            0.0,
+            0.50,
+            weekly_bearish_reserve_sell_fraction,
+            step=0.05,
+        )
+        weekly_bearish_reserve_max_fraction = st.sidebar.slider(
+            "Weekly Bearish Reserve Max Fraction",
+            0.0,
+            0.75,
+            weekly_bearish_reserve_max_fraction,
+            step=0.05,
+        )
+        weekly_bearish_reserve_min_sol_collateral = st.sidebar.number_input(
+            "Weekly Bearish Reserve Min SOL",
+            min_value=0.0,
+            value=weekly_bearish_reserve_min_sol_collateral,
+            step=10.0,
+        )
+        weekly_bearish_reserve_rebuy_fraction = st.sidebar.slider(
+            "Weekly Bearish Reserve Rebuy Fraction",
+            0.0,
+            1.0,
+            weekly_bearish_reserve_rebuy_fraction,
+            step=0.05,
+        )
+    enable_profit_lock_reserve = st.sidebar.checkbox(
+        "Enable Profit Lock Reserve",
+        value=enable_profit_lock_reserve,
+    )
+    if enable_profit_lock_reserve:
+        profit_lock_reserve_sell_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Sell Fraction",
+            0.0,
+            0.50,
+            profit_lock_reserve_sell_fraction,
+            step=0.05,
+        )
+        profit_lock_reserve_escalation_sell_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Escalation Fraction",
+            0.0,
+            0.50,
+            profit_lock_reserve_escalation_sell_fraction,
+            step=0.05,
+        )
+        profit_lock_reserve_max_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Max Fraction",
+            0.0,
+            0.75,
+            profit_lock_reserve_max_fraction,
+            step=0.05,
+        )
+        profit_lock_reserve_min_sol_collateral = st.sidebar.number_input(
+            "Profit Lock Reserve Min SOL",
+            min_value=0.0,
+            value=profit_lock_reserve_min_sol_collateral,
+            step=10.0,
+        )
+        profit_lock_reserve_min_gain_pct = st.sidebar.slider(
+            "Profit Lock Reserve Min Gain",
+            0.0,
+            5.0,
+            profit_lock_reserve_min_gain_pct,
+            step=0.25,
+        )
+        profit_lock_reserve_near_high_threshold = st.sidebar.slider(
+            "Profit Lock Reserve Near High",
+            0.0,
+            0.30,
+            profit_lock_reserve_near_high_threshold,
+            step=0.01,
+        )
+        profit_lock_reserve_escalation_drawdown = st.sidebar.slider(
+            "Profit Lock Reserve Escalation Drawdown",
+            0.0,
+            0.50,
+            profit_lock_reserve_escalation_drawdown,
+            step=0.05,
+        )
+        profit_lock_reserve_rebuy_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Rebuy Fraction",
+            0.0,
+            1.0,
+            profit_lock_reserve_rebuy_fraction,
+            step=0.05,
+        )
+    enable_froth_reserve = st.sidebar.checkbox(
+        "Enable Froth Reserve",
+        value=bool(sol_defaults["enable_froth_reserve"]),
+    )
+    froth_reserve_min_sol_collateral = float(
+        sol_defaults["froth_reserve_min_sol_collateral"]
+    )
+    froth_reserve_rebuy_drawdown_threshold = float(
+        sol_defaults["froth_reserve_rebuy_drawdown_threshold"]
+    )
+    froth_reserve_rebuy_fraction = float(sol_defaults["froth_reserve_rebuy_fraction"])
+    if enable_froth_reserve:
+        froth_reserve_min_sol_collateral = st.sidebar.number_input(
+            "Froth Reserve Min SOL",
+            min_value=0.0,
+            value=froth_reserve_min_sol_collateral,
+            step=10.0,
+        )
+        froth_reserve_rebuy_drawdown_threshold = st.sidebar.slider(
+            "Froth Reserve Rebuy Drawdown",
+            0.10,
+            0.80,
+            froth_reserve_rebuy_drawdown_threshold,
+            step=0.05,
+            format="%.2f",
+        )
+        froth_reserve_rebuy_fraction = st.sidebar.slider(
+            "Froth Reserve Rebuy Fraction",
+            0.10,
+            1.00,
+            froth_reserve_rebuy_fraction,
+            step=0.05,
+            format="%.2f",
+        )
+    enable_drawdown_containment = st.sidebar.checkbox(
+        "Enable Drawdown Containment",
+        value=bool(sol_defaults["enable_drawdown_containment"]),
+    )
+    drawdown_containment_trigger = float(
+        sol_defaults["drawdown_containment_trigger"]
+    )
+    drawdown_containment_exit_gap = float(
+        sol_defaults["drawdown_containment_exit_gap"]
+    )
+    drawdown_containment_hedge_floor = float(
+        sol_defaults["drawdown_containment_hedge_floor"]
+    )
+    if enable_drawdown_containment:
+        drawdown_containment_trigger = st.sidebar.slider(
+            "Drawdown Containment Trigger",
+            0.05,
+            0.50,
+            drawdown_containment_trigger,
+            step=0.01,
+            format="%.2f",
+        )
+        drawdown_containment_exit_gap = st.sidebar.slider(
+            "Drawdown Containment Exit Gap",
+            0.02,
+            0.30,
+            drawdown_containment_exit_gap,
+            step=0.01,
+            format="%.2f",
+        )
+        drawdown_containment_hedge_floor = st.sidebar.slider(
+            "Drawdown Containment Hedge Floor",
+            0.00,
+            1.50,
+            drawdown_containment_hedge_floor,
+            step=0.05,
+        )
+
+st.sidebar.header("Market Overrides")
+borrow_rate = st.sidebar.slider(
+    "USDC Borrow Rate APY", 0.0, 0.30, 0.08, step=0.01, format="%.2f"
+)
+swap_fee_bps = st.sidebar.slider(
+    "Swap Fee (bps)", 0.0, 100.0, 10.0, step=1.0
+)
+lst_apy = 0.07
+if strategy_name == LEVERAGE_LOOP_STRATEGY:
+    lst_apy = st.sidebar.slider(
+        "LST Staking APY", 0.0, 0.15, 0.07, step=0.01, format="%.2f"
+    )
+
+st.sidebar.header("Mode")
+mode = st.sidebar.radio("Run Mode", ["Single Backtest", "Grid Optimization"])
+
+run_btn = st.sidebar.button("Run", type="primary")
+
+# ── Optimization params ──────────────────────────────────────────────────
+
+if mode == "Grid Optimization":
+    st.sidebar.subheader("Grid Search Ranges")
+    if strategy_name == LEVERAGE_LOOP_STRATEGY:
+        loop_range = st.sidebar.text_input("num_loops (comma-sep)", "2,3,4")
+        target_hf_range = st.sidebar.text_input(
+            "target_hf (comma-sep)", "1.2,1.3,1.5"
+        )
+        if hedge_enabled:
+            hedge_hf_range = st.sidebar.text_input(
+                "hedge_hf_trigger (comma-sep)", "2.0,2.5,3.0"
+            )
+            hedge_frac_range = st.sidebar.text_input(
+                "hedge_fraction (comma-sep)", "0.5,0.75,1.0"
+            )
+    else:
+        atr_period_range = st.sidebar.text_input("supertrend_atr_period", "7,10,14")
+        multiplier_range = st.sidebar.text_input("supertrend_multiplier", "2.0,3.0,4.0")
+        threshold_range = st.sidebar.text_input("rebalance_threshold", "0.05,0.10,0.15")
+
+# ── Main ─────────────────────────────────────────────────────────────────
+
+if run_btn:
+    # Build market params with overrides
+    mp = MarketParams.kamino_defaults()
+    assets = dict(mp.assets)
+    from dataclasses import replace as dreplace
+
+    if debt_symbol in assets:
+        assets[debt_symbol] = dreplace(
+            assets[debt_symbol], borrow_rate_apy=borrow_rate
+        )
+    for sym in ["JitoSOL", "mSOL"]:
+        if sym in assets:
+            assets[sym] = dreplace(assets[sym], lst_base_apy=lst_apy)
+    mp = dreplace(mp, assets=assets, swap_fee_bps=swap_fee_bps)
+
+    # Fetch price data (cached)
+    try:
+        price_data = _fetch_cached(
+            strategy_name=strategy_name,
+            collateral_symbol=collateral_symbol,
+            timeframe=timeframe,
+            start=str(start_date),
+            end=str(end_date),
+            exchange_id=exchange_id,
+        )
+    except Exception as e:
+        st.error(f"Failed to fetch price data: {e}")
+        st.stop()
+
+    if price_data.empty:
+        st.warning("No price data returned. Check date range and exchange.")
+        st.stop()
+
+    st.info(f"Loaded {len(price_data)} bars from {price_data.index[0]} to {price_data.index[-1]}")
+
+    # Get initial price from first bar
+    initial_price = float(price_data.iloc[0][(collateral_symbol, "close")])
+
+    # Buy-and-hold benchmark: value of simply holding the initial collateral
+    buy_hold = initial_collateral * price_data[(collateral_symbol, "close")]
+    buy_hold.name = "Buy & Hold"
+
+    # Extract asset params from market config
+    coll_cfg = mp.assets.get(collateral_symbol)
+    debt_cfg = mp.assets.get(debt_symbol)
+
+    if strategy_name == LEVERAGE_LOOP_STRATEGY:
+        strategy_config = {
+            "collateral_symbol": collateral_symbol,
+            "debt_symbol": debt_symbol,
+            "initial_collateral": initial_collateral,
+            "num_loops": num_loops,
+            "loop_utilization": loop_utilization,
+            "target_hf": target_hf,
+            "rebalance_hf_low": rebalance_hf_low,
+            "rebalance_hf_high": rebalance_hf_high,
+            "initial_collateral_price": initial_price,
+            "initial_debt_price": 1.0,
+            "hedge_enabled": hedge_enabled,
+            "hedge_hf_trigger": hedge_hf_trigger,
+            "hedge_fraction": hedge_fraction,
+            # Asset params from market config
+            "ltv": coll_cfg.ltv if coll_cfg else 0.75,
+            "liquidation_threshold": coll_cfg.liquidation_threshold if coll_cfg else 0.80,
+            "borrow_factor": debt_cfg.borrow_factor if debt_cfg else 1.0,
+        }
+    else:
+        strategy_config = build_sol_supertrend_short_config(
+            price_data=price_data,
+            initial_sol_collateral=initial_collateral,
+            supertrend_atr_period=supertrend_atr_period,
+            supertrend_multiplier=supertrend_multiplier,
+            target_bullish_hf=target_bullish_hf,
+            min_rebalance_hf=min_rebalance_hf,
+            max_usdc_debt_to_equity=max_usdc_debt_to_equity,
+            rebalance_threshold=rebalance_threshold,
+            rebalance_cooldown_bars=rebalance_cooldown_bars,
+            swap_fee_bps=mp.swap_fee_bps,
+            full_short_lower_bound=full_short_lower_bound,
+            full_short_upper_bound=full_short_upper_bound,
+            enable_full_short_mode=enable_full_short_mode,
+            enable_usdc_releverage=enable_usdc_releverage,
+            enable_surplus_usdc_reinvestment=enable_surplus_usdc_reinvestment,
+            realized_hedge_profit_gate_pct=realized_hedge_profit_gate_pct,
+            surplus_reinvestment_ladder=sol_defaults["surplus_reinvestment_ladder"],
+            max_surplus_reinvestment_pct_of_sol_collateral=(
+                max_surplus_reinvestment_pct_of_sol_collateral
+            ),
+            surplus_reinvestment_min_hf=surplus_reinvestment_min_hf,
+            hedge_ladder=sol_defaults["hedge_ladder"],
+            enable_crisis_mode=enable_crisis_mode,
+            crisis_sol_drawdown_threshold=crisis_sol_drawdown_threshold,
+            crisis_portfolio_drawdown_threshold=crisis_portfolio_drawdown_threshold,
+            crisis_hedge_floor_base=crisis_hedge_floor_base,
+            crisis_hedge_floor_3d=crisis_hedge_floor_3d,
+            crisis_hedge_floor_3d_1w=crisis_hedge_floor_3d_1w,
+            crisis_exit_sol_equiv_recovery_gap=crisis_exit_sol_equiv_recovery_gap,
+            partial_fill_min_hf=partial_fill_min_hf,
+            crisis_partial_fill_budget_pct=crisis_partial_fill_budget_pct,
+            enable_profit_lock=enable_profit_lock,
+            profit_lock_metric=profit_lock_metric,
+            profit_lock_min_gain_pct=profit_lock_min_gain_pct,
+            profit_lock_drawdown_threshold=profit_lock_drawdown_threshold,
+            profit_lock_near_high_threshold=profit_lock_near_high_threshold,
+            profit_lock_stateful=profit_lock_stateful,
+            profit_lock_stateful_exit_gap=profit_lock_stateful_exit_gap,
+            profit_lock_hedge_floor=profit_lock_hedge_floor,
+            profit_lock_max_green=profit_lock_max_green,
+            enable_fast_break_overlay=enable_fast_break_overlay,
+            fast_break_return_lookback_bars=fast_break_return_lookback_bars,
+            fast_break_return_threshold=fast_break_return_threshold,
+            fast_break_use_donchian_break=fast_break_use_donchian_break,
+            fast_break_donchian_lookback_bars=fast_break_donchian_lookback_bars,
+            fast_break_vol_lookback_bars=fast_break_vol_lookback_bars,
+            fast_break_vol_median_bars=fast_break_vol_median_bars,
+            fast_break_vol_multiplier=fast_break_vol_multiplier,
+            fast_break_max_green=fast_break_max_green,
+            fast_break_hedge_floor=fast_break_hedge_floor,
+            fast_break_hold_bars=fast_break_hold_bars,
+            fast_break_exit_min_green=fast_break_exit_min_green,
+            fast_break_add_min_hf=fast_break_add_min_hf,
+            fast_break_decay_enabled=fast_break_decay_enabled,
+            fast_break_decay_floors=fast_break_decay_floors,
+            enable_fast_break_partial_fill=enable_fast_break_partial_fill,
+            fast_break_partial_fill_requires_crisis=(
+                fast_break_partial_fill_requires_crisis
+            ),
+            fast_break_partial_fill_min_hf=fast_break_partial_fill_min_hf,
+            fast_break_partial_fill_budget_pct=fast_break_partial_fill_budget_pct,
+            enable_weekly_bearish_reserve=enable_weekly_bearish_reserve,
+            weekly_bearish_reserve_sell_fraction=(
+                weekly_bearish_reserve_sell_fraction
+            ),
+            weekly_bearish_reserve_max_fraction=weekly_bearish_reserve_max_fraction,
+            weekly_bearish_reserve_min_sol_collateral=(
+                weekly_bearish_reserve_min_sol_collateral
+            ),
+            weekly_bearish_reserve_rebuy_fraction=(
+                weekly_bearish_reserve_rebuy_fraction
+            ),
+            enable_profit_lock_reserve=enable_profit_lock_reserve,
+            profit_lock_reserve_sell_fraction=profit_lock_reserve_sell_fraction,
+            profit_lock_reserve_escalation_sell_fraction=(
+                profit_lock_reserve_escalation_sell_fraction
+            ),
+            profit_lock_reserve_max_fraction=profit_lock_reserve_max_fraction,
+            profit_lock_reserve_min_sol_collateral=(
+                profit_lock_reserve_min_sol_collateral
+            ),
+            profit_lock_reserve_min_gain_pct=profit_lock_reserve_min_gain_pct,
+            profit_lock_reserve_near_high_threshold=(
+                profit_lock_reserve_near_high_threshold
+            ),
+            profit_lock_reserve_escalation_drawdown=(
+                profit_lock_reserve_escalation_drawdown
+            ),
+            profit_lock_reserve_rebuy_fraction=profit_lock_reserve_rebuy_fraction,
+            enable_froth_reserve=enable_froth_reserve,
+            froth_reserve_min_sol_collateral=froth_reserve_min_sol_collateral,
+            froth_reserve_tiers=sol_defaults["froth_reserve_tiers"],
+            froth_reserve_rebuy_drawdown_threshold=(
+                froth_reserve_rebuy_drawdown_threshold
+            ),
+            froth_reserve_rebuy_fraction=froth_reserve_rebuy_fraction,
+            enable_drawdown_containment=enable_drawdown_containment,
+            drawdown_containment_trigger=drawdown_containment_trigger,
+            drawdown_containment_exit_gap=drawdown_containment_exit_gap,
+            drawdown_containment_hedge_floor=drawdown_containment_hedge_floor,
+            drawdown_containment_block_rebuy=sol_defaults[
+                "drawdown_containment_block_rebuy"
+            ],
+            drawdown_containment_block_reinvestment=sol_defaults[
+                "drawdown_containment_block_reinvestment"
+            ],
+            drawdown_containment_block_releverage=sol_defaults[
+                "drawdown_containment_block_releverage"
+            ],
+        )
+
+    if mode == "Single Backtest":
+        result = _run_backtest(strategy_name, price_data, strategy_config, mp)
+
+        if (
+            strategy_name == SOL_SUPERTREND_SHORT_STRATEGY
+            and not result.history.empty
+        ):
+            final_sol_price = float(
+                price_data[("SOL", "close")]
+                .reindex(result.history.index, method="ffill")
+                .iloc[-1]
+            )
+            final_position = final_position_summary(
+                result.history,
+                final_sol_price=final_sol_price,
+            )
+            st.subheader("Final Portfolio")
+            fp1, fp2 = st.columns(2)
+            fp1.metric(
+                "Net Portfolio Value",
+                f"${final_position['net']['portfolio_value_usd']:,.2f}",
+            )
+            fp2.metric(
+                "SOL Equivalent",
+                f"{final_position['net']['sol_equivalent']:,.2f} SOL",
+            )
+
+            pos_left, pos_right = st.columns(2)
+            with pos_left:
+                st.markdown("**Collateral**")
+                st.dataframe(
+                    pd.DataFrame(final_position["collateral"]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            with pos_right:
+                st.markdown("**Debt**")
+                st.dataframe(
+                    pd.DataFrame(final_position["debt"]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+        # Summary metrics
+        m = result.metrics
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Return", f"{m.total_return_pct:+.2f}%")
+        col2.metric("Max Drawdown", f"{m.max_drawdown_pct:.2f}%")
+        col3.metric("Sharpe Ratio", f"{m.sharpe_ratio:.3f}")
+        col4.metric("Sortino Ratio", f"{m.sortino_ratio:.3f}")
+
+        # Risk Metrics Row
+        col5, col6, col7, col8 = st.columns(4)
+        col5.metric("Min HF", f"{m.min_health_factor:.3f}")
+        col6.metric("Liquidations", str(m.total_liquidations))
+        if not result.history.empty:
+            final = result.history.iloc[-1]
+            col7.metric("Borrow LTV (Kamino)", f"{final['borrow_ltv'] * 100:.2f}%")
+            col8.metric("Liquidation LTV", f"{final['liquidation_ltv'] * 100:.2f}%")
+
+        # Cost/Revenue Row
+        col9, col10, col11, col12 = st.columns(4)
+        col9.metric("Interest Paid", f"${m.total_interest_paid:,.2f}")
+        col10.metric("LST Yield", f"${m.total_lst_yield_earned:,.2f}")
+        if not result.history.empty:
+            col11.metric("Current LTV", f"{final['current_ltv'] * 100:.2f}%")
+        # col12 empty for now
+
+        # Hedge Metrics Row (if enabled)
+        if hedge_enabled:
+            col13, col14 = st.columns(2)
+            col13.metric("Total Cash Hedged", f"${m.total_cash_hedged:,.2f}")
+            col14.metric("Max Cash Reserve", f"${m.max_cash_reserve:,.2f}")
+
+        if result.liquidated:
+            st.error("Position was fully liquidated!")
+
+        # Charts
+        if not result.history.empty:
+            st.subheader("Portfolio Value")
+            pv_data = {
+                "Strategy": result.history["portfolio_value"],
+                "Buy & Hold": buy_hold.reindex(result.history.index, method="ffill"),
+            }
+            if hedge_enabled and "cash_reserve" in result.history:
+                pv_data["Cash Reserve"] = result.history["cash_reserve"]
+            pv_df = pd.DataFrame(pv_data)
+            st.line_chart(_downsample(pv_df))
+
+            st.subheader("Position Values")
+            pos_df = position_value_chart_data(result.history)
+            if not pos_df.empty:
+                st.line_chart(_downsample(pos_df))
+                with st.expander("Position Value Reconciliation"):
+                    reconciliation = result.history[
+                        ["collateral_value", "debt_value", "portfolio_value"]
+                    ].copy()
+                    reconciliation["net_collateral_minus_debt"] = (
+                        reconciliation["collateral_value"]
+                        - reconciliation["debt_value"]
+                    )
+                    st.dataframe(_downsample(reconciliation))
+
+            if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY:
+                hedge_charts = hedge_pnl_chart_data(
+                    result.strategy_events,
+                    result.history,
+                )
+                if not hedge_charts["levels"].empty or not hedge_charts["pnl"].empty:
+                    st.subheader("Hedge & PnL")
+                    if not hedge_charts["levels"].empty:
+                        st.line_chart(_downsample(hedge_charts["levels"]))
+                    if not hedge_charts["pnl"].empty:
+                        st.line_chart(_downsample(hedge_charts["pnl"]))
+
+            st.subheader("Health Factor")
+            hf_df = result.history[["health_factor"]].copy()
+            hf_df["HF=1.0"] = 1.0
+            hf_df["HF=1.5"] = 1.5
+            # Cap display for readability
+            hf_df["health_factor"] = hf_df["health_factor"].clip(upper=5.0)
+            st.line_chart(_downsample(hf_df))
+
+            st.subheader("Asset Prices")
+            close_cols = [
+                c for c in price_data.columns if c[1] == "close"
+            ]
+            price_display = price_data[close_cols].droplevel(1, axis=1)
+            st.line_chart(_downsample(price_display))
+
+            # Expandable details
+            with st.expander("Interest & Yield Breakdown"):
+                cum_interest = result.history["interest_accrued"].cumsum()
+                cum_yield = result.history["lst_yield"].cumsum()
+                breakdown = pd.DataFrame({
+                    "Cumulative Interest Paid": cum_interest,
+                    "Cumulative LST Yield": cum_yield,
+                    "Net (Yield - Interest)": cum_yield - cum_interest,
+                })
+                st.line_chart(_downsample(breakdown))
+
+            if result.liquidation_events:
+                with st.expander("Liquidation Events"):
+                    liq_rows = []
+                    for e in result.liquidation_events:
+                        liq_rows.append({
+                            "Time": str(e.timestamp),
+                            "Debt Repaid": f"{e.debt_repaid:.4f} {e.debt_symbol}",
+                            "Debt Repaid USD": f"${e.debt_repaid_usd:,.2f}",
+                            "Collateral Seized": f"{e.collateral_seized:.4f} {e.collateral_symbol}",
+                            "Collateral Seized USD": f"${e.collateral_seized_usd:,.2f}",
+                            "Bonus": f"{e.bonus_pct * 100:.1f}%",
+                            "Resulting HF": f"{e.resulting_hf:.3f}",
+                        })
+                    st.dataframe(pd.DataFrame(liq_rows))
+
+            if result.strategy_events:
+                with st.expander("Strategy Events"):
+                    st.dataframe(pd.DataFrame(result.strategy_events))
+
+            with st.expander("Full History"):
+                st.dataframe(result.history)
+
+    else:  # Grid Optimization
+        try:
+            if strategy_name == LEVERAGE_LOOP_STRATEGY:
+                loops = [int(x.strip()) for x in loop_range.split(",")]
+                hfs = [float(x.strip()) for x in target_hf_range.split(",")]
+                param_grid = {"num_loops": loops, "target_hf": hfs}
+                if hedge_enabled:
+                    hedge_hfs = [float(x.strip()) for x in hedge_hf_range.split(",")]
+                    hedge_fracs = [float(x.strip()) for x in hedge_frac_range.split(",")]
+                    param_grid["hedge_hf_trigger"] = hedge_hfs
+                    param_grid["hedge_fraction"] = hedge_fracs
+            else:
+                param_grid = {
+                    "supertrend_atr_period": [int(x.strip()) for x in atr_period_range.split(",")],
+                    "supertrend_multiplier": [float(x.strip()) for x in multiplier_range.split(",")],
+                    "rebalance_threshold": [float(x.strip()) for x in threshold_range.split(",")],
+                }
+        except ValueError:
+            st.error("Invalid grid search ranges. Use comma-separated numbers.")
+            st.stop()
+
+        total_combos = 1
+        for v in param_grid.values():
+            total_combos *= len(v)
+        st.info(f"Running {total_combos} parameter combinations...")
+
+        opt_result = _run_grid_search(
+            strategy_name=strategy_name,
+            price_data=price_data,
+            param_grid=param_grid,
+            base_config=strategy_config,
+            _market_params=mp,
+            sort_metric="sortino_ratio",
+        )
+
+        st.subheader("Optimization Results")
+        highlight_max_cols = ["sortino_ratio", "total_return_pct"]
+        if "tracking_gap_vs_sol_pct" in opt_result.comparison_df:
+            highlight_max_cols.append("tracking_gap_vs_sol_pct")
+        st.dataframe(
+            opt_result.comparison_df.style.highlight_max(
+                subset=highlight_max_cols, color="lightgreen"
+            ).highlight_min(subset=["max_drawdown_pct"], color="lightgreen"),
+            use_container_width=True,
+        )
+
+        # Show best result details
+        best = opt_result.best_result
+        best_label = (
+            "Best Result (by SOL benchmark tier, then Sortino)"
+            if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY
+            else "Best Result (by Sortino)"
+        )
+        st.subheader(best_label)
+        bm = best.metrics
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Return", f"{bm.total_return_pct:+.2f}%")
+        col2.metric("Max Drawdown", f"{bm.max_drawdown_pct:.2f}%")
+        col3.metric("Sharpe Ratio", f"{bm.sharpe_ratio:.3f}")
+        col4.metric("Sortino Ratio", f"{bm.sortino_ratio:.3f}")
+
+        # Risk Metrics Row
+        col5, col6, col7, col8 = st.columns(4)
+        col5.metric("Min HF", f"{bm.min_health_factor:.3f}")
+        col6.metric("Liquidations", str(bm.total_liquidations))
+        if not best.history.empty:
+            final = best.history.iloc[-1]
+            col7.metric("Borrow LTV (Kamino)", f"{final['borrow_ltv'] * 100:.2f}%")
+            col8.metric("Liquidation LTV", f"{final['liquidation_ltv'] * 100:.2f}%")
+
+        # Cost/Revenue Row
+        col9, col10, col11, col12 = st.columns(4)
+        col9.metric("Interest Paid", f"${bm.total_interest_paid:,.2f}")
+        col10.metric("LST Yield", f"${bm.total_lst_yield_earned:,.2f}")
+        if not best.history.empty:
+            col11.metric("Current LTV", f"{final['current_ltv'] * 100:.2f}%")
+        # col12 empty for now
+
+        # Hedge Metrics Row (if enabled)
+        if hedge_enabled:
+            col13, col14 = st.columns(2)
+            col13.metric("Total Cash Hedged", f"${bm.total_cash_hedged:,.2f}")
+            col14.metric("Max Cash Reserve", f"${bm.max_cash_reserve:,.2f}")
+
+        if best.liquidated:
+            st.error("Position was fully liquidated!")
+
+        if not best.history.empty:
+            st.subheader("Portfolio Value")
+            pv_data = {
+                "Strategy": best.history["portfolio_value"],
+                "Buy & Hold": buy_hold.reindex(best.history.index, method="ffill"),
+            }
+            if hedge_enabled and "cash_reserve" in best.history:
+                pv_data["Cash Reserve"] = best.history["cash_reserve"]
+            pv_df = pd.DataFrame(pv_data)
+            st.line_chart(_downsample(pv_df))
+
+            st.subheader("Position Values")
+            pos_df = position_value_chart_data(best.history)
+            if not pos_df.empty:
+                st.line_chart(_downsample(pos_df))
+                with st.expander("Position Value Reconciliation"):
+                    reconciliation = best.history[
+                        ["collateral_value", "debt_value", "portfolio_value"]
+                    ].copy()
+                    reconciliation["net_collateral_minus_debt"] = (
+                        reconciliation["collateral_value"]
+                        - reconciliation["debt_value"]
+                    )
+                    st.dataframe(_downsample(reconciliation))
+
+            st.subheader("Health Factor")
+            hf_df = best.history[["health_factor"]].copy()
+            hf_df["HF=1.0"] = 1.0
+            hf_df["HF=1.5"] = 1.5
+            hf_df["health_factor"] = hf_df["health_factor"].clip(upper=5.0)
+            st.line_chart(_downsample(hf_df))
+
+            st.subheader("Asset Prices")
+            close_cols = [
+                c for c in price_data.columns if c[1] == "close"
+            ]
+            price_display = price_data[close_cols].droplevel(1, axis=1)
+            st.line_chart(_downsample(price_display))
+
+            with st.expander("Interest & Yield Breakdown"):
+                cum_interest = best.history["interest_accrued"].cumsum()
+                cum_yield = best.history["lst_yield"].cumsum()
+                breakdown = pd.DataFrame({
+                    "Cumulative Interest Paid": cum_interest,
+                    "Cumulative LST Yield": cum_yield,
+                    "Net (Yield - Interest)": cum_yield - cum_interest,
+                })
+                st.line_chart(_downsample(breakdown))
+
+            if best.liquidation_events:
+                with st.expander("Liquidation Events"):
+                    liq_rows = []
+                    for e in best.liquidation_events:
+                        liq_rows.append({
+                            "Time": str(e.timestamp),
+                            "Debt Repaid": f"{e.debt_repaid:.4f} {e.debt_symbol}",
+                            "Debt Repaid USD": f"${e.debt_repaid_usd:,.2f}",
+                            "Collateral Seized": f"{e.collateral_seized:.4f} {e.collateral_symbol}",
+                            "Collateral Seized USD": f"${e.collateral_seized_usd:,.2f}",
+                            "Bonus": f"{e.bonus_pct * 100:.1f}%",
+                            "Resulting HF": f"{e.resulting_hf:.3f}",
+                        })
+                    st.dataframe(pd.DataFrame(liq_rows))
+
+            if best.strategy_events:
+                with st.expander("Strategy Events"):
+                    st.dataframe(pd.DataFrame(best.strategy_events))
+
+            with st.expander("Full History"):
+                st.dataframe(best.history)

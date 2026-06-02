@@ -84,6 +84,7 @@ class ReserveConfig:
     price: Decimal
     ltv: Decimal
     liquidation_threshold: Decimal
+    borrow_factor: Decimal
     decimals: int
 
 
@@ -256,6 +257,19 @@ def _parse_reserve_config(reserve: Any) -> ReserveConfig:
     ltv = Decimal(int(config.loan_to_value_pct)) / Decimal(100)
     liquidation_threshold = Decimal(int(config.liquidation_threshold_pct)) / Decimal(100)
 
+    # Borrow factor (debt weight) - try multiple possible field names
+    borrow_factor = Decimal(1.0)  # Default to 1.0 if not found
+    for field_name in ["borrow_factor_pct", "debt_weight_pct", "added_borrow_weight_bps"]:
+        if hasattr(config, field_name):
+            raw_value = int(getattr(config, field_name))
+            if "bps" in field_name:
+                # Basis points: 10000 = 1.0x, 10530 = 1.053x
+                borrow_factor = Decimal(raw_value) / Decimal(10000)
+            else:
+                # Percentage: 100 = 1.0x, 105.3 = 1.053x
+                borrow_factor = Decimal(raw_value) / Decimal(100)
+            break
+
     decimals = int(liquidity.mint_decimals)
 
     return ReserveConfig(
@@ -263,6 +277,7 @@ def _parse_reserve_config(reserve: Any) -> ReserveConfig:
         price=price,
         ltv=ltv,
         liquidation_threshold=liquidation_threshold,
+        borrow_factor=borrow_factor,
         decimals=decimals,
     )
 
@@ -355,6 +370,7 @@ def load_onchain_snapshot(
                 symbol=reserve.symbol,
                 amount=float(amount),
                 price=float(reserve.price),
+                borrow_factor=float(reserve.borrow_factor),
             )
         )
 
