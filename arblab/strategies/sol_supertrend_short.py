@@ -38,6 +38,31 @@ class DrawdownContainmentState:
     hedge_floor: float = 0.0
 
 
+@dataclass
+class FastBreakState:
+    active: bool = False
+    hedge_floor: float = 0.0
+    entered_bar: int | None = None
+    exit_bar: int | None = None
+    entry_reason: str | None = None
+    partial_fill_added_usd: float = 0.0
+
+
+@dataclass
+class WeeklyBearishReserveState:
+    active: bool = False
+    reserve_usdc: float = 0.0
+    sold_sol: float = 0.0
+
+
+@dataclass
+class ProfitLockReserveState:
+    active: bool = False
+    reserve_usdc: float = 0.0
+    sold_sol: float = 0.0
+    initial_slice_sold: bool = False
+
+
 @dataclass(frozen=True)
 class HedgeTargetOverlay:
     floor: float
@@ -218,6 +243,10 @@ class SolSupertrendShortStrategy(Strategy):
         self._profit_lock_active = False
         self._profit_lock_hedge_floor = 0.0
         self._profit_lock_stateful_active = False
+        self.fast_break_state = FastBreakState()
+        self.weekly_bearish_reserve_state = WeeklyBearishReserveState()
+        self.profit_lock_reserve_state = ProfitLockReserveState()
+        self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers: set[float] = set()
         self.drawdown_containment_state = DrawdownContainmentState()
@@ -242,6 +271,10 @@ class SolSupertrendShortStrategy(Strategy):
         self._profit_lock_active = False
         self._profit_lock_hedge_floor = 0.0
         self._profit_lock_stateful_active = False
+        self.fast_break_state = FastBreakState()
+        self.weekly_bearish_reserve_state = WeeklyBearishReserveState()
+        self.profit_lock_reserve_state = ProfitLockReserveState()
+        self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers = set()
         self.drawdown_containment_state = DrawdownContainmentState()
@@ -285,6 +318,21 @@ class SolSupertrendShortStrategy(Strategy):
             "crisis_partial_fill_added_usd": self.crisis_state.partial_fill_added_usd,
             "in_profit_lock_mode": self._profit_lock_active,
             "profit_lock_hedge_floor": self._profit_lock_hedge_floor,
+            "in_fast_break_overlay": self.fast_break_state.active,
+            "fast_break_hedge_floor": self.fast_break_state.hedge_floor,
+            "fast_break_partial_fill_added_usd": (
+                self.fast_break_state.partial_fill_added_usd
+            ),
+            "in_weekly_bearish_reserve": self.weekly_bearish_reserve_state.active,
+            "weekly_bearish_reserve_usdc": (
+                self.weekly_bearish_reserve_state.reserve_usdc
+            ),
+            "weekly_bearish_reserve_sold_sol": (
+                self.weekly_bearish_reserve_state.sold_sol
+            ),
+            "in_profit_lock_reserve": self.profit_lock_reserve_state.active,
+            "profit_lock_reserve_usdc": self.profit_lock_reserve_state.reserve_usdc,
+            "profit_lock_reserve_sold_sol": self.profit_lock_reserve_state.sold_sol,
             "froth_reserve_usdc": self._froth_reserve_usdc,
             "in_drawdown_containment": self.drawdown_containment_state.active,
             "drawdown_containment_hedge_floor": (
@@ -301,6 +349,13 @@ class SolSupertrendShortStrategy(Strategy):
         target_ratio, reason = self._target_eth_ratio(vote)
         target_ratio, reason = self._apply_profit_lock_target(
             snapshot,
+            vote,
+            target_ratio,
+            reason,
+        )
+        target_ratio, reason = self._apply_fast_break_target(
+            snapshot,
+            bar,
             vote,
             target_ratio,
             reason,
@@ -336,8 +391,30 @@ class SolSupertrendShortStrategy(Strategy):
             self._record_event(bar, snapshot, vote, target_ratio, "cooldown_skip", [])
             return []
 
-        if abs(target_ratio - current_ratio) > threshold:
-            if self._is_under_hedged_crisis(snapshot, target_ratio, current_ratio):
+        if not safety_action:
+            actions.extend(self._profit_lock_reserve_sell(snapshot, vote, bar))
+            if actions:
+                reason = self._profit_lock_reserve_last_reason
+
+        if not actions and abs(target_ratio - current_ratio) > threshold:
+            if self._should_fast_break_partial_fill(
+                snapshot,
+                target_ratio,
+                current_ratio,
+                reason,
+            ):
+                self.crisis_state.under_hedged = self.crisis_state.active
+                actions.extend(
+                    self._under_hedged_fast_break_partial_fill(
+                        snapshot,
+                        target_ratio,
+                        current_ratio,
+                        bar,
+                    )
+                )
+                if actions:
+                    reason = "fast_break_partial_fill"
+            elif self._is_under_hedged_crisis(snapshot, target_ratio, current_ratio):
                 self.crisis_state.under_hedged = True
                 actions.extend(self._under_hedged_crisis_cleanup(snapshot, bar))
                 if actions:
@@ -350,8 +427,19 @@ class SolSupertrendShortStrategy(Strategy):
                         reason = "under_hedged_crisis_cleanup"
             elif target_ratio > current_ratio:
                 self.crisis_state.under_hedged = False
+                min_hf = (
+                    float(self._config.get("fast_break_add_min_hf"))
+                    if reason == "fast_break_hedge_up"
+                    and self._config.get("fast_break_add_min_hf") is not None
+                    else None
+                )
                 actions.extend(
-                    self._increase_eth_short(snapshot, target_ratio - current_ratio, bar)
+                    self._increase_eth_short(
+                        snapshot,
+                        target_ratio - current_ratio,
+                        bar,
+                        min_hf=min_hf,
+                    )
                 )
             else:
                 self.crisis_state.under_hedged = False
@@ -368,6 +456,21 @@ class SolSupertrendShortStrategy(Strategy):
             actions.extend(self._green_regime_usdc_debt_cleanup(snapshot))
             if actions:
                 reason = "green_regime_usdc_debt_cleanup"
+
+        if not actions:
+            actions.extend(self._weekly_bearish_reserve_sell(snapshot, vote, bar))
+            if actions:
+                reason = "weekly_bearish_reserve_sell"
+
+        if not actions:
+            actions.extend(self._weekly_bearish_reserve_rebuy(snapshot, vote, bar))
+            if actions:
+                reason = "weekly_bearish_reserve_rebuy"
+
+        if not actions:
+            actions.extend(self._profit_lock_reserve_rebuy(snapshot, vote, bar))
+            if actions:
+                reason = "profit_lock_reserve_rebuy"
 
         if (
             not actions
@@ -393,6 +496,8 @@ class SolSupertrendShortStrategy(Strategy):
             not actions
             and vote.green >= 3
             and not self.in_full_short_mode
+            and not self.weekly_bearish_reserve_state.active
+            and not self.profit_lock_reserve_state.active
             and not self._drawdown_containment_blocks("reinvestment")
         ):
             actions.extend(self._surplus_usdc_reinvestment(snapshot, vote, bar))
@@ -618,6 +723,145 @@ class SolSupertrendShortStrategy(Strategy):
             return False
         exit_gap = float(self._config.get("profit_lock_stateful_exit_gap", 0.02))
         return window[-1] >= peak * (1.0 - exit_gap)
+
+    def _apply_fast_break_target(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+        vote: TrendVote,
+        normal_target: float,
+        normal_reason: str,
+    ) -> tuple[float, str]:
+        if not bool(self._config.get("enable_fast_break_overlay", False)):
+            self.fast_break_state = FastBreakState()
+            return normal_target, normal_reason
+
+        if self.fast_break_state.active:
+            self._update_fast_break_decay(bar)
+
+        if self.fast_break_state.active and self._fast_break_should_exit(bar, vote):
+            self.fast_break_state = FastBreakState()
+            return normal_target, normal_reason
+
+        if not self.fast_break_state.active and self._fast_break_triggered(bar, vote):
+            floor = float(self._config.get("fast_break_hedge_floor", 0.75))
+            hold_bars = int(self._config.get("fast_break_hold_bars", 72))
+            self.fast_break_state = FastBreakState(
+                active=True,
+                hedge_floor=floor,
+                entered_bar=bar.bar_index,
+                exit_bar=bar.bar_index + hold_bars,
+                entry_reason="sol_break_with_vol_expansion",
+            )
+
+        if not self.fast_break_state.active:
+            return normal_target, normal_reason
+
+        return self._resolve_target_overlay(
+            snapshot=snapshot,
+            normal_target=normal_target,
+            normal_reason=normal_reason,
+            overlay=HedgeTargetOverlay(
+                floor=self.fast_break_state.hedge_floor,
+                up_reason="fast_break_hedge_up",
+                down_reason="fast_break_hedge_down",
+            ),
+        )
+
+    def _fast_break_triggered(self, bar: BarData, vote: TrendVote) -> bool:
+        max_green = int(self._config.get("fast_break_max_green", 3))
+        trend_weak = vote.green <= max_green or vote.bearish_1d
+        if not trend_weak:
+            return False
+        return self._fast_break_price_broke(bar) and self._fast_break_vol_expanded(bar)
+
+    def _fast_break_should_exit(self, bar: BarData, vote: TrendVote) -> bool:
+        if self._config.get("fast_break_decay_enabled", False):
+            floors = self._fast_break_floor_schedule()
+            entered = self.fast_break_state.entered_bar
+            hold_bars = int(self._config.get("fast_break_hold_bars", 72))
+            if entered is not None and hold_bars > 0:
+                stage = max(0, (bar.bar_index - entered) // hold_bars)
+                if stage >= len(floors):
+                    return True
+        if (
+            not self._config.get("fast_break_decay_enabled", False)
+            and
+            self.fast_break_state.exit_bar is not None
+            and bar.bar_index >= self.fast_break_state.exit_bar
+        ):
+            return True
+        exit_green = int(self._config.get("fast_break_exit_min_green", 4))
+        return vote.green >= exit_green and not vote.bearish_1d
+
+    def _update_fast_break_decay(self, bar: BarData) -> None:
+        if not bool(self._config.get("fast_break_decay_enabled", False)):
+            return
+        entered = self.fast_break_state.entered_bar
+        hold_bars = int(self._config.get("fast_break_hold_bars", 72))
+        if entered is None or hold_bars <= 0:
+            return
+        floors = self._fast_break_floor_schedule()
+        stage = max(0, (bar.bar_index - entered) // hold_bars)
+        if stage < len(floors):
+            self.fast_break_state.hedge_floor = floors[stage]
+
+    def _fast_break_floor_schedule(self) -> list[float]:
+        return [
+            float(self._config.get("fast_break_hedge_floor", 0.75)),
+            *[
+                float(floor)
+                for floor in self._config.get("fast_break_decay_floors", [])
+            ],
+        ]
+
+    def _fast_break_price_broke(self, bar: BarData) -> bool:
+        sol_history = self._sol_close_history(bar)
+        return_lookback = int(self._config.get("fast_break_return_lookback_bars", 24))
+        if len(sol_history) <= return_lookback:
+            return False
+        lookback_return = (
+            sol_history.iloc[-1] / sol_history.iloc[-return_lookback - 1] - 1.0
+        )
+        if lookback_return <= float(
+            self._config.get("fast_break_return_threshold", -0.08)
+        ):
+            return True
+
+        if not bool(self._config.get("fast_break_use_donchian_break", False)):
+            return False
+        donchian_lookback = int(
+            self._config.get("fast_break_donchian_lookback_bars", 7 * 24)
+        )
+        if len(sol_history) <= donchian_lookback:
+            return False
+        prior_low = sol_history.iloc[-donchian_lookback - 1 : -1].min()
+        return bool(sol_history.iloc[-1] < prior_low)
+
+    def _fast_break_vol_expanded(self, bar: BarData) -> bool:
+        sol_history = self._sol_close_history(bar)
+        returns = sol_history.pct_change().dropna()
+        vol_lookback = int(self._config.get("fast_break_vol_lookback_bars", 24))
+        median_lookback = int(self._config.get("fast_break_vol_median_bars", 30 * 24))
+        if len(returns) < vol_lookback * 2:
+            return False
+        rolling_vol = returns.rolling(vol_lookback).std().dropna()
+        if rolling_vol.empty:
+            return False
+        current_vol = float(rolling_vol.iloc[-1])
+        baseline = float(rolling_vol.tail(median_lookback).median())
+        if baseline <= 0:
+            return False
+        return (
+            current_vol
+            >= float(self._config.get("fast_break_vol_multiplier", 1.5)) * baseline
+        )
+
+    @staticmethod
+    def _sol_close_history(bar: BarData) -> pd.Series:
+        if "SOL" not in bar.history.columns.get_level_values(0):
+            return pd.Series(dtype=float)
+        return bar.history["SOL"]["close"].astype(float)
 
     def _apply_drawdown_containment_target(
         self,
@@ -857,6 +1101,87 @@ class SolSupertrendShortStrategy(Strategy):
         max_short_usd = self._max_additional_eth_short_usd(snapshot)
         return max_short_usd + 1e-9 < desired_short_usd
 
+    def _should_fast_break_partial_fill(
+        self,
+        snapshot: AccountSnapshot,
+        target_ratio: float,
+        current_ratio: float,
+        reason: str,
+    ) -> bool:
+        if reason != "fast_break_hedge_up":
+            return False
+        if not bool(self._config.get("enable_fast_break_partial_fill", False)):
+            return False
+        if (
+            bool(self._config.get("fast_break_partial_fill_requires_crisis", False))
+            and not self.crisis_state.active
+        ):
+            return False
+        if target_ratio <= current_ratio:
+            return False
+        sol_value = self._collateral_value(snapshot, "SOL")
+        desired_short_usd = sol_value * (target_ratio - current_ratio)
+        if desired_short_usd <= 0:
+            return False
+        partial_fill_min_hf = float(
+            self._config.get(
+                "fast_break_partial_fill_min_hf",
+                self._config.get("fast_break_add_min_hf", 2.5),
+            )
+        )
+        budget_usd = sol_value * float(
+            self._config.get("fast_break_partial_fill_budget_pct", 0.25)
+        )
+        remaining_budget_usd = budget_usd - self.fast_break_state.partial_fill_added_usd
+        max_short_usd = min(
+            self._max_additional_eth_short_usd(snapshot, partial_fill_min_hf),
+            max(0.0, remaining_budget_usd),
+        )
+        return max_short_usd + 1e-9 < desired_short_usd
+
+    def _under_hedged_fast_break_partial_fill(
+        self,
+        snapshot: AccountSnapshot,
+        target_ratio: float,
+        current_ratio: float,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        sol_value = self._collateral_value(snapshot, "SOL")
+        if sol_value <= 0:
+            return []
+        partial_fill_min_hf = float(
+            self._config.get(
+                "fast_break_partial_fill_min_hf",
+                self._config.get("fast_break_add_min_hf", 2.5),
+            )
+        )
+        desired_short_usd = sol_value * max(0.0, target_ratio - current_ratio)
+        budget_usd = sol_value * float(
+            self._config.get("fast_break_partial_fill_budget_pct", 0.25)
+        )
+        remaining_budget_usd = max(
+            0.0,
+            budget_usd - self.fast_break_state.partial_fill_added_usd,
+        )
+        max_short_usd = min(
+            desired_short_usd,
+            self._max_additional_eth_short_usd(snapshot, partial_fill_min_hf),
+            remaining_budget_usd,
+        )
+        if max_short_usd <= 0:
+            return []
+        actions = self._increase_eth_short(
+            snapshot,
+            max_short_usd / sol_value,
+            bar,
+            min_hf=partial_fill_min_hf,
+        )
+        self.fast_break_state.partial_fill_added_usd += self._borrowed_eth_usd(
+            actions,
+            bar,
+        )
+        return actions
+
     def _under_hedged_crisis_cleanup(
         self,
         snapshot: AccountSnapshot,
@@ -1068,6 +1393,247 @@ class SolSupertrendShortStrategy(Strategy):
             {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
         ]
 
+    def _weekly_bearish_reserve_sell(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_weekly_bearish_reserve", False)):
+            self.weekly_bearish_reserve_state = WeeklyBearishReserveState()
+            return []
+        if not vote.bearish_1w:
+            self.weekly_bearish_reserve_state.active = (
+                self.weekly_bearish_reserve_state.reserve_usdc > 0
+            )
+            return []
+
+        sol_price = float(bar.prices["SOL"].close)
+        sol_amount = self._collateral_amount(snapshot, "SOL")
+        if sol_price <= 0 or sol_amount <= 0:
+            return []
+
+        self.weekly_bearish_reserve_state.active = True
+        min_sol = float(
+            self._config.get(
+                "weekly_bearish_reserve_min_sol_collateral",
+                self._config.get("initial_sol_collateral", 100.0),
+            )
+        )
+        max_sell_by_floor = max(0.0, sol_amount - min_sol)
+        episode_sol = sol_amount + self.weekly_bearish_reserve_state.sold_sol
+        max_episode_sell = episode_sol * float(
+            self._config.get("weekly_bearish_reserve_max_fraction", 0.30)
+        )
+        remaining_episode_sell = max(
+            0.0,
+            max_episode_sell - self.weekly_bearish_reserve_state.sold_sol,
+        )
+        sell_sol = min(
+            sol_amount
+            * float(self._config.get("weekly_bearish_reserve_sell_fraction", 0.10)),
+            max_sell_by_floor,
+            remaining_episode_sell,
+        )
+        if sell_sol <= 0:
+            return []
+
+        usdc_proceeds = sell_sol * sol_price * (1.0 - self._swap_fee())
+        self.weekly_bearish_reserve_state.reserve_usdc += usdc_proceeds
+        self.weekly_bearish_reserve_state.sold_sol += sell_sol
+        return [
+            {"type": "withdraw_collateral", "symbol": "SOL", "amount": sell_sol},
+            {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
+        ]
+
+    def _weekly_bearish_reserve_rebuy(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_weekly_bearish_reserve", False)):
+            return []
+        reserve_usdc = self.weekly_bearish_reserve_state.reserve_usdc
+        if reserve_usdc <= 0:
+            self.weekly_bearish_reserve_state.active = False
+            self.weekly_bearish_reserve_state.sold_sol = 0.0
+            return []
+        if vote.bearish_1w or (vote.bearish_1d and vote.bearish_3d):
+            self.weekly_bearish_reserve_state.active = True
+            return []
+
+        spend_usdc = min(
+            reserve_usdc
+            * float(self._config.get("weekly_bearish_reserve_rebuy_fraction", 0.50)),
+            reserve_usdc,
+            self._collateral_amount(snapshot, "USDC"),
+        )
+        sol_price = float(bar.prices["SOL"].close)
+        if spend_usdc <= 0 or sol_price <= 0:
+            self.weekly_bearish_reserve_state.active = True
+            return []
+
+        self.weekly_bearish_reserve_state.reserve_usdc -= spend_usdc
+        sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
+        self.weekly_bearish_reserve_state.sold_sol = max(
+            0.0,
+            self.weekly_bearish_reserve_state.sold_sol - sol_tokens,
+        )
+        if self.weekly_bearish_reserve_state.reserve_usdc <= 1e-9:
+            self.weekly_bearish_reserve_state = WeeklyBearishReserveState()
+        else:
+            self.weekly_bearish_reserve_state.active = True
+
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
+            {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
+        ]
+
+    def _profit_lock_reserve_sell(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_profit_lock_reserve", False)):
+            self.profit_lock_reserve_state = ProfitLockReserveState()
+            return []
+        if not self._profit_lock_reserve_should_sell(vote):
+            self.profit_lock_reserve_state.active = (
+                self.profit_lock_reserve_state.reserve_usdc > 0
+            )
+            return []
+
+        sol_price = float(bar.prices["SOL"].close)
+        sol_amount = self._collateral_amount(snapshot, "SOL")
+        if sol_price <= 0 or sol_amount <= 0:
+            return []
+
+        initial_slice = not self.profit_lock_reserve_state.initial_slice_sold
+        sell_fraction = float(
+            self._config.get(
+                "profit_lock_reserve_sell_fraction"
+                if initial_slice
+                else "profit_lock_reserve_escalation_sell_fraction",
+                0.10,
+            )
+        )
+        if sell_fraction <= 0:
+            return []
+
+        min_sol = float(
+            self._config.get(
+                "profit_lock_reserve_min_sol_collateral",
+                self._config.get("initial_sol_collateral", 100.0),
+            )
+        )
+        max_sell_by_floor = max(0.0, sol_amount - min_sol)
+        episode_sol = sol_amount + self.profit_lock_reserve_state.sold_sol
+        max_episode_sell = episode_sol * float(
+            self._config.get("profit_lock_reserve_max_fraction", 0.30)
+        )
+        remaining_episode_sell = max(
+            0.0,
+            max_episode_sell - self.profit_lock_reserve_state.sold_sol,
+        )
+        sell_sol = min(sol_amount * sell_fraction, max_sell_by_floor, remaining_episode_sell)
+        if sell_sol <= 0:
+            return []
+
+        usdc_proceeds = sell_sol * sol_price * (1.0 - self._swap_fee())
+        self.profit_lock_reserve_state.active = True
+        self.profit_lock_reserve_state.reserve_usdc += usdc_proceeds
+        self.profit_lock_reserve_state.sold_sol += sell_sol
+        self.profit_lock_reserve_state.initial_slice_sold = True
+        self._profit_lock_reserve_last_reason = (
+            "profit_lock_reserve_sell"
+            if initial_slice
+            else "profit_lock_reserve_escalate"
+        )
+        return [
+            {"type": "withdraw_collateral", "symbol": "SOL", "amount": sell_sol},
+            {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
+        ]
+
+    def _profit_lock_reserve_should_sell(self, vote: TrendVote) -> bool:
+        if not self.profit_lock_reserve_state.initial_slice_sold:
+            if not self._profit_lock_active:
+                return False
+            if not self._profit_lock_reserve_gain_and_near_high():
+                return False
+            return (
+                vote.bearish_1d
+                or vote.green <= 2
+                or self.fast_break_state.active
+            )
+        return (
+            vote.bearish_3d
+            or self._observation_window.portfolio_drawdown_from_high()
+            >= float(self._config.get("profit_lock_reserve_escalation_drawdown", 0.15))
+        )
+
+    def _profit_lock_reserve_gain_and_near_high(self) -> bool:
+        values = self._observation_window.portfolio_values
+        if not values or self._initial_portfolio_value <= 0:
+            return False
+        peak = max(values)
+        current = values[-1]
+        if peak <= 0:
+            return False
+        gain = (peak / self._initial_portfolio_value) - 1.0
+        drawdown = (peak - current) / peak
+        return (
+            gain >= float(self._config.get("profit_lock_reserve_min_gain_pct", 1.0))
+            and drawdown
+            <= float(
+                self._config.get("profit_lock_reserve_near_high_threshold", 0.10)
+            )
+        )
+
+    def _profit_lock_reserve_rebuy(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_profit_lock_reserve", False)):
+            return []
+        reserve_usdc = self.profit_lock_reserve_state.reserve_usdc
+        if reserve_usdc <= 0:
+            self.profit_lock_reserve_state = ProfitLockReserveState()
+            return []
+        if vote.bearish_1w or vote.bearish_1d or vote.bearish_3d:
+            self.profit_lock_reserve_state.active = True
+            return []
+
+        spend_usdc = min(
+            reserve_usdc
+            * float(self._config.get("profit_lock_reserve_rebuy_fraction", 0.50)),
+            reserve_usdc,
+            self._collateral_amount(snapshot, "USDC"),
+        )
+        sol_price = float(bar.prices["SOL"].close)
+        if spend_usdc <= 0 or sol_price <= 0:
+            self.profit_lock_reserve_state.active = True
+            return []
+
+        self.profit_lock_reserve_state.reserve_usdc -= spend_usdc
+        sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
+        self.profit_lock_reserve_state.sold_sol = max(
+            0.0,
+            self.profit_lock_reserve_state.sold_sol - sol_tokens,
+        )
+        if self.profit_lock_reserve_state.reserve_usdc <= 1e-9:
+            self.profit_lock_reserve_state = ProfitLockReserveState()
+        else:
+            self.profit_lock_reserve_state.active = True
+
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
+            {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
+        ]
+
     def _froth_reserve_rotation(
         self,
         snapshot: AccountSnapshot,
@@ -1239,6 +1805,27 @@ class SolSupertrendShortStrategy(Strategy):
                 ),
                 "in_profit_lock_mode": self._profit_lock_active,
                 "profit_lock_hedge_floor": self._profit_lock_hedge_floor,
+                "in_fast_break_overlay": self.fast_break_state.active,
+                "fast_break_hedge_floor": self.fast_break_state.hedge_floor,
+                "fast_break_partial_fill_added_usd": (
+                    self.fast_break_state.partial_fill_added_usd
+                ),
+                "in_weekly_bearish_reserve": (
+                    self.weekly_bearish_reserve_state.active
+                ),
+                "weekly_bearish_reserve_usdc": (
+                    self.weekly_bearish_reserve_state.reserve_usdc
+                ),
+                "weekly_bearish_reserve_sold_sol": (
+                    self.weekly_bearish_reserve_state.sold_sol
+                ),
+                "in_profit_lock_reserve": self.profit_lock_reserve_state.active,
+                "profit_lock_reserve_usdc": (
+                    self.profit_lock_reserve_state.reserve_usdc
+                ),
+                "profit_lock_reserve_sold_sol": (
+                    self.profit_lock_reserve_state.sold_sol
+                ),
                 "froth_reserve_usdc": self._froth_reserve_usdc,
                 "in_drawdown_containment": self.drawdown_containment_state.active,
                 "drawdown_containment_hedge_floor": (

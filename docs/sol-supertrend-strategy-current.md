@@ -2,7 +2,7 @@
 
 Last updated: 2026-05-29
 
-This document describes the current SOL Supertrend strategy as implemented in the backtester after the crisis-mode, partial-fill, surplus-reinvestment, profit-lock, froth-reserve, and drawdown-containment experiments.
+This document describes the current SOL Supertrend strategy as implemented in the backtester after the crisis-mode, partial-fill, surplus-reinvestment, profit-lock, froth-reserve, drawdown-containment, and fast-break overlay experiments.
 
 The strategy is a Kamino-style lending account strategy. It starts from SOL collateral, may borrow ETH to create a short ETH hedge, sells borrowed ETH into USDC collateral, and may use realized hedge profits to buy more SOL. The goal is not simply to maximize USD value; the strategy is judged by USD value, SOL-equivalent value, drawdown, health factor, and final open exposures.
 
@@ -27,6 +27,12 @@ Current promoted candidate:
 Important: partial crisis fill is implemented and configurable, but the latest promoted configuration keeps its budget at zero because nonzero budgets improved some local drawdowns while hurting SOL-equivalent compounding.
 
 Drawdown containment and froth reserve are also implemented behind disabled toggles. Their first sweeps did not improve the promoted incumbent.
+
+Fast-break overlay is implemented behind a toggle. The v2 staged-decay sweep produced a provisional best challenger, but it did not solve the 2025 red-mark drawdown. The next research item is fast-break partial hedge filling.
+
+Weekly-bearish reserve is implemented behind a disabled toggle. Its first sweep showed that selling SOL only after the 1w Supertrend turns bearish is too late and destroys too much SOL compounding.
+
+Profit-lock reserve is also implemented behind a disabled toggle. Its first sweep improved the 2024+ red-mark drawdown but churned too much and was not promotable.
 
 ## Portfolio Model
 
@@ -130,6 +136,63 @@ What it did not solve:
 
 So profit lock is currently a better default, but not the final answer to peak protection.
 
+## Fast-Break Overlay
+
+Fast-break overlay is an experimental early-warning hedge state, disabled in the promoted configuration.
+
+It was added after the fast-break literature synthesis in:
+
+`research/fast-break-overlay/research_synthesis.md`
+
+The rule is intentionally simple and auditable. It can enter when all of these are true:
+
+- SOL has broken down over a short lookback, currently via a 24h return threshold or optional Donchian low break,
+- SOL realized volatility has expanded versus its trailing median,
+- the trend vote is already weakening, currently green votes at or below the configured maximum or 1d bearish.
+
+When active, it raises the ETH hedge target to at least the configured fast-break floor. It does not block surplus reinvestment, froth reserve behavior, or bullish releverage.
+
+Exit/decay is explicit so the strategy does not stay max hedged into panic rebounds:
+
+- with staged decay disabled, exit after the configured hold window, or
+- with staged decay enabled, step the fast-break floor down through the configured decay floors before exit, or
+- exit when the trend vote recovers to the configured green threshold without 1d bearish confirmation.
+
+Fast-break hedge additions can use a separate `fast_break_add_min_hf` constraint. This lets research require a healthier projected account for emergency hedge additions without changing the global rebalance HF.
+
+Current UI default parameters:
+
+- `enable_fast_break_overlay = true`,
+- `fast_break_return_lookback_bars = 24`,
+- `fast_break_return_threshold = -0.08`,
+- `fast_break_vol_lookback_bars = 24`,
+- `fast_break_vol_median_bars = 720`,
+- `fast_break_vol_multiplier = 2.5`,
+- `fast_break_hedge_floor = 1.00`,
+- `fast_break_hold_bars = 72`,
+- `fast_break_exit_min_green = 4`,
+- `fast_break_add_min_hf = 2.50`,
+- `fast_break_decay_enabled = true`,
+- `fast_break_decay_floors = [0.75, 0.35]`.
+
+Latest sweep:
+
+`reports/sol_supertrend_3y/fast_break_v2_sweep_20260529_163349/report.md`
+
+Research status: provisionally useful, but not complete. The best v2 candidate improves final SOL-equivalent, Sortino, max drawdown, and min HF versus the incumbent. However, the 2025 peak-to-trough barely changes because fast-break can become active while the requested hedge addition is too large to execute atomically.
+
+Follow-up sweep:
+
+`reports/sol_supertrend_3y/fast_break_partial_fill_sweep_20260529_194427/report.md`
+
+Decision: no promotion. Generic fast-break partial fill fired too often in still-constructive regimes and badly reduced final SOL-equivalent value. The next partial-fill design should require an additional execution gate, such as crisis mode, under-hedged crisis, green votes at or below 1, or 3d/1w bearish confirmation.
+
+Second follow-up sweep:
+
+`reports/sol_supertrend_3y/fast_break_crisis_gated_partial_fill_sweep_20260530_004941/report.md`
+
+Decision: no promotion. Requiring crisis mode before partial fill was still too permissive. Crisis can overlap with mixed or mostly green vote states, so partial fills still added ETH debt before downside confirmation was strong enough. Keep fast-break partial fill disabled by default. The next valid partial-fill experiment should require crisis overlap plus stronger bearish confirmation, such as green votes at or below 1 or 3d/1w bearish confirmation.
+
 ## Drawdown Containment
 
 Drawdown containment is an experimental defensive state, disabled in the promoted configuration.
@@ -154,6 +217,47 @@ Isolated follow-up:
 `reports/sol_supertrend_3y/drawdown_containment_isolated_sweep_20260529_140056/report.md`
 
 The isolated floor-only version produced a raw challenger that improved max drawdown, final SOL-equivalent, and Sortino, but its minimum health factor fell below the current promotion guardrail. This keeps drawdown containment in the experimental bucket until a safety-constrained floor-only sweep is run.
+
+## Weekly-Bearish Reserve
+
+Weekly-bearish reserve is an experimental defensive SOL-to-USDC rotation, disabled in the promoted configuration.
+
+When enabled, it can:
+
+- sell a capped fraction of SOL collateral into USDC collateral while 1w SOL Supertrend is bearish,
+- preserve a configured minimum SOL collateral amount,
+- track reserve USDC separately from froth reserve,
+- block surplus SOL reinvestment while reserve is active,
+- rebuy gradually after 1w recovery, as long as 1d and 3d are not both bearish.
+
+First sweep:
+
+`reports/sol_supertrend_3y/weekly_bearish_reserve_sweep_20260530_024518/report.md`
+
+Decision: no promotion. The idea reduced SOL beta, but the trigger was too late. The first reserve sells occurred after major crash damage, and the strategy then carried too little SOL into the following recovery. The current v2 no-reserve control stayed better on final SOL-equivalent, final USD value, Sortino, max drawdown, and 2024+ peak-to-trough drawdown.
+
+Research status: keep the implementation disabled as a test harness, but do not use weekly bearishness as the first de-risk trigger. The next SOL reserve design should sell earlier from profit-lock or near-high conditions, then use weekly bearishness to hold or extend the reserve.
+
+## Profit-Lock Reserve
+
+Profit-lock reserve is an experimental defensive SOL-to-USDC rotation, disabled in the promoted configuration.
+
+When enabled, it can:
+
+- sell a first capped SOL slice when profit lock is active near portfolio highs,
+- require a configurable minimum gain from initial portfolio value,
+- trigger from 1d bearish, weak base votes, or fast-break activity,
+- sell additional capped slices if 3d turns bearish or portfolio drawdown deepens,
+- block rebuys while 1w, 1d, or 3d is bearish,
+- rebuy reserve USDC into SOL after recovery.
+
+First sweep:
+
+`reports/sol_supertrend_3y/profit_lock_reserve_sweep_20260530_135027/report.md`
+
+Decision: no promotion. The trigger family is better than weekly-bearish reserve because it can reduce the 2024+ red-mark drawdown. The best 2024+ drawdown row cut that drawdown from 64.84% to 59.86%. The cost was unacceptable: final SOL-equivalent fell from 424.90 to 198.38, Sortino fell, and full-period max drawdown worsened.
+
+Failure mode: churn. The first implementation can repeatedly sell, escalate, and rebuy inside the same broad regime. The next version should be a stateful high-watermark reserve policy with one initial sale, one escalation, a multi-day rebuy cooldown, and an episode reset only after a fresh portfolio high.
 
 ## Full-Short Mode
 

@@ -380,6 +380,236 @@ else:
             4,
             profit_lock_max_green,
         )
+    enable_fast_break_overlay = st.sidebar.checkbox(
+        "Enable Fast Break Overlay",
+        value=bool(sol_defaults["enable_fast_break_overlay"]),
+    )
+    fast_break_return_lookback_bars = int(
+        sol_defaults["fast_break_return_lookback_bars"]
+    )
+    fast_break_return_threshold = float(sol_defaults["fast_break_return_threshold"])
+    fast_break_use_donchian_break = bool(sol_defaults["fast_break_use_donchian_break"])
+    fast_break_donchian_lookback_bars = int(
+        sol_defaults["fast_break_donchian_lookback_bars"]
+    )
+    fast_break_vol_lookback_bars = int(sol_defaults["fast_break_vol_lookback_bars"])
+    fast_break_vol_median_bars = int(sol_defaults["fast_break_vol_median_bars"])
+    fast_break_vol_multiplier = float(sol_defaults["fast_break_vol_multiplier"])
+    fast_break_max_green = int(sol_defaults["fast_break_max_green"])
+    fast_break_hedge_floor = float(sol_defaults["fast_break_hedge_floor"])
+    fast_break_hold_bars = int(sol_defaults["fast_break_hold_bars"])
+    fast_break_exit_min_green = int(sol_defaults["fast_break_exit_min_green"])
+    fast_break_add_min_hf = sol_defaults["fast_break_add_min_hf"]
+    fast_break_decay_enabled = bool(sol_defaults["fast_break_decay_enabled"])
+    fast_break_decay_floors = sol_defaults["fast_break_decay_floors"]
+    enable_fast_break_partial_fill = bool(
+        sol_defaults["enable_fast_break_partial_fill"]
+    )
+    fast_break_partial_fill_requires_crisis = bool(
+        sol_defaults["fast_break_partial_fill_requires_crisis"]
+    )
+    fast_break_partial_fill_min_hf = float(
+        sol_defaults["fast_break_partial_fill_min_hf"]
+    )
+    fast_break_partial_fill_budget_pct = float(
+        sol_defaults["fast_break_partial_fill_budget_pct"]
+    )
+    enable_weekly_bearish_reserve = bool(
+        sol_defaults["enable_weekly_bearish_reserve"]
+    )
+    weekly_bearish_reserve_sell_fraction = float(
+        sol_defaults["weekly_bearish_reserve_sell_fraction"]
+    )
+    weekly_bearish_reserve_max_fraction = float(
+        sol_defaults["weekly_bearish_reserve_max_fraction"]
+    )
+    weekly_bearish_reserve_min_sol_collateral = float(
+        sol_defaults["weekly_bearish_reserve_min_sol_collateral"]
+    )
+    weekly_bearish_reserve_rebuy_fraction = float(
+        sol_defaults["weekly_bearish_reserve_rebuy_fraction"]
+    )
+    enable_profit_lock_reserve = bool(sol_defaults["enable_profit_lock_reserve"])
+    profit_lock_reserve_sell_fraction = float(
+        sol_defaults["profit_lock_reserve_sell_fraction"]
+    )
+    profit_lock_reserve_escalation_sell_fraction = float(
+        sol_defaults["profit_lock_reserve_escalation_sell_fraction"]
+    )
+    profit_lock_reserve_max_fraction = float(
+        sol_defaults["profit_lock_reserve_max_fraction"]
+    )
+    profit_lock_reserve_min_sol_collateral = float(
+        sol_defaults["profit_lock_reserve_min_sol_collateral"]
+    )
+    profit_lock_reserve_min_gain_pct = float(
+        sol_defaults["profit_lock_reserve_min_gain_pct"]
+    )
+    profit_lock_reserve_near_high_threshold = float(
+        sol_defaults["profit_lock_reserve_near_high_threshold"]
+    )
+    profit_lock_reserve_escalation_drawdown = float(
+        sol_defaults["profit_lock_reserve_escalation_drawdown"]
+    )
+    profit_lock_reserve_rebuy_fraction = float(
+        sol_defaults["profit_lock_reserve_rebuy_fraction"]
+    )
+    if enable_fast_break_overlay:
+        fast_break_return_threshold = st.sidebar.slider(
+            "Fast Break Return Threshold",
+            -0.20,
+            -0.02,
+            fast_break_return_threshold,
+            step=0.01,
+            format="%.2f",
+        )
+        fast_break_vol_multiplier = st.sidebar.slider(
+            "Fast Break Vol Multiplier",
+            1.0,
+            3.0,
+            fast_break_vol_multiplier,
+            step=0.25,
+        )
+        fast_break_hedge_floor = st.sidebar.slider(
+            "Fast Break Hedge Floor",
+            0.25,
+            1.50,
+            fast_break_hedge_floor,
+            step=0.05,
+        )
+        fast_break_hold_bars = st.sidebar.slider(
+            "Fast Break Hold Bars",
+            12,
+            168,
+            fast_break_hold_bars,
+            step=12,
+        )
+        fast_break_add_min_hf = st.sidebar.slider(
+            "Fast Break Add Min HF",
+            1.25,
+            3.0,
+            float(fast_break_add_min_hf or min_rebalance_hf),
+            step=0.05,
+        )
+        fast_break_decay_enabled = st.sidebar.checkbox(
+            "Fast Break Staged Decay",
+            value=fast_break_decay_enabled,
+        )
+        enable_fast_break_partial_fill = st.sidebar.checkbox(
+            "Fast Break Partial Fill",
+            value=enable_fast_break_partial_fill,
+        )
+        if enable_fast_break_partial_fill:
+            fast_break_partial_fill_requires_crisis = st.sidebar.checkbox(
+                "Fast Break Partial Fill Requires Crisis",
+                value=fast_break_partial_fill_requires_crisis,
+            )
+            fast_break_partial_fill_min_hf = st.sidebar.slider(
+                "Fast Break Partial Fill Min HF",
+                1.25,
+                3.0,
+                fast_break_partial_fill_min_hf,
+                step=0.05,
+            )
+            fast_break_partial_fill_budget_pct = st.sidebar.slider(
+                "Fast Break Partial Fill Budget",
+                0.0,
+                1.0,
+                fast_break_partial_fill_budget_pct,
+                step=0.05,
+            )
+    enable_weekly_bearish_reserve = st.sidebar.checkbox(
+        "Enable Weekly Bearish Reserve",
+        value=enable_weekly_bearish_reserve,
+    )
+    if enable_weekly_bearish_reserve:
+        weekly_bearish_reserve_sell_fraction = st.sidebar.slider(
+            "Weekly Bearish Reserve Sell Fraction",
+            0.0,
+            0.50,
+            weekly_bearish_reserve_sell_fraction,
+            step=0.05,
+        )
+        weekly_bearish_reserve_max_fraction = st.sidebar.slider(
+            "Weekly Bearish Reserve Max Fraction",
+            0.0,
+            0.75,
+            weekly_bearish_reserve_max_fraction,
+            step=0.05,
+        )
+        weekly_bearish_reserve_min_sol_collateral = st.sidebar.number_input(
+            "Weekly Bearish Reserve Min SOL",
+            min_value=0.0,
+            value=weekly_bearish_reserve_min_sol_collateral,
+            step=10.0,
+        )
+        weekly_bearish_reserve_rebuy_fraction = st.sidebar.slider(
+            "Weekly Bearish Reserve Rebuy Fraction",
+            0.0,
+            1.0,
+            weekly_bearish_reserve_rebuy_fraction,
+            step=0.05,
+        )
+    enable_profit_lock_reserve = st.sidebar.checkbox(
+        "Enable Profit Lock Reserve",
+        value=enable_profit_lock_reserve,
+    )
+    if enable_profit_lock_reserve:
+        profit_lock_reserve_sell_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Sell Fraction",
+            0.0,
+            0.50,
+            profit_lock_reserve_sell_fraction,
+            step=0.05,
+        )
+        profit_lock_reserve_escalation_sell_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Escalation Fraction",
+            0.0,
+            0.50,
+            profit_lock_reserve_escalation_sell_fraction,
+            step=0.05,
+        )
+        profit_lock_reserve_max_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Max Fraction",
+            0.0,
+            0.75,
+            profit_lock_reserve_max_fraction,
+            step=0.05,
+        )
+        profit_lock_reserve_min_sol_collateral = st.sidebar.number_input(
+            "Profit Lock Reserve Min SOL",
+            min_value=0.0,
+            value=profit_lock_reserve_min_sol_collateral,
+            step=10.0,
+        )
+        profit_lock_reserve_min_gain_pct = st.sidebar.slider(
+            "Profit Lock Reserve Min Gain",
+            0.0,
+            5.0,
+            profit_lock_reserve_min_gain_pct,
+            step=0.25,
+        )
+        profit_lock_reserve_near_high_threshold = st.sidebar.slider(
+            "Profit Lock Reserve Near High",
+            0.0,
+            0.30,
+            profit_lock_reserve_near_high_threshold,
+            step=0.01,
+        )
+        profit_lock_reserve_escalation_drawdown = st.sidebar.slider(
+            "Profit Lock Reserve Escalation Drawdown",
+            0.0,
+            0.50,
+            profit_lock_reserve_escalation_drawdown,
+            step=0.05,
+        )
+        profit_lock_reserve_rebuy_fraction = st.sidebar.slider(
+            "Profit Lock Reserve Rebuy Fraction",
+            0.0,
+            1.0,
+            profit_lock_reserve_rebuy_fraction,
+            step=0.05,
+        )
     enable_froth_reserve = st.sidebar.checkbox(
         "Enable Froth Reserve",
         value=bool(sol_defaults["enable_froth_reserve"]),
@@ -601,6 +831,55 @@ if run_btn:
             profit_lock_stateful_exit_gap=profit_lock_stateful_exit_gap,
             profit_lock_hedge_floor=profit_lock_hedge_floor,
             profit_lock_max_green=profit_lock_max_green,
+            enable_fast_break_overlay=enable_fast_break_overlay,
+            fast_break_return_lookback_bars=fast_break_return_lookback_bars,
+            fast_break_return_threshold=fast_break_return_threshold,
+            fast_break_use_donchian_break=fast_break_use_donchian_break,
+            fast_break_donchian_lookback_bars=fast_break_donchian_lookback_bars,
+            fast_break_vol_lookback_bars=fast_break_vol_lookback_bars,
+            fast_break_vol_median_bars=fast_break_vol_median_bars,
+            fast_break_vol_multiplier=fast_break_vol_multiplier,
+            fast_break_max_green=fast_break_max_green,
+            fast_break_hedge_floor=fast_break_hedge_floor,
+            fast_break_hold_bars=fast_break_hold_bars,
+            fast_break_exit_min_green=fast_break_exit_min_green,
+            fast_break_add_min_hf=fast_break_add_min_hf,
+            fast_break_decay_enabled=fast_break_decay_enabled,
+            fast_break_decay_floors=fast_break_decay_floors,
+            enable_fast_break_partial_fill=enable_fast_break_partial_fill,
+            fast_break_partial_fill_requires_crisis=(
+                fast_break_partial_fill_requires_crisis
+            ),
+            fast_break_partial_fill_min_hf=fast_break_partial_fill_min_hf,
+            fast_break_partial_fill_budget_pct=fast_break_partial_fill_budget_pct,
+            enable_weekly_bearish_reserve=enable_weekly_bearish_reserve,
+            weekly_bearish_reserve_sell_fraction=(
+                weekly_bearish_reserve_sell_fraction
+            ),
+            weekly_bearish_reserve_max_fraction=weekly_bearish_reserve_max_fraction,
+            weekly_bearish_reserve_min_sol_collateral=(
+                weekly_bearish_reserve_min_sol_collateral
+            ),
+            weekly_bearish_reserve_rebuy_fraction=(
+                weekly_bearish_reserve_rebuy_fraction
+            ),
+            enable_profit_lock_reserve=enable_profit_lock_reserve,
+            profit_lock_reserve_sell_fraction=profit_lock_reserve_sell_fraction,
+            profit_lock_reserve_escalation_sell_fraction=(
+                profit_lock_reserve_escalation_sell_fraction
+            ),
+            profit_lock_reserve_max_fraction=profit_lock_reserve_max_fraction,
+            profit_lock_reserve_min_sol_collateral=(
+                profit_lock_reserve_min_sol_collateral
+            ),
+            profit_lock_reserve_min_gain_pct=profit_lock_reserve_min_gain_pct,
+            profit_lock_reserve_near_high_threshold=(
+                profit_lock_reserve_near_high_threshold
+            ),
+            profit_lock_reserve_escalation_drawdown=(
+                profit_lock_reserve_escalation_drawdown
+            ),
+            profit_lock_reserve_rebuy_fraction=profit_lock_reserve_rebuy_fraction,
             enable_froth_reserve=enable_froth_reserve,
             froth_reserve_min_sol_collateral=froth_reserve_min_sol_collateral,
             froth_reserve_tiers=sol_defaults["froth_reserve_tiers"],

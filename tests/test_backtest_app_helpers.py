@@ -156,6 +156,39 @@ def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
         "profit_lock_stateful_exit_gap": 0.05,
         "profit_lock_hedge_floor": 0.35,
         "profit_lock_max_green": 3,
+        "enable_fast_break_overlay": True,
+        "fast_break_return_lookback_bars": 24,
+        "fast_break_return_threshold": -0.08,
+        "fast_break_use_donchian_break": False,
+        "fast_break_donchian_lookback_bars": 7 * 24,
+        "fast_break_vol_lookback_bars": 24,
+        "fast_break_vol_median_bars": 30 * 24,
+        "fast_break_vol_multiplier": 2.5,
+        "fast_break_max_green": 3,
+        "fast_break_hedge_floor": 1.0,
+        "fast_break_hold_bars": 72,
+        "fast_break_exit_min_green": 4,
+        "fast_break_add_min_hf": 2.50,
+        "fast_break_decay_enabled": True,
+        "fast_break_decay_floors": [0.75, 0.35],
+        "enable_fast_break_partial_fill": False,
+        "fast_break_partial_fill_requires_crisis": False,
+        "fast_break_partial_fill_min_hf": 2.50,
+        "fast_break_partial_fill_budget_pct": 0.25,
+        "enable_weekly_bearish_reserve": False,
+        "weekly_bearish_reserve_sell_fraction": 0.10,
+        "weekly_bearish_reserve_max_fraction": 0.30,
+        "weekly_bearish_reserve_min_sol_collateral": 100.0,
+        "weekly_bearish_reserve_rebuy_fraction": 0.50,
+        "enable_profit_lock_reserve": False,
+        "profit_lock_reserve_sell_fraction": 0.10,
+        "profit_lock_reserve_escalation_sell_fraction": 0.10,
+        "profit_lock_reserve_max_fraction": 0.30,
+        "profit_lock_reserve_min_sol_collateral": 100.0,
+        "profit_lock_reserve_min_gain_pct": 1.00,
+        "profit_lock_reserve_near_high_threshold": 0.10,
+        "profit_lock_reserve_escalation_drawdown": 0.15,
+        "profit_lock_reserve_rebuy_fraction": 0.50,
         "enable_froth_reserve": False,
         "froth_reserve_min_sol_collateral": 100.0,
         "froth_reserve_tiers": {1.0: 0.05, 3.0: 0.05},
@@ -200,6 +233,30 @@ def test_sol_supertrend_visible_controls_drop_leverage_loop_controls():
     assert "Profit Lock Exit Gap" in controls
     assert "Profit Lock Hedge Floor" in controls
     assert "Profit Lock Max Green" in controls
+    assert "Enable Fast Break Overlay" in controls
+    assert "Fast Break Return Threshold" in controls
+    assert "Fast Break Vol Multiplier" in controls
+    assert "Fast Break Hedge Floor" in controls
+    assert "Fast Break Hold Bars" in controls
+    assert "Fast Break Add Min HF" in controls
+    assert "Fast Break Staged Decay" in controls
+    assert "Fast Break Partial Fill" in controls
+    assert "Fast Break Partial Fill Min HF" in controls
+    assert "Fast Break Partial Fill Budget" in controls
+    assert "Enable Weekly Bearish Reserve" in controls
+    assert "Weekly Bearish Reserve Sell Fraction" in controls
+    assert "Weekly Bearish Reserve Max Fraction" in controls
+    assert "Weekly Bearish Reserve Min SOL" in controls
+    assert "Weekly Bearish Reserve Rebuy Fraction" in controls
+    assert "Enable Profit Lock Reserve" in controls
+    assert "Profit Lock Reserve Sell Fraction" in controls
+    assert "Profit Lock Reserve Escalation Fraction" in controls
+    assert "Profit Lock Reserve Max Fraction" in controls
+    assert "Profit Lock Reserve Min SOL" in controls
+    assert "Profit Lock Reserve Min Gain" in controls
+    assert "Profit Lock Reserve Near High" in controls
+    assert "Profit Lock Reserve Escalation Drawdown" in controls
+    assert "Profit Lock Reserve Rebuy Fraction" in controls
     assert "Enable Froth Reserve" in controls
     assert "Froth Reserve Min SOL" in controls
     assert "Froth Reserve Rebuy Drawdown" in controls
@@ -282,6 +339,39 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
         profit_lock_stateful_exit_gap=0.04,
         profit_lock_hedge_floor=0.35,
         profit_lock_max_green=3,
+        enable_fast_break_overlay=True,
+        fast_break_return_lookback_bars=24,
+        fast_break_return_threshold=-0.10,
+        fast_break_use_donchian_break=True,
+        fast_break_donchian_lookback_bars=120,
+        fast_break_vol_lookback_bars=24,
+        fast_break_vol_median_bars=480,
+        fast_break_vol_multiplier=2.0,
+        fast_break_max_green=2,
+        fast_break_hedge_floor=1.0,
+        fast_break_hold_bars=48,
+        fast_break_exit_min_green=4,
+        fast_break_add_min_hf=1.50,
+        fast_break_decay_enabled=True,
+        fast_break_decay_floors=[0.75, 0.35],
+        enable_fast_break_partial_fill=True,
+        fast_break_partial_fill_requires_crisis=True,
+        fast_break_partial_fill_min_hf=2.50,
+        fast_break_partial_fill_budget_pct=0.30,
+        enable_weekly_bearish_reserve=True,
+        weekly_bearish_reserve_sell_fraction=0.15,
+        weekly_bearish_reserve_max_fraction=0.45,
+        weekly_bearish_reserve_min_sol_collateral=75.0,
+        weekly_bearish_reserve_rebuy_fraction=0.35,
+        enable_profit_lock_reserve=True,
+        profit_lock_reserve_sell_fraction=0.12,
+        profit_lock_reserve_escalation_sell_fraction=0.08,
+        profit_lock_reserve_max_fraction=0.32,
+        profit_lock_reserve_min_sol_collateral=80.0,
+        profit_lock_reserve_min_gain_pct=1.25,
+        profit_lock_reserve_near_high_threshold=0.07,
+        profit_lock_reserve_escalation_drawdown=0.12,
+        profit_lock_reserve_rebuy_fraction=0.40,
         enable_froth_reserve=True,
         froth_reserve_min_sol_collateral=125.0,
         froth_reserve_tiers={1.0: 0.05},
@@ -331,6 +421,39 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["profit_lock_stateful_exit_gap"] == 0.04
     assert config["profit_lock_hedge_floor"] == 0.35
     assert config["profit_lock_max_green"] == 3
+    assert config["enable_fast_break_overlay"] is True
+    assert config["fast_break_return_lookback_bars"] == 24
+    assert config["fast_break_return_threshold"] == -0.10
+    assert config["fast_break_use_donchian_break"] is True
+    assert config["fast_break_donchian_lookback_bars"] == 120
+    assert config["fast_break_vol_lookback_bars"] == 24
+    assert config["fast_break_vol_median_bars"] == 480
+    assert config["fast_break_vol_multiplier"] == 2.0
+    assert config["fast_break_max_green"] == 2
+    assert config["fast_break_hedge_floor"] == 1.0
+    assert config["fast_break_hold_bars"] == 48
+    assert config["fast_break_exit_min_green"] == 4
+    assert config["fast_break_add_min_hf"] == 1.50
+    assert config["fast_break_decay_enabled"] is True
+    assert config["fast_break_decay_floors"] == [0.75, 0.35]
+    assert config["enable_fast_break_partial_fill"] is True
+    assert config["fast_break_partial_fill_requires_crisis"] is True
+    assert config["fast_break_partial_fill_min_hf"] == 2.50
+    assert config["fast_break_partial_fill_budget_pct"] == 0.30
+    assert config["enable_weekly_bearish_reserve"] is True
+    assert config["weekly_bearish_reserve_sell_fraction"] == 0.15
+    assert config["weekly_bearish_reserve_max_fraction"] == 0.45
+    assert config["weekly_bearish_reserve_min_sol_collateral"] == 75.0
+    assert config["weekly_bearish_reserve_rebuy_fraction"] == 0.35
+    assert config["enable_profit_lock_reserve"] is True
+    assert config["profit_lock_reserve_sell_fraction"] == 0.12
+    assert config["profit_lock_reserve_escalation_sell_fraction"] == 0.08
+    assert config["profit_lock_reserve_max_fraction"] == 0.32
+    assert config["profit_lock_reserve_min_sol_collateral"] == 80.0
+    assert config["profit_lock_reserve_min_gain_pct"] == 1.25
+    assert config["profit_lock_reserve_near_high_threshold"] == 0.07
+    assert config["profit_lock_reserve_escalation_drawdown"] == 0.12
+    assert config["profit_lock_reserve_rebuy_fraction"] == 0.40
     assert config["enable_froth_reserve"] is True
     assert config["froth_reserve_min_sol_collateral"] == 125.0
     assert config["froth_reserve_tiers"] == {1.0: 0.05}
