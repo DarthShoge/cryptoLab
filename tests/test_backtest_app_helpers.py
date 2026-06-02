@@ -173,6 +173,7 @@ def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
         "fast_break_decay_floors": [0.75, 0.35],
         "enable_fast_break_partial_fill": False,
         "fast_break_partial_fill_requires_crisis": False,
+        "fast_break_partial_fill_max_green": None,
         "fast_break_partial_fill_min_hf": 2.50,
         "fast_break_partial_fill_budget_pct": 0.25,
         "enable_weekly_bearish_reserve": False,
@@ -189,6 +190,26 @@ def test_sol_supertrend_best_in_class_defaults_match_scientific_report_winner():
         "profit_lock_reserve_near_high_threshold": 0.10,
         "profit_lock_reserve_escalation_drawdown": 0.15,
         "profit_lock_reserve_rebuy_fraction": 0.50,
+        "profit_lock_reserve_episode_mode": False,
+        "profit_lock_reserve_rebuy_cooldown_bars": 0,
+        "profit_lock_reserve_new_high_reset_gap": 0.00,
+        "enable_cppi_exposure_cap": False,
+        "cppi_activation_gain": 1.50,
+        "cppi_protect_pct": 0.65,
+        "cppi_cushion_multiplier": 2.00,
+        "cppi_core_min_sol_collateral": 100.0,
+        "cppi_exposure_buffer_pct": 0.05,
+        "cppi_max_sell_fraction_per_bar": 0.10,
+        "cppi_rebuy_fraction": 0.50,
+        "cppi_rebuy_min_green": 4,
+        "enable_hedge_failure_circuit_breaker": False,
+        "hedge_failure_lookback_bars": 72,
+        "hedge_failure_underperformance_threshold": 0.10,
+        "hedge_failure_hold_bars": 168,
+        "hedge_failure_sell_fraction": 0.00,
+        "hedge_failure_min_sol_collateral": 100.0,
+        "enable_protected_book": False,
+        "protected_book_realized_pnl_fraction": 0.25,
         "enable_froth_reserve": False,
         "froth_reserve_min_sol_collateral": 100.0,
         "froth_reserve_tiers": {1.0: 0.05, 3.0: 0.05},
@@ -356,6 +377,7 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
         fast_break_decay_floors=[0.75, 0.35],
         enable_fast_break_partial_fill=True,
         fast_break_partial_fill_requires_crisis=True,
+        fast_break_partial_fill_max_green=1,
         fast_break_partial_fill_min_hf=2.50,
         fast_break_partial_fill_budget_pct=0.30,
         enable_weekly_bearish_reserve=True,
@@ -372,6 +394,26 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
         profit_lock_reserve_near_high_threshold=0.07,
         profit_lock_reserve_escalation_drawdown=0.12,
         profit_lock_reserve_rebuy_fraction=0.40,
+        profit_lock_reserve_episode_mode=True,
+        profit_lock_reserve_rebuy_cooldown_bars=168,
+        profit_lock_reserve_new_high_reset_gap=0.03,
+        enable_cppi_exposure_cap=True,
+        cppi_activation_gain=2.00,
+        cppi_protect_pct=0.60,
+        cppi_cushion_multiplier=1.50,
+        cppi_core_min_sol_collateral=90.0,
+        cppi_exposure_buffer_pct=0.08,
+        cppi_max_sell_fraction_per_bar=0.12,
+        cppi_rebuy_fraction=0.35,
+        cppi_rebuy_min_green=3,
+        enable_hedge_failure_circuit_breaker=True,
+        hedge_failure_lookback_bars=48,
+        hedge_failure_underperformance_threshold=0.12,
+        hedge_failure_hold_bars=96,
+        hedge_failure_sell_fraction=0.08,
+        hedge_failure_min_sol_collateral=85.0,
+        enable_protected_book=True,
+        protected_book_realized_pnl_fraction=0.40,
         enable_froth_reserve=True,
         froth_reserve_min_sol_collateral=125.0,
         froth_reserve_tiers={1.0: 0.05},
@@ -438,6 +480,7 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["fast_break_decay_floors"] == [0.75, 0.35]
     assert config["enable_fast_break_partial_fill"] is True
     assert config["fast_break_partial_fill_requires_crisis"] is True
+    assert config["fast_break_partial_fill_max_green"] == 1
     assert config["fast_break_partial_fill_min_hf"] == 2.50
     assert config["fast_break_partial_fill_budget_pct"] == 0.30
     assert config["enable_weekly_bearish_reserve"] is True
@@ -454,6 +497,26 @@ def test_build_sol_supertrend_short_config_uses_initial_prices():
     assert config["profit_lock_reserve_near_high_threshold"] == 0.07
     assert config["profit_lock_reserve_escalation_drawdown"] == 0.12
     assert config["profit_lock_reserve_rebuy_fraction"] == 0.40
+    assert config["profit_lock_reserve_episode_mode"] is True
+    assert config["profit_lock_reserve_rebuy_cooldown_bars"] == 168
+    assert config["profit_lock_reserve_new_high_reset_gap"] == 0.03
+    assert config["enable_cppi_exposure_cap"] is True
+    assert config["cppi_activation_gain"] == 2.00
+    assert config["cppi_protect_pct"] == 0.60
+    assert config["cppi_cushion_multiplier"] == 1.50
+    assert config["cppi_core_min_sol_collateral"] == 90.0
+    assert config["cppi_exposure_buffer_pct"] == 0.08
+    assert config["cppi_max_sell_fraction_per_bar"] == 0.12
+    assert config["cppi_rebuy_fraction"] == 0.35
+    assert config["cppi_rebuy_min_green"] == 3
+    assert config["enable_hedge_failure_circuit_breaker"] is True
+    assert config["hedge_failure_lookback_bars"] == 48
+    assert config["hedge_failure_underperformance_threshold"] == 0.12
+    assert config["hedge_failure_hold_bars"] == 96
+    assert config["hedge_failure_sell_fraction"] == 0.08
+    assert config["hedge_failure_min_sol_collateral"] == 85.0
+    assert config["enable_protected_book"] is True
+    assert config["protected_book_realized_pnl_fraction"] == 0.40
     assert config["enable_froth_reserve"] is True
     assert config["froth_reserve_min_sol_collateral"] == 125.0
     assert config["froth_reserve_tiers"] == {1.0: 0.05}

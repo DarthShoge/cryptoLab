@@ -61,6 +61,29 @@ class ProfitLockReserveState:
     reserve_usdc: float = 0.0
     sold_sol: float = 0.0
     initial_slice_sold: bool = False
+    escalation_slice_sold: bool = False
+    last_sale_bar: int | None = None
+    episode_peak_value: float = 0.0
+    completed_episode_peak_value: float = 0.0
+
+
+@dataclass
+class CppiExposureCapState:
+    active: bool = False
+    protected_usdc: float = 0.0
+    sold_sol: float = 0.0
+    exposure_cap_usd: float = 0.0
+    protected_floor_usd: float = 0.0
+
+
+@dataclass
+class HedgeFailureCircuitBreakerState:
+    active: bool = False
+    protected_usdc: float = 0.0
+    sold_sol: float = 0.0
+    entered_bar: int | None = None
+    exit_bar: int | None = None
+    relative_underperformance: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -235,17 +258,21 @@ class SolSupertrendShortStrategy(Strategy):
         self._average_eth_short_basis_usdc = 0.0
         self._lifetime_realized_hedge_pnl_usdc = 0.0
         self._consumed_hedge_profit_usdc = 0.0
+        self._protected_book_usdc = 0.0
         self._last_effective_hedge_target = 0.0
         self._observation_window = PortfolioObservationWindow(max_bars=1)
         self._pending_crisis_transition_reason: str | None = None
         self._initial_portfolio_value = 0.0
         self._initial_sol_equivalent = 0.0
+        self._portfolio_high_watermark_value = 0.0
         self._profit_lock_active = False
         self._profit_lock_hedge_floor = 0.0
         self._profit_lock_stateful_active = False
         self.fast_break_state = FastBreakState()
         self.weekly_bearish_reserve_state = WeeklyBearishReserveState()
         self.profit_lock_reserve_state = ProfitLockReserveState()
+        self.cppi_exposure_cap_state = CppiExposureCapState()
+        self.hedge_failure_state = HedgeFailureCircuitBreakerState()
         self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers: set[float] = set()
@@ -263,6 +290,7 @@ class SolSupertrendShortStrategy(Strategy):
         self._average_eth_short_basis_usdc = 0.0
         self._lifetime_realized_hedge_pnl_usdc = 0.0
         self._consumed_hedge_profit_usdc = 0.0
+        self._protected_book_usdc = 0.0
         self._last_effective_hedge_target = 0.0
         self._observation_window = PortfolioObservationWindow(
             max_bars=self._observation_window_bars()
@@ -274,6 +302,8 @@ class SolSupertrendShortStrategy(Strategy):
         self.fast_break_state = FastBreakState()
         self.weekly_bearish_reserve_state = WeeklyBearishReserveState()
         self.profit_lock_reserve_state = ProfitLockReserveState()
+        self.cppi_exposure_cap_state = CppiExposureCapState()
+        self.hedge_failure_state = HedgeFailureCircuitBreakerState()
         self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers = set()
@@ -284,6 +314,7 @@ class SolSupertrendShortStrategy(Strategy):
         initial_sol = float(config.get("initial_sol_collateral", 100.0))
         self._initial_portfolio_value = initial_sol * sol_price
         self._initial_sol_equivalent = initial_sol
+        self._portfolio_high_watermark_value = self._initial_portfolio_value
 
         sol_ltv, sol_liq = self._asset_risk("SOL", 0.75, 0.80)
         usdc_ltv, usdc_liq = self._asset_risk("USDC", 0.90, 0.93)
@@ -307,6 +338,7 @@ class SolSupertrendShortStrategy(Strategy):
             "average_eth_short_basis_usdc": self._average_eth_short_basis_usdc,
             "lifetime_realized_hedge_pnl_usdc": self._lifetime_realized_hedge_pnl_usdc,
             "spendable_hedge_profit_usdc": self._spendable_hedge_profit_usdc(),
+            "protected_book_usdc": self._protected_book_usdc,
         }
 
     def history_fields(self) -> dict[str, float | bool]:
@@ -333,6 +365,20 @@ class SolSupertrendShortStrategy(Strategy):
             "in_profit_lock_reserve": self.profit_lock_reserve_state.active,
             "profit_lock_reserve_usdc": self.profit_lock_reserve_state.reserve_usdc,
             "profit_lock_reserve_sold_sol": self.profit_lock_reserve_state.sold_sol,
+            "in_cppi_exposure_cap": self.cppi_exposure_cap_state.active,
+            "cppi_protected_usdc": self.cppi_exposure_cap_state.protected_usdc,
+            "cppi_sold_sol": self.cppi_exposure_cap_state.sold_sol,
+            "cppi_exposure_cap_usd": self.cppi_exposure_cap_state.exposure_cap_usd,
+            "cppi_protected_floor_usd": (
+                self.cppi_exposure_cap_state.protected_floor_usd
+            ),
+            "in_hedge_failure_circuit_breaker": self.hedge_failure_state.active,
+            "hedge_failure_protected_usdc": self.hedge_failure_state.protected_usdc,
+            "hedge_failure_sold_sol": self.hedge_failure_state.sold_sol,
+            "hedge_failure_relative_underperformance": (
+                self.hedge_failure_state.relative_underperformance
+            ),
+            "protected_book_usdc": self._protected_book_usdc,
             "froth_reserve_usdc": self._froth_reserve_usdc,
             "in_drawdown_containment": self.drawdown_containment_state.active,
             "drawdown_containment_hedge_floor": (
@@ -396,12 +442,23 @@ class SolSupertrendShortStrategy(Strategy):
             if actions:
                 reason = self._profit_lock_reserve_last_reason
 
+        if not actions and not safety_action:
+            actions.extend(self._hedge_failure_circuit_breaker_sell(snapshot, bar))
+            if actions:
+                reason = "hedge_failure_circuit_breaker_sell"
+
+        if not actions and not safety_action:
+            actions.extend(self._cppi_exposure_cap_sell(snapshot, bar))
+            if actions:
+                reason = "cppi_exposure_cap_sell"
+
         if not actions and abs(target_ratio - current_ratio) > threshold:
             if self._should_fast_break_partial_fill(
                 snapshot,
                 target_ratio,
                 current_ratio,
                 reason,
+                vote,
             ):
                 self.crisis_state.under_hedged = self.crisis_state.active
                 actions.extend(
@@ -472,6 +529,11 @@ class SolSupertrendShortStrategy(Strategy):
             if actions:
                 reason = "profit_lock_reserve_rebuy"
 
+        if not actions:
+            actions.extend(self._cppi_exposure_cap_rebuy(snapshot, vote, bar))
+            if actions:
+                reason = "cppi_exposure_cap_rebuy"
+
         if (
             not actions
             and vote.green == 4
@@ -498,6 +560,7 @@ class SolSupertrendShortStrategy(Strategy):
             and not self.in_full_short_mode
             and not self.weekly_bearish_reserve_state.active
             and not self.profit_lock_reserve_state.active
+            and not self.hedge_failure_state.active
             and not self._drawdown_containment_blocks("reinvestment")
         ):
             actions.extend(self._surplus_usdc_reinvestment(snapshot, vote, bar))
@@ -1029,6 +1092,10 @@ class SolSupertrendShortStrategy(Strategy):
         bar: BarData,
     ) -> None:
         portfolio_value = snapshot.total_collateral_value() - snapshot.total_debt_value()
+        self._portfolio_high_watermark_value = max(
+            self._portfolio_high_watermark_value,
+            portfolio_value,
+        )
         sol_price = float(bar.prices["SOL"].close)
         self._observation_window.max_bars = self._observation_window_bars()
         self._observation_window.record(portfolio_value, sol_price)
@@ -1107,10 +1174,14 @@ class SolSupertrendShortStrategy(Strategy):
         target_ratio: float,
         current_ratio: float,
         reason: str,
+        vote: TrendVote,
     ) -> bool:
         if reason != "fast_break_hedge_up":
             return False
         if not bool(self._config.get("enable_fast_break_partial_fill", False)):
+            return False
+        max_green = self._config.get("fast_break_partial_fill_max_green")
+        if max_green is not None and vote.green > int(max_green):
             return False
         if (
             bool(self._config.get("fast_break_partial_fill_requires_crisis", False))
@@ -1374,13 +1445,19 @@ class SolSupertrendShortStrategy(Strategy):
         if reinvest_fraction <= 0:
             return []
 
+        spendable_usdc_collateral = max(
+            0.0,
+            self._collateral_amount(snapshot, "USDC")
+            - self.cppi_exposure_cap_state.protected_usdc
+            - self._protected_book_usdc,
+        )
         spend_usdc = min(
             spendable_profit * reinvest_fraction,
             sol_value
             * float(
                 self._config.get("max_surplus_reinvestment_pct_of_sol_collateral", 0.05)
             ),
-            self._collateral_amount(snapshot, "USDC"),
+            spendable_usdc_collateral,
         )
         spend_usdc = self._cap_spend_to_min_health_factor(snapshot, spend_usdc, sol_price)
         if spend_usdc <= 0:
@@ -1546,6 +1623,14 @@ class SolSupertrendShortStrategy(Strategy):
         self.profit_lock_reserve_state.reserve_usdc += usdc_proceeds
         self.profit_lock_reserve_state.sold_sol += sell_sol
         self.profit_lock_reserve_state.initial_slice_sold = True
+        if self._profit_lock_reserve_episode_mode():
+            if self.profit_lock_reserve_state.episode_peak_value <= 0:
+                self.profit_lock_reserve_state.episode_peak_value = max(
+                    self._observation_window.portfolio_values or [0.0]
+                )
+            self.profit_lock_reserve_state.last_sale_bar = bar.bar_index
+            if not initial_slice:
+                self.profit_lock_reserve_state.escalation_slice_sold = True
         self._profit_lock_reserve_last_reason = (
             "profit_lock_reserve_sell"
             if initial_slice
@@ -1558,6 +1643,11 @@ class SolSupertrendShortStrategy(Strategy):
 
     def _profit_lock_reserve_should_sell(self, vote: TrendVote) -> bool:
         if not self.profit_lock_reserve_state.initial_slice_sold:
+            if (
+                self._profit_lock_reserve_episode_mode()
+                and not self._profit_lock_reserve_episode_can_start()
+            ):
+                return False
             if not self._profit_lock_active:
                 return False
             if not self._profit_lock_reserve_gain_and_near_high():
@@ -1567,11 +1657,31 @@ class SolSupertrendShortStrategy(Strategy):
                 or vote.green <= 2
                 or self.fast_break_state.active
             )
+        if (
+            self._profit_lock_reserve_episode_mode()
+            and self.profit_lock_reserve_state.escalation_slice_sold
+        ):
+            return False
         return (
             vote.bearish_3d
             or self._observation_window.portfolio_drawdown_from_high()
             >= float(self._config.get("profit_lock_reserve_escalation_drawdown", 0.15))
         )
+
+    def _profit_lock_reserve_episode_mode(self) -> bool:
+        return bool(self._config.get("profit_lock_reserve_episode_mode", False))
+
+    def _profit_lock_reserve_episode_can_start(self) -> bool:
+        completed_peak = self.profit_lock_reserve_state.completed_episode_peak_value
+        if completed_peak <= 0:
+            return True
+        values = self._observation_window.portfolio_values
+        if not values:
+            return False
+        reset_gap = float(
+            self._config.get("profit_lock_reserve_new_high_reset_gap", 0.0)
+        )
+        return values[-1] > completed_peak * (1.0 + reset_gap)
 
     def _profit_lock_reserve_gain_and_near_high(self) -> bool:
         values = self._observation_window.portfolio_values
@@ -1601,9 +1711,18 @@ class SolSupertrendShortStrategy(Strategy):
             return []
         reserve_usdc = self.profit_lock_reserve_state.reserve_usdc
         if reserve_usdc <= 0:
-            self.profit_lock_reserve_state = ProfitLockReserveState()
+            if self._profit_lock_reserve_episode_mode():
+                self._complete_profit_lock_reserve_episode()
+            else:
+                self.profit_lock_reserve_state = ProfitLockReserveState()
             return []
         if vote.bearish_1w or vote.bearish_1d or vote.bearish_3d:
+            self.profit_lock_reserve_state.active = True
+            return []
+        if (
+            self._profit_lock_reserve_episode_mode()
+            and not self._profit_lock_reserve_rebuy_cooldown_elapsed(bar)
+        ):
             self.profit_lock_reserve_state.active = True
             return []
 
@@ -1625,7 +1744,10 @@ class SolSupertrendShortStrategy(Strategy):
             self.profit_lock_reserve_state.sold_sol - sol_tokens,
         )
         if self.profit_lock_reserve_state.reserve_usdc <= 1e-9:
-            self.profit_lock_reserve_state = ProfitLockReserveState()
+            if self._profit_lock_reserve_episode_mode():
+                self._complete_profit_lock_reserve_episode()
+            else:
+                self.profit_lock_reserve_state = ProfitLockReserveState()
         else:
             self.profit_lock_reserve_state.active = True
 
@@ -1633,6 +1755,242 @@ class SolSupertrendShortStrategy(Strategy):
             {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
             {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
         ]
+
+    def _cppi_exposure_cap_sell(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_cppi_exposure_cap", False)):
+            self.cppi_exposure_cap_state = CppiExposureCapState()
+            return []
+
+        cap_usd, floor_usd = self._cppi_exposure_budget()
+        self.cppi_exposure_cap_state.exposure_cap_usd = cap_usd
+        self.cppi_exposure_cap_state.protected_floor_usd = floor_usd
+        if cap_usd < 0:
+            return []
+
+        sol_value = self._collateral_value(snapshot, "SOL")
+        buffer_pct = float(self._config.get("cppi_exposure_buffer_pct", 0.05))
+        if sol_value <= cap_usd * (1.0 + buffer_pct):
+            self.cppi_exposure_cap_state.active = (
+                self.cppi_exposure_cap_state.protected_usdc > 0
+            )
+            return []
+
+        sol_price = float(bar.prices["SOL"].close)
+        sol_amount = self._collateral_amount(snapshot, "SOL")
+        if sol_price <= 0 or sol_amount <= 0:
+            return []
+
+        min_sol = float(
+            self._config.get(
+                "cppi_core_min_sol_collateral",
+                self._config.get("initial_sol_collateral", 100.0),
+            )
+        )
+        max_sell_by_floor = max(0.0, sol_amount - min_sol)
+        max_step_sell = sol_amount * float(
+            self._config.get("cppi_max_sell_fraction_per_bar", 0.10)
+        )
+        sell_sol = min(
+            (sol_value - cap_usd) / sol_price,
+            max_sell_by_floor,
+            max_step_sell,
+        )
+        if sell_sol <= 0:
+            return []
+
+        usdc_proceeds = sell_sol * sol_price * (1.0 - self._swap_fee())
+        self.cppi_exposure_cap_state.active = True
+        self.cppi_exposure_cap_state.protected_usdc += usdc_proceeds
+        self.cppi_exposure_cap_state.sold_sol += sell_sol
+        return [
+            {"type": "withdraw_collateral", "symbol": "SOL", "amount": sell_sol},
+            {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
+        ]
+
+    def _hedge_failure_circuit_breaker_sell(
+        self,
+        snapshot: AccountSnapshot,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_hedge_failure_circuit_breaker", False)):
+            self.hedge_failure_state = HedgeFailureCircuitBreakerState()
+            return []
+
+        if self.hedge_failure_state.active and self._hedge_failure_should_exit(bar):
+            protected_usdc = self.hedge_failure_state.protected_usdc
+            sold_sol = self.hedge_failure_state.sold_sol
+            self.hedge_failure_state = HedgeFailureCircuitBreakerState(
+                protected_usdc=protected_usdc,
+                sold_sol=sold_sol,
+            )
+            return []
+
+        underperformance = self._sol_eth_relative_underperformance(bar)
+        self.hedge_failure_state.relative_underperformance = underperformance
+        if not self.hedge_failure_state.active:
+            if not self._hedge_failure_triggered(underperformance):
+                return []
+            hold_bars = int(self._config.get("hedge_failure_hold_bars", 168))
+            self.hedge_failure_state.active = True
+            self.hedge_failure_state.entered_bar = bar.bar_index
+            self.hedge_failure_state.exit_bar = bar.bar_index + hold_bars
+
+        sell_fraction = float(self._config.get("hedge_failure_sell_fraction", 0.0))
+        if sell_fraction <= 0 or self.hedge_failure_state.sold_sol > 0:
+            return []
+
+        sol_price = float(bar.prices["SOL"].close)
+        sol_amount = self._collateral_amount(snapshot, "SOL")
+        if sol_price <= 0 or sol_amount <= 0:
+            return []
+        min_sol = float(
+            self._config.get(
+                "hedge_failure_min_sol_collateral",
+                self._config.get("initial_sol_collateral", 100.0),
+            )
+        )
+        max_sell_by_floor = max(0.0, sol_amount - min_sol)
+        sell_sol = min(sol_amount * sell_fraction, max_sell_by_floor)
+        if sell_sol <= 0:
+            return []
+        usdc_proceeds = sell_sol * sol_price * (1.0 - self._swap_fee())
+        self.hedge_failure_state.protected_usdc += usdc_proceeds
+        self.hedge_failure_state.sold_sol += sell_sol
+        return [
+            {"type": "withdraw_collateral", "symbol": "SOL", "amount": sell_sol},
+            {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
+        ]
+
+    def _hedge_failure_triggered(self, underperformance: float) -> bool:
+        if not (
+            self.fast_break_state.active
+            or self._profit_lock_active
+            or self.crisis_state.active
+            or self.drawdown_containment_state.active
+        ):
+            return False
+        return underperformance >= float(
+            self._config.get("hedge_failure_underperformance_threshold", 0.10)
+        )
+
+    def _hedge_failure_should_exit(self, bar: BarData) -> bool:
+        exit_bar = self.hedge_failure_state.exit_bar
+        return exit_bar is not None and bar.bar_index >= exit_bar
+
+    def _sol_eth_relative_underperformance(self, bar: BarData) -> float:
+        lookback = int(self._config.get("hedge_failure_lookback_bars", 72))
+        history = bar.history
+        if len(history) <= lookback:
+            return 0.0
+        if not {"SOL", "ETH"}.issubset(set(history.columns.get_level_values(0))):
+            return 0.0
+        sol_close = history["SOL"]["close"].astype(float)
+        eth_close = history["ETH"]["close"].astype(float)
+        sol_return = (sol_close.iloc[-1] / sol_close.iloc[-lookback - 1]) - 1.0
+        eth_return = (eth_close.iloc[-1] / eth_close.iloc[-lookback - 1]) - 1.0
+        return eth_return - sol_return
+
+    def _cppi_exposure_cap_rebuy(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_cppi_exposure_cap", False)):
+            return []
+        protected_usdc = self.cppi_exposure_cap_state.protected_usdc
+        if protected_usdc <= 0:
+            self.cppi_exposure_cap_state.active = False
+            self.cppi_exposure_cap_state.sold_sol = 0.0
+            return []
+        if not self._cppi_rebuy_trend_confirmed(vote):
+            self.cppi_exposure_cap_state.active = True
+            return []
+
+        cap_usd, floor_usd = self._cppi_exposure_budget()
+        self.cppi_exposure_cap_state.exposure_cap_usd = cap_usd
+        self.cppi_exposure_cap_state.protected_floor_usd = floor_usd
+        sol_value = self._collateral_value(snapshot, "SOL")
+        buffer_pct = float(self._config.get("cppi_exposure_buffer_pct", 0.05))
+        gap_usd = cap_usd - sol_value * (1.0 + buffer_pct)
+        if gap_usd <= 0:
+            self.cppi_exposure_cap_state.active = True
+            return []
+
+        spend_usdc = min(
+            gap_usd * float(self._config.get("cppi_rebuy_fraction", 0.50)),
+            protected_usdc,
+            self._collateral_amount(snapshot, "USDC"),
+        )
+        sol_price = float(bar.prices["SOL"].close)
+        if spend_usdc <= 0 or sol_price <= 0:
+            self.cppi_exposure_cap_state.active = True
+            return []
+
+        self.cppi_exposure_cap_state.protected_usdc -= spend_usdc
+        sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
+        self.cppi_exposure_cap_state.sold_sol = max(
+            0.0,
+            self.cppi_exposure_cap_state.sold_sol - sol_tokens,
+        )
+        if self.cppi_exposure_cap_state.protected_usdc <= 1e-9:
+            self.cppi_exposure_cap_state = CppiExposureCapState(
+                exposure_cap_usd=cap_usd,
+                protected_floor_usd=floor_usd,
+            )
+        else:
+            self.cppi_exposure_cap_state.active = True
+
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
+            {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
+        ]
+
+    def _cppi_exposure_budget(self) -> tuple[float, float]:
+        if self._initial_portfolio_value <= 0:
+            return -1.0, 0.0
+        high_watermark = self._portfolio_high_watermark_value
+        activation_gain = float(self._config.get("cppi_activation_gain", 1.5))
+        if high_watermark < self._initial_portfolio_value * activation_gain:
+            return -1.0, 0.0
+        floor_usd = high_watermark * float(
+            self._config.get("cppi_protect_pct", 0.65)
+        )
+        current = (
+            self._observation_window.portfolio_values[-1]
+            if self._observation_window.portfolio_values
+            else high_watermark
+        )
+        cushion = max(0.0, current - floor_usd)
+        cap_usd = cushion * float(self._config.get("cppi_cushion_multiplier", 2.0))
+        return cap_usd, floor_usd
+
+    def _cppi_rebuy_trend_confirmed(self, vote: TrendVote) -> bool:
+        if vote.bearish_1w or vote.bearish_3d or vote.bearish_1d:
+            return False
+        return vote.green >= int(self._config.get("cppi_rebuy_min_green", 4))
+
+    def _profit_lock_reserve_rebuy_cooldown_elapsed(self, bar: BarData) -> bool:
+        last_sale_bar = self.profit_lock_reserve_state.last_sale_bar
+        if last_sale_bar is None:
+            return True
+        cooldown_bars = int(
+            self._config.get("profit_lock_reserve_rebuy_cooldown_bars", 0)
+        )
+        return bar.bar_index >= last_sale_bar + cooldown_bars
+
+    def _complete_profit_lock_reserve_episode(self) -> None:
+        completed_peak = max(
+            self.profit_lock_reserve_state.completed_episode_peak_value,
+            self.profit_lock_reserve_state.episode_peak_value,
+        )
+        self.profit_lock_reserve_state = ProfitLockReserveState(
+            completed_episode_peak_value=completed_peak,
+        )
 
     def _froth_reserve_rotation(
         self,
@@ -1826,6 +2184,21 @@ class SolSupertrendShortStrategy(Strategy):
                 "profit_lock_reserve_sold_sol": (
                     self.profit_lock_reserve_state.sold_sol
                 ),
+                "in_cppi_exposure_cap": self.cppi_exposure_cap_state.active,
+                "cppi_protected_usdc": self.cppi_exposure_cap_state.protected_usdc,
+                "cppi_sold_sol": self.cppi_exposure_cap_state.sold_sol,
+                "cppi_exposure_cap_usd": (
+                    self.cppi_exposure_cap_state.exposure_cap_usd
+                ),
+                "cppi_protected_floor_usd": (
+                    self.cppi_exposure_cap_state.protected_floor_usd
+                ),
+                "in_hedge_failure_circuit_breaker": self.hedge_failure_state.active,
+                "hedge_failure_protected_usdc": self.hedge_failure_state.protected_usdc,
+                "hedge_failure_sold_sol": self.hedge_failure_state.sold_sol,
+                "hedge_failure_relative_underperformance": (
+                    self.hedge_failure_state.relative_underperformance
+                ),
                 "froth_reserve_usdc": self._froth_reserve_usdc,
                 "in_drawdown_containment": self.drawdown_containment_state.active,
                 "drawdown_containment_hedge_floor": (
@@ -1863,6 +2236,10 @@ class SolSupertrendShortStrategy(Strategy):
             covered_amount * self._average_eth_short_basis_usdc
         ) - cover_cost_basis
         self._lifetime_realized_hedge_pnl_usdc += realized_pnl
+        if bool(self._config.get("enable_protected_book", False)) and realized_pnl > 0:
+            self._protected_book_usdc += realized_pnl * float(
+                self._config.get("protected_book_realized_pnl_fraction", 0.25)
+            )
         self._open_eth_short_amount = max(
             0.0,
             self._open_eth_short_amount - covered_amount,
@@ -1874,7 +2251,8 @@ class SolSupertrendShortStrategy(Strategy):
         return max(
             0.0,
             self._lifetime_realized_hedge_pnl_usdc
-            - self._consumed_hedge_profit_usdc,
+            - self._consumed_hedge_profit_usdc
+            - self._protected_book_usdc,
         )
 
     @staticmethod
