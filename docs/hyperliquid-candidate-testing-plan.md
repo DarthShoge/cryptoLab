@@ -64,6 +64,7 @@ Collect candles using `candleSnapshot`:
 - Start with assets: BTC, ETH, SOL, HYPE, plus top liquid perps by metadata/volume once available.
 - Store each asset/interval as CSV or parquet.
 - Respect the 5000-candle response cap by chunking requests.
+- Treat `candleSnapshot` as a recent-history endpoint, not a full-history archive. Live tests on 2026-06-04 returned about 5000 hourly BTC candles from 2025-11-08 onward and about 4700 hourly `xyz:AAPL` candles from 2025-11-21 onward when requesting a 3-year range.
 
 Output target:
 
@@ -96,6 +97,26 @@ Validate:
 Output target:
 
 - `reports/hyperliquid/data_quality.md`
+
+### M3a: Full-History Options
+
+Official Hyperliquid docs list public historical S3 archives, but they do not provide ready-made historical candle files. The official archive currently exposes:
+
+- L2 book snapshots and asset contexts in `hyperliquid-archive`.
+- Node fills/trades/blocks in `hl-mainnet-node-data`.
+
+Implication:
+
+- Full OHLCV history may be possible by reconstructing candles from historical fills/trades.
+- Archive access requires AWS requester-pays tooling/credentials and decompression support.
+- This is more work than `candleSnapshot` and should be a separate data-engineering milestone.
+- HIP-3 equity/commodity markets cannot have pre-launch history; their maximum history begins when each builder-deployed market went live.
+
+Fallback choices if full Hyperliquid reconstruction is too slow:
+
+1. Use Hyperliquid recent-history data for live-venue realism across crypto, equity, commodity, FX, and index perps.
+2. Use Binance/CCXT for long crypto-only history.
+3. Use a third-party Hyperliquid indexer for full-history OHLCV if licensing/cost is acceptable.
 
 ### M4: Backtest Adapter
 

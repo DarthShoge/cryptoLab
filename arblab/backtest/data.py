@@ -126,6 +126,8 @@ def fetch_ohlcv(
         if not df.empty:
             if df.index.tz is None:
                 df.index = df.index.tz_localize("UTC")
+            if hasattr(df.index, "as_unit"):
+                df.index = df.index.as_unit("us")
             df = df[df.index >= start]
             if until_ms:
                 cutoff = pd.Timestamp(until_ms, unit="ms", tz="UTC")
