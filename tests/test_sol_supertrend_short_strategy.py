@@ -206,6 +206,81 @@ def test_drawdown_containment_rejects_unknown_block_action():
         strategy._drawdown_containment_blocks("unknown")
 
 
+def test_traffic_light_governor_applies_vote_based_hedge_floor_and_observability():
+    strategy, snapshot = _setup_strategy(
+        enable_traffic_light_governor=True,
+        traffic_light_hedge_floors={4: 0.0, 3: 0.10, 2: 0.75, 1: 1.0, 0: 1.25},
+        signal_by_bar={0: {"green": 2, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    assert actions == [
+        {"type": "borrow", "symbol": "ETH", "amount": pytest.approx(3.75)},
+        {"type": "deposit_collateral", "symbol": "USDC", "amount": pytest.approx(7_492.5)},
+    ]
+    assert strategy.event_log[-1]["reason"] == "traffic_light_hedge_up"
+    assert strategy.event_log[-1]["traffic_light_state"] == "yellow"
+    assert strategy.event_log[-1]["traffic_light_hedge_floor"] == pytest.approx(0.75)
+    assert strategy.history_fields()["in_traffic_light_governor"] is True
+    assert strategy.history_fields()["traffic_light_green_votes"] == 2
+    assert strategy.history_fields()["traffic_light_hedge_floor"] == pytest.approx(0.75)
+
+
+def test_traffic_light_hedge_add_uses_configured_projected_health_floor():
+    strategy, snapshot = _setup_strategy(
+        enable_traffic_light_governor=True,
+        traffic_light_hedge_floors={4: 0.0, 3: 0.10, 2: 0.75, 1: 1.0, 0: 1.25},
+        traffic_light_add_min_hf=3.0,
+        signal_by_bar={0: {"green": 2, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    assert actions[0]["type"] == "borrow"
+    assert actions[0]["symbol"] == "ETH"
+    assert actions[0]["amount"] < 3.75
+    assert strategy.event_log[-1]["reason"] == "traffic_light_hedge_up"
+
+
+def test_traffic_light_governor_blocks_surplus_reinvestment_until_recovery_light():
+    strategy, snapshot = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        enable_traffic_light_governor=True,
+        traffic_light_min_reinvestment_green=4,
+        realized_hedge_profit_gate_pct=0.10,
+        surplus_reinvestment_ladder={3: 0.25, 4: 0.50},
+        max_surplus_reinvestment_pct_of_sol_collateral=0.05,
+        surplus_reinvestment_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 3, "bearish_3d": False, "bearish_1w": False},
+            1: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+    strategy._lifetime_realized_hedge_pnl_usdc = 2_000.0
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 2_000.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 1_500.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    blocked_actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0, eth_price=1_500.0))
+    allowed_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    assert blocked_actions == []
+    assert allowed_actions[0]["type"] == "withdraw_collateral"
+    assert allowed_actions[1]["type"] == "deposit_collateral"
+    assert strategy.event_log[-1]["reason"] == "surplus_reinvestment"
+
+
 def test_setup_starts_with_unlevered_sol_and_zero_debt_positions():
     strategy, snapshot = _setup_strategy()
 

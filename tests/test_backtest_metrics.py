@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 
 from arblab.backtest.metrics import PerformanceMetrics, compute_metrics, _max_drawdown
+from arblab.backtest.recovery import drawdown_recovery_events
 
 
 # ---------------------------------------------------------------------------
@@ -281,3 +282,28 @@ def test_max_drawdown_helper_single_element():
     dd_pct, dd_dur = _max_drawdown(pd.Series([100.0]))
     assert dd_pct == pytest.approx(0.0)
     assert dd_dur == 0
+
+
+def test_drawdown_recovery_events_reports_half_life_and_new_high():
+    values = pd.Series([100.0, 150.0, 120.0, 90.0, 105.0, 120.0, 150.0, 160.0])
+
+    events = drawdown_recovery_events(values, min_drawdown_pct=30.0)
+
+    assert len(events) == 1
+    event = events[0]
+    assert event["peak_index"] == 1
+    assert event["trough_index"] == 3
+    assert event["drawdown_pct"] == pytest.approx(40.0)
+    assert event["half_recovery_bars"] == 2
+    assert event["new_high_bars"] == 4
+
+
+def test_drawdown_recovery_events_marks_unrecovered_drawdown():
+    values = pd.Series([100.0, 150.0, 100.0, 110.0, 115.0])
+
+    events = drawdown_recovery_events(values, min_drawdown_pct=30.0)
+
+    assert len(events) == 1
+    assert events[0]["drawdown_pct"] == pytest.approx(33.3333333333)
+    assert events[0]["half_recovery_bars"] is None
+    assert events[0]["new_high_bars"] is None

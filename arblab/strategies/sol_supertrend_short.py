@@ -86,6 +86,14 @@ class HedgeFailureCircuitBreakerState:
     relative_underperformance: float = 0.0
 
 
+@dataclass
+class TrafficLightGovernorState:
+    active: bool = False
+    green_votes: int = 4
+    state: str = "green"
+    hedge_floor: float = 0.0
+
+
 @dataclass(frozen=True)
 class HedgeTargetOverlay:
     floor: float
@@ -273,6 +281,7 @@ class SolSupertrendShortStrategy(Strategy):
         self.profit_lock_reserve_state = ProfitLockReserveState()
         self.cppi_exposure_cap_state = CppiExposureCapState()
         self.hedge_failure_state = HedgeFailureCircuitBreakerState()
+        self.traffic_light_governor_state = TrafficLightGovernorState()
         self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers: set[float] = set()
@@ -304,6 +313,7 @@ class SolSupertrendShortStrategy(Strategy):
         self.profit_lock_reserve_state = ProfitLockReserveState()
         self.cppi_exposure_cap_state = CppiExposureCapState()
         self.hedge_failure_state = HedgeFailureCircuitBreakerState()
+        self.traffic_light_governor_state = TrafficLightGovernorState()
         self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers = set()
@@ -341,7 +351,7 @@ class SolSupertrendShortStrategy(Strategy):
             "protected_book_usdc": self._protected_book_usdc,
         }
 
-    def history_fields(self) -> dict[str, float | bool]:
+    def history_fields(self) -> dict[str, float | bool | str]:
         return {
             "in_crisis_mode": self.crisis_state.active,
             "crisis_hedge_floor": self.crisis_state.hedge_floor,
@@ -378,6 +388,12 @@ class SolSupertrendShortStrategy(Strategy):
             "hedge_failure_relative_underperformance": (
                 self.hedge_failure_state.relative_underperformance
             ),
+            "in_traffic_light_governor": self.traffic_light_governor_state.active,
+            "traffic_light_green_votes": self.traffic_light_governor_state.green_votes,
+            "traffic_light_state": self.traffic_light_governor_state.state,
+            "traffic_light_hedge_floor": (
+                self.traffic_light_governor_state.hedge_floor
+            ),
             "protected_book_usdc": self._protected_book_usdc,
             "froth_reserve_usdc": self._froth_reserve_usdc,
             "in_drawdown_containment": self.drawdown_containment_state.active,
@@ -407,6 +423,12 @@ class SolSupertrendShortStrategy(Strategy):
             reason,
         )
         target_ratio, reason = self._apply_drawdown_containment_target(
+            snapshot,
+            vote,
+            target_ratio,
+            reason,
+        )
+        target_ratio, reason = self._apply_traffic_light_governor_target(
             snapshot,
             vote,
             target_ratio,
@@ -484,12 +506,7 @@ class SolSupertrendShortStrategy(Strategy):
                         reason = "under_hedged_crisis_cleanup"
             elif target_ratio > current_ratio:
                 self.crisis_state.under_hedged = False
-                min_hf = (
-                    float(self._config.get("fast_break_add_min_hf"))
-                    if reason == "fast_break_hedge_up"
-                    and self._config.get("fast_break_add_min_hf") is not None
-                    else None
-                )
+                min_hf = self._hedge_add_min_hf(reason)
                 actions.extend(
                     self._increase_eth_short(
                         snapshot,
@@ -539,6 +556,7 @@ class SolSupertrendShortStrategy(Strategy):
             and vote.green == 4
             and not self.in_full_short_mode
             and not self._drawdown_containment_blocks("releverage")
+            and not self._traffic_light_governor_blocks_releverage(vote)
         ):
             actions.extend(self._bullish_relever(snapshot, bar))
             if actions:
@@ -562,6 +580,7 @@ class SolSupertrendShortStrategy(Strategy):
             and not self.profit_lock_reserve_state.active
             and not self.hedge_failure_state.active
             and not self._drawdown_containment_blocks("reinvestment")
+            and not self._traffic_light_governor_blocks_reinvestment(vote)
         ):
             actions.extend(self._surplus_usdc_reinvestment(snapshot, vote, bar))
             if actions:
@@ -984,6 +1003,79 @@ class SolSupertrendShortStrategy(Strategy):
         if config_key is None:
             raise ValueError(f"Unknown drawdown containment action: {action}")
         return bool(self._config.get(config_key, True))
+
+    def _apply_traffic_light_governor_target(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        normal_target: float,
+        normal_reason: str,
+    ) -> tuple[float, str]:
+        if not bool(self._config.get("enable_traffic_light_governor", False)):
+            self.traffic_light_governor_state = TrafficLightGovernorState(
+                green_votes=vote.green,
+                state=self._traffic_light_state_name(vote.green),
+            )
+            return normal_target, normal_reason
+
+        floor = self._traffic_light_hedge_floor(vote.green)
+        self.traffic_light_governor_state = TrafficLightGovernorState(
+            active=True,
+            green_votes=vote.green,
+            state=self._traffic_light_state_name(vote.green),
+            hedge_floor=floor,
+        )
+        return self._resolve_target_overlay(
+            snapshot=snapshot,
+            normal_target=normal_target,
+            normal_reason=normal_reason,
+            overlay=HedgeTargetOverlay(
+                floor=floor,
+                up_reason="traffic_light_hedge_up",
+                down_reason="traffic_light_hedge_down",
+            ),
+        )
+
+    def _traffic_light_hedge_floor(self, green_votes: int) -> float:
+        floors = self._config.get("traffic_light_hedge_floors", {})
+        if green_votes in floors:
+            return float(floors[green_votes])
+        return float(floors.get(str(green_votes), 0.0))
+
+    @staticmethod
+    def _traffic_light_state_name(green_votes: int) -> str:
+        return {
+            4: "green",
+            3: "lime",
+            2: "yellow",
+            1: "orange",
+            0: "red",
+        }.get(green_votes, "unknown")
+
+    def _traffic_light_governor_blocks_releverage(self, vote: TrendVote) -> bool:
+        if not bool(self._config.get("enable_traffic_light_governor", False)):
+            return False
+        min_green = int(self._config.get("traffic_light_min_releverage_green", 4))
+        return vote.green < min_green
+
+    def _traffic_light_governor_blocks_reinvestment(self, vote: TrendVote) -> bool:
+        if not bool(self._config.get("enable_traffic_light_governor", False)):
+            return False
+        min_green = int(self._config.get("traffic_light_min_reinvestment_green", 3))
+        return vote.green < min_green
+
+    def _hedge_add_min_hf(self, reason: str) -> float | None:
+        if (
+            reason == "fast_break_hedge_up"
+            and self._config.get("fast_break_add_min_hf") is not None
+        ):
+            return float(self._config.get("fast_break_add_min_hf"))
+        if (
+            reason == "traffic_light_hedge_up"
+            and self._config.get("traffic_light_add_min_hf") is not None
+        ):
+            return float(self._config.get("traffic_light_add_min_hf"))
+        return None
 
     def _apply_crisis_target(
         self,
@@ -2198,6 +2290,16 @@ class SolSupertrendShortStrategy(Strategy):
                 "hedge_failure_sold_sol": self.hedge_failure_state.sold_sol,
                 "hedge_failure_relative_underperformance": (
                     self.hedge_failure_state.relative_underperformance
+                ),
+                "in_traffic_light_governor": (
+                    self.traffic_light_governor_state.active
+                ),
+                "traffic_light_green_votes": (
+                    self.traffic_light_governor_state.green_votes
+                ),
+                "traffic_light_state": self.traffic_light_governor_state.state,
+                "traffic_light_hedge_floor": (
+                    self.traffic_light_governor_state.hedge_floor
                 ),
                 "froth_reserve_usdc": self._froth_reserve_usdc,
                 "in_drawdown_containment": self.drawdown_containment_state.active,
