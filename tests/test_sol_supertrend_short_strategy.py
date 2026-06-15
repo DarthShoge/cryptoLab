@@ -281,6 +281,72 @@ def test_traffic_light_governor_blocks_surplus_reinvestment_until_recovery_light
     assert strategy.event_log[-1]["reason"] == "surplus_reinvestment"
 
 
+def test_traffic_light_exposure_reserve_sells_sol_when_lights_weaken():
+    strategy, snapshot = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_traffic_light_exposure_reserve=True,
+        traffic_light_exposure_sell_fractions={2: 0.10, 1: 0.20, 0: 0.30},
+        traffic_light_exposure_max_fraction=0.30,
+        traffic_light_exposure_min_sol_collateral=80.0,
+        signal_by_bar={0: {"green": 2, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0))
+
+    assert actions == [
+        {"type": "withdraw_collateral", "symbol": "SOL", "amount": pytest.approx(10.0)},
+        {"type": "deposit_collateral", "symbol": "USDC", "amount": pytest.approx(999.0)},
+    ]
+    assert strategy.history_fields()["traffic_light_exposure_reserve_usdc"] == pytest.approx(
+        999.0
+    )
+    assert strategy.event_log[-1]["reason"] == "traffic_light_exposure_reserve_sell"
+
+
+def test_traffic_light_exposure_reserve_rebuy_waits_for_green_recovery():
+    strategy, _ = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=False,
+        enable_traffic_light_exposure_reserve=True,
+        traffic_light_exposure_rebuy_min_green=4,
+        traffic_light_exposure_rebuy_fraction=0.25,
+        traffic_light_exposure_rebuy_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 3, "bearish_3d": False, "bearish_1w": False},
+            1: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+    strategy.traffic_light_exposure_reserve_state.reserve_usdc = 1_000.0
+    strategy.traffic_light_exposure_reserve_state.sold_sol = 10.0
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 90.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 1_000.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 1_500.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    blocked_actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0, eth_price=1_500.0))
+    allowed_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    assert blocked_actions == []
+    assert allowed_actions == [
+        {"type": "withdraw_collateral", "symbol": "USDC", "amount": pytest.approx(250.0)},
+        {"type": "deposit_collateral", "symbol": "SOL", "amount": pytest.approx(2.4975)},
+    ]
+    assert strategy.history_fields()["traffic_light_exposure_reserve_usdc"] == pytest.approx(
+        750.0
+    )
+    assert strategy.event_log[-1]["reason"] == "traffic_light_exposure_reserve_rebuy"
+
+
 def test_setup_starts_with_unlevered_sol_and_zero_debt_positions():
     strategy, snapshot = _setup_strategy()
 

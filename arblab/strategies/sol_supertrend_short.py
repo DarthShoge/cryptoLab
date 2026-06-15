@@ -94,6 +94,13 @@ class TrafficLightGovernorState:
     hedge_floor: float = 0.0
 
 
+@dataclass
+class TrafficLightExposureReserveState:
+    active: bool = False
+    reserve_usdc: float = 0.0
+    sold_sol: float = 0.0
+
+
 @dataclass(frozen=True)
 class HedgeTargetOverlay:
     floor: float
@@ -282,6 +289,7 @@ class SolSupertrendShortStrategy(Strategy):
         self.cppi_exposure_cap_state = CppiExposureCapState()
         self.hedge_failure_state = HedgeFailureCircuitBreakerState()
         self.traffic_light_governor_state = TrafficLightGovernorState()
+        self.traffic_light_exposure_reserve_state = TrafficLightExposureReserveState()
         self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers: set[float] = set()
@@ -314,6 +322,7 @@ class SolSupertrendShortStrategy(Strategy):
         self.cppi_exposure_cap_state = CppiExposureCapState()
         self.hedge_failure_state = HedgeFailureCircuitBreakerState()
         self.traffic_light_governor_state = TrafficLightGovernorState()
+        self.traffic_light_exposure_reserve_state = TrafficLightExposureReserveState()
         self._profit_lock_reserve_last_reason = "profit_lock_reserve_sell"
         self._froth_reserve_usdc = 0.0
         self._froth_reserve_executed_tiers = set()
@@ -394,6 +403,15 @@ class SolSupertrendShortStrategy(Strategy):
             "traffic_light_hedge_floor": (
                 self.traffic_light_governor_state.hedge_floor
             ),
+            "in_traffic_light_exposure_reserve": (
+                self.traffic_light_exposure_reserve_state.active
+            ),
+            "traffic_light_exposure_reserve_usdc": (
+                self.traffic_light_exposure_reserve_state.reserve_usdc
+            ),
+            "traffic_light_exposure_reserve_sold_sol": (
+                self.traffic_light_exposure_reserve_state.sold_sol
+            ),
             "protected_book_usdc": self._protected_book_usdc,
             "froth_reserve_usdc": self._froth_reserve_usdc,
             "in_drawdown_containment": self.drawdown_containment_state.active,
@@ -473,6 +491,11 @@ class SolSupertrendShortStrategy(Strategy):
             actions.extend(self._cppi_exposure_cap_sell(snapshot, bar))
             if actions:
                 reason = "cppi_exposure_cap_sell"
+
+        if not actions and not safety_action:
+            actions.extend(self._traffic_light_exposure_reserve_sell(snapshot, vote, bar))
+            if actions:
+                reason = "traffic_light_exposure_reserve_sell"
 
         if not actions and abs(target_ratio - current_ratio) > threshold:
             if self._should_fast_break_partial_fill(
@@ -555,6 +578,11 @@ class SolSupertrendShortStrategy(Strategy):
             actions.extend(self._traffic_light_protected_rebuy(snapshot, vote, bar))
             if actions:
                 reason = "traffic_light_protected_rebuy"
+
+        if not actions:
+            actions.extend(self._traffic_light_exposure_reserve_rebuy(snapshot, vote, bar))
+            if actions:
+                reason = "traffic_light_exposure_reserve_rebuy"
 
         if (
             not actions
@@ -1623,6 +1651,125 @@ class SolSupertrendShortStrategy(Strategy):
             {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
         ]
 
+    def _traffic_light_exposure_reserve_sell(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_traffic_light_exposure_reserve", False)):
+            self.traffic_light_exposure_reserve_state = TrafficLightExposureReserveState(
+                reserve_usdc=self.traffic_light_exposure_reserve_state.reserve_usdc,
+                sold_sol=self.traffic_light_exposure_reserve_state.sold_sol,
+            )
+            return []
+
+        sell_fractions = self._config.get("traffic_light_exposure_sell_fractions", {})
+        if vote.green in sell_fractions:
+            sell_fraction = float(sell_fractions[vote.green])
+        else:
+            sell_fraction = float(sell_fractions.get(str(vote.green), 0.0))
+        if sell_fraction <= 0:
+            self.traffic_light_exposure_reserve_state.active = (
+                self.traffic_light_exposure_reserve_state.reserve_usdc > 0
+            )
+            return []
+
+        sol_price = float(bar.prices["SOL"].close)
+        sol_amount = self._collateral_amount(snapshot, "SOL")
+        if sol_price <= 0 or sol_amount <= 0:
+            return []
+
+        min_sol = float(
+            self._config.get(
+                "traffic_light_exposure_min_sol_collateral",
+                self._config.get("initial_sol_collateral", 100.0),
+            )
+        )
+        max_sell_sol = max(0.0, sol_amount - min_sol)
+        if max_sell_sol <= 0:
+            return []
+
+        max_reserve_usdc = self._collateral_value(snapshot, "SOL") * float(
+            self._config.get("traffic_light_exposure_max_fraction", 0.30)
+        )
+        remaining_reserve_capacity = max(
+            0.0,
+            max_reserve_usdc
+            - self.traffic_light_exposure_reserve_state.reserve_usdc,
+        )
+        if remaining_reserve_capacity <= 0:
+            self.traffic_light_exposure_reserve_state.active = True
+            return []
+
+        fee = self._swap_fee()
+        sell_sol = min(
+            sol_amount * sell_fraction,
+            max_sell_sol,
+            remaining_reserve_capacity / (sol_price * (1.0 - fee)),
+        )
+        if sell_sol <= 0:
+            return []
+
+        usdc_proceeds = sell_sol * sol_price * (1.0 - fee)
+        self.traffic_light_exposure_reserve_state.active = True
+        self.traffic_light_exposure_reserve_state.reserve_usdc += usdc_proceeds
+        self.traffic_light_exposure_reserve_state.sold_sol += sell_sol
+        return [
+            {"type": "withdraw_collateral", "symbol": "SOL", "amount": sell_sol},
+            {"type": "deposit_collateral", "symbol": "USDC", "amount": usdc_proceeds},
+        ]
+
+    def _traffic_light_exposure_reserve_rebuy(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_traffic_light_exposure_reserve", False)):
+            return []
+        reserve = self.traffic_light_exposure_reserve_state.reserve_usdc
+        if reserve <= 0:
+            self.traffic_light_exposure_reserve_state = TrafficLightExposureReserveState()
+            return []
+
+        min_green = int(self._config.get("traffic_light_exposure_rebuy_min_green", 4))
+        if vote.green < min_green or vote.bearish_1d or vote.bearish_3d or vote.bearish_1w:
+            self.traffic_light_exposure_reserve_state.active = True
+            return []
+
+        sol_price = float(bar.prices["SOL"].close)
+        if sol_price <= 0:
+            return []
+
+        spend_usdc = min(
+            reserve * float(self._config.get("traffic_light_exposure_rebuy_fraction", 0.25)),
+            self._collateral_amount(snapshot, "USDC"),
+        )
+        spend_usdc = self._cap_spend_to_min_health_factor(
+            snapshot,
+            spend_usdc,
+            sol_price,
+            min_hf=float(self._config.get("traffic_light_exposure_rebuy_min_hf", 2.0)),
+        )
+        if spend_usdc <= 0:
+            self.traffic_light_exposure_reserve_state.active = True
+            return []
+
+        self.traffic_light_exposure_reserve_state.reserve_usdc -= spend_usdc
+        sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
+        self.traffic_light_exposure_reserve_state.sold_sol = max(
+            0.0,
+            self.traffic_light_exposure_reserve_state.sold_sol - sol_tokens,
+        )
+        self.traffic_light_exposure_reserve_state.active = (
+            self.traffic_light_exposure_reserve_state.reserve_usdc > 1e-9
+        )
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
+            {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
+        ]
+
     def _weekly_bearish_reserve_sell(
         self,
         snapshot: AccountSnapshot,
@@ -2363,6 +2510,15 @@ class SolSupertrendShortStrategy(Strategy):
                 "traffic_light_state": self.traffic_light_governor_state.state,
                 "traffic_light_hedge_floor": (
                     self.traffic_light_governor_state.hedge_floor
+                ),
+                "in_traffic_light_exposure_reserve": (
+                    self.traffic_light_exposure_reserve_state.active
+                ),
+                "traffic_light_exposure_reserve_usdc": (
+                    self.traffic_light_exposure_reserve_state.reserve_usdc
+                ),
+                "traffic_light_exposure_reserve_sold_sol": (
+                    self.traffic_light_exposure_reserve_state.sold_sol
                 ),
                 "froth_reserve_usdc": self._froth_reserve_usdc,
                 "in_drawdown_containment": self.drawdown_containment_state.active,
