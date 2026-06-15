@@ -448,6 +448,81 @@ def test_protected_book_allocates_realized_hedge_profit_before_reinvestment():
     )
 
 
+def test_traffic_light_protected_book_allocates_realized_profit_by_light():
+    strategy, snapshot = _setup_strategy(
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        enable_traffic_light_protected_book=True,
+        traffic_light_protected_book_fractions={
+            4: 0.0,
+            3: 0.10,
+            2: 0.25,
+            1: 0.50,
+            0: 1.00,
+        },
+        signal_by_bar={
+            0: {"green": 0, "bearish_3d": True, "bearish_1w": True},
+            1: {"green": 2, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+
+    from arblab.kamino_risk import apply_actions
+
+    open_actions = strategy.on_bar(snapshot, _bar(0, eth_price=2_000.0))
+    snapshot = apply_actions(snapshot, open_actions)
+    close_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    eth_repay = next(a for a in close_actions if a["type"] == "repay" and a["symbol"] == "ETH")
+    expected_realized_pnl = eth_repay["amount"] * (1_998.0 - 1_501.5)
+
+    assert strategy.hedge_accounting_state()["protected_book_usdc"] == pytest.approx(
+        expected_realized_pnl * 0.25
+    )
+    assert strategy.event_log[-1]["protected_book_usdc"] == pytest.approx(
+        expected_realized_pnl * 0.25
+    )
+
+
+def test_traffic_light_protected_book_rebuy_waits_for_recovery_light():
+    strategy, _ = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=False,
+        enable_traffic_light_protected_book=True,
+        traffic_light_protected_rebuy_min_green=4,
+        traffic_light_protected_rebuy_fraction=0.25,
+        traffic_light_protected_rebuy_max_pct_of_sol_collateral=0.05,
+        traffic_light_protected_rebuy_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 3, "bearish_3d": False, "bearish_1w": False},
+            1: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+    strategy._protected_book_usdc = 1_000.0
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 1_000.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 1_500.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    blocked_actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0, eth_price=1_500.0))
+    allowed_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    assert blocked_actions == []
+    assert allowed_actions == [
+        {"type": "withdraw_collateral", "symbol": "USDC", "amount": pytest.approx(250.0)},
+        {"type": "deposit_collateral", "symbol": "SOL", "amount": pytest.approx(2.4975)},
+    ]
+    assert strategy.hedge_accounting_state()["protected_book_usdc"] == pytest.approx(750.0)
+    assert strategy.event_log[-1]["reason"] == "traffic_light_protected_rebuy"
+
+
 def test_surplus_reinvestment_does_not_spend_cppi_protected_usdc():
     strategy, snapshot = _setup_strategy(
         enable_usdc_releverage=False,

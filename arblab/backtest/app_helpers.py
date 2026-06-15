@@ -122,6 +122,18 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
     "traffic_light_add_min_hf": None,
     "traffic_light_min_reinvestment_green": 3,
     "traffic_light_min_releverage_green": 4,
+    "enable_traffic_light_protected_book": False,
+    "traffic_light_protected_book_fractions": {
+        4: 0.0,
+        3: 0.10,
+        2: 0.25,
+        1: 0.50,
+        0: 1.0,
+    },
+    "traffic_light_protected_rebuy_min_green": 4,
+    "traffic_light_protected_rebuy_fraction": 0.25,
+    "traffic_light_protected_rebuy_max_pct_of_sol_collateral": 0.05,
+    "traffic_light_protected_rebuy_min_hf": 2.0,
     "enable_protected_book": False,
     "protected_book_realized_pnl_fraction": 0.25,
     "enable_froth_reserve": False,
@@ -630,6 +642,12 @@ def build_sol_supertrend_short_config(
     traffic_light_add_min_hf: float | None = None,
     traffic_light_min_reinvestment_green: int = 3,
     traffic_light_min_releverage_green: int = 4,
+    enable_traffic_light_protected_book: bool = False,
+    traffic_light_protected_book_fractions: dict[int, float] | None = None,
+    traffic_light_protected_rebuy_min_green: int = 4,
+    traffic_light_protected_rebuy_fraction: float = 0.25,
+    traffic_light_protected_rebuy_max_pct_of_sol_collateral: float = 0.05,
+    traffic_light_protected_rebuy_min_hf: float = 2.0,
     enable_protected_book: bool = False,
     protected_book_realized_pnl_fraction: float = 0.25,
     enable_froth_reserve: bool = False,
@@ -775,6 +793,19 @@ def build_sol_supertrend_short_config(
         "traffic_light_add_min_hf": traffic_light_add_min_hf,
         "traffic_light_min_reinvestment_green": traffic_light_min_reinvestment_green,
         "traffic_light_min_releverage_green": traffic_light_min_releverage_green,
+        "enable_traffic_light_protected_book": enable_traffic_light_protected_book,
+        "traffic_light_protected_book_fractions": (
+            traffic_light_protected_book_fractions
+            or {4: 0.0, 3: 0.10, 2: 0.25, 1: 0.50, 0: 1.0}
+        ),
+        "traffic_light_protected_rebuy_min_green": (
+            traffic_light_protected_rebuy_min_green
+        ),
+        "traffic_light_protected_rebuy_fraction": traffic_light_protected_rebuy_fraction,
+        "traffic_light_protected_rebuy_max_pct_of_sol_collateral": (
+            traffic_light_protected_rebuy_max_pct_of_sol_collateral
+        ),
+        "traffic_light_protected_rebuy_min_hf": traffic_light_protected_rebuy_min_hf,
         "enable_protected_book": enable_protected_book,
         "protected_book_realized_pnl_fraction": protected_book_realized_pnl_fraction,
         "enable_froth_reserve": enable_froth_reserve,

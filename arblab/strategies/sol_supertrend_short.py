@@ -551,6 +551,11 @@ class SolSupertrendShortStrategy(Strategy):
             if actions:
                 reason = "cppi_exposure_cap_rebuy"
 
+        if not actions:
+            actions.extend(self._traffic_light_protected_rebuy(snapshot, vote, bar))
+            if actions:
+                reason = "traffic_light_protected_rebuy"
+
         if (
             not actions
             and vote.green == 4
@@ -1064,6 +1069,12 @@ class SolSupertrendShortStrategy(Strategy):
         min_green = int(self._config.get("traffic_light_min_reinvestment_green", 3))
         return vote.green < min_green
 
+    def _traffic_light_protected_book_fraction(self, green_votes: int) -> float:
+        fractions = self._config.get("traffic_light_protected_book_fractions", {})
+        if green_votes in fractions:
+            return float(fractions[green_votes])
+        return float(fractions.get(str(green_votes), 0.0))
+
     def _hedge_add_min_hf(self, reason: str) -> float | None:
         if (
             reason == "fast_break_hedge_up"
@@ -1556,6 +1567,56 @@ class SolSupertrendShortStrategy(Strategy):
             return []
 
         self._consumed_hedge_profit_usdc += spend_usdc
+        sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
+        return [
+            {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
+            {"type": "deposit_collateral", "symbol": "SOL", "amount": sol_tokens},
+        ]
+
+    def _traffic_light_protected_rebuy(
+        self,
+        snapshot: AccountSnapshot,
+        vote: TrendVote,
+        bar: BarData,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_traffic_light_protected_book", False)):
+            return []
+        min_green = int(self._config.get("traffic_light_protected_rebuy_min_green", 4))
+        if vote.green < min_green:
+            return []
+
+        sol_value = self._collateral_value(snapshot, "SOL")
+        sol_price = bar.prices["SOL"].close
+        if self._protected_book_usdc <= 0 or sol_value <= 0 or sol_price <= 0:
+            return []
+
+        spendable_usdc_collateral = max(
+            0.0,
+            self._collateral_amount(snapshot, "USDC")
+            - self.cppi_exposure_cap_state.protected_usdc,
+        )
+        spend_usdc = min(
+            self._protected_book_usdc
+            * float(self._config.get("traffic_light_protected_rebuy_fraction", 0.25)),
+            sol_value
+            * float(
+                self._config.get(
+                    "traffic_light_protected_rebuy_max_pct_of_sol_collateral",
+                    0.05,
+                )
+            ),
+            spendable_usdc_collateral,
+        )
+        spend_usdc = self._cap_spend_to_min_health_factor(
+            snapshot,
+            spend_usdc,
+            sol_price,
+            min_hf=float(self._config.get("traffic_light_protected_rebuy_min_hf", 2.0)),
+        )
+        if spend_usdc <= 0:
+            return []
+
+        self._protected_book_usdc -= spend_usdc
         sol_tokens = spend_usdc * (1.0 - self._swap_fee()) / sol_price
         return [
             {"type": "withdraw_collateral", "symbol": "USDC", "amount": spend_usdc},
@@ -2171,8 +2232,10 @@ class SolSupertrendShortStrategy(Strategy):
         snapshot: AccountSnapshot,
         desired_spend_usdc: float,
         sol_price: float,
+        min_hf: float | None = None,
     ) -> float:
-        min_hf = float(self._config.get("surplus_reinvestment_min_hf", 2.0))
+        if min_hf is None:
+            min_hf = float(self._config.get("surplus_reinvestment_min_hf", 2.0))
         if desired_spend_usdc <= 0 or snapshot.risk_adjusted_debt_value() <= 0:
             return desired_spend_usdc
 
@@ -2338,10 +2401,17 @@ class SolSupertrendShortStrategy(Strategy):
             covered_amount * self._average_eth_short_basis_usdc
         ) - cover_cost_basis
         self._lifetime_realized_hedge_pnl_usdc += realized_pnl
-        if bool(self._config.get("enable_protected_book", False)) and realized_pnl > 0:
-            self._protected_book_usdc += realized_pnl * float(
-                self._config.get("protected_book_realized_pnl_fraction", 0.25)
-            )
+        if realized_pnl > 0:
+            protected_fraction = 0.0
+            if bool(self._config.get("enable_traffic_light_protected_book", False)):
+                protected_fraction = self._traffic_light_protected_book_fraction(
+                    self.traffic_light_governor_state.green_votes
+                )
+            elif bool(self._config.get("enable_protected_book", False)):
+                protected_fraction = float(
+                    self._config.get("protected_book_realized_pnl_fraction", 0.25)
+                )
+            self._protected_book_usdc += realized_pnl * protected_fraction
         self._open_eth_short_amount = max(
             0.0,
             self._open_eth_short_amount - covered_amount,
