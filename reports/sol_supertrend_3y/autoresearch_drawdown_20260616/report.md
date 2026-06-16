@@ -2,36 +2,53 @@
 
 Window: `2021-01-01` to `2025-12-31` at 1h bars from cached Binance SOL/ETH data.
 
-Hard gates:
+Original hard gates:
 
 - Final SOL-equivalent > `420 SOL`
-- Minimum health factor >= `1.50`
 
-Primary objective: lowest max drawdown among configs that pass both hard gates.
+The `1.50` minimum health-factor gate was removed after review because the current priority is max drawdown and final SOL amount. Health factor is now retained as a diagnostic, not a pass/fail gate.
+
+Primary objective: lowest max drawdown among configs that preserve strong final SOL.
 
 ## Result
 
-The first autoresearch loop found a new valid compromise:
+The revised no-HF-gate loop found two better frontier choices:
 
 | scenario | final SOL-eq | max DD | 2024 DD | min HF | Sortino | status |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| raw traffic-light baseline | 505.214 | 79.450% | 64.605% | 1.423 | 2.343 | invalid HF |
-| previous best valid checkpoint | 420.951 | 81.157% | 64.781% | 1.616 | 2.288 | valid |
-| autoresearch valid compromise | 449.588 | 80.385% | 64.667% | 1.506 | 2.311 | valid |
+| raw traffic-light baseline | 505.214 | 79.450% | 64.605% | 1.423 | 2.343 | baseline |
+| best no-HF drawdown | 496.353 | 78.991% | 64.436% | 1.432 | 2.342 | keep |
+| Pareto SOL improvement | 506.680 | 79.349% | 64.595% | 1.421 | 2.343 | keep |
+| previous HF-valid compromise | 449.588 | 80.385% | 64.667% | 1.506 | 2.311 | obsolete under revised objective |
 
-Config for the new valid compromise:
+Config for the best no-HF drawdown candidate:
 
 ```python
 traffic_light_hedge_floors = {
     4: 0.0,
     3: 0.10,
     2: 0.50,
-    1: 1.10,
+    1: 1.20,
+    0: 1.20,
+}
+traffic_light_min_reinvestment_green = 3
+traffic_light_min_releverage_green = 4
+traffic_light_add_min_hf = None
+```
+
+Config for the Pareto SOL improvement:
+
+```python
+traffic_light_hedge_floors = {
+    4: 0.0,
+    3: 0.10,
+    2: 0.52,
+    1: 1.05,
     0: 1.10,
 }
 traffic_light_min_reinvestment_green = 3
 traffic_light_min_releverage_green = 4
-traffic_light_add_min_hf = 2.20
+traffic_light_add_min_hf = None
 ```
 
 ## What Failed
@@ -50,9 +67,13 @@ traffic_light_add_min_hf = 2.20
 
 ## Interpretation
 
-The valid improvement came from combining the better local floor shape with a moderate projected-HF guard. The floor change alone improves drawdown slightly but leaves health factor too low. The HF guard alone can cross `1.50`, but usually costs too much SOL. The combination gives up about `55.6 SOL` versus the raw invalid frontier while improving the prior valid checkpoint by about `28.6 SOL` and reducing max drawdown by about `0.77 percentage points`.
+Removing the HF gate changes the decision. The prior `449.588 SOL` compromise is no longer attractive because it gave up too much SOL to satisfy a secondary diagnostic.
 
-This is still not close to the investor target of sub-50% drawdown. It is a better valid checkpoint, not the final answer.
+The best drawdown candidate found so far is `y=0.50, o=1.20, r=1.20`, which improves max drawdown by about `0.46 percentage points` versus the raw baseline while giving up about `8.86 SOL`.
+
+The best Pareto candidate is `y=0.52, o=1.05, r=1.10`, which improves both final SOL and max drawdown versus the raw baseline: `+1.47 SOL` and about `0.10 percentage points` lower max drawdown.
+
+This is still not close to the investor target of sub-50% drawdown. It is a better no-HF frontier checkpoint, not the final answer.
 
 ## Autoresearch Log
 
