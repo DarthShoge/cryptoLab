@@ -7,6 +7,10 @@ from typing import Dict, List
 
 import pandas as pd
 
+from arblab.backtest.asset_universe import (
+    curated_kamino_universe,
+    exchange_price_configs,
+)
 from arblab.backtest.data import OHLCVConfig
 from arblab.backtest.engine import BacktestEngine, EngineConfig
 from arblab.backtest.market import MarketParams
@@ -158,10 +162,9 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
 }
 
 EXCHANGE_SYMBOLS = {
-    "SOL": "SOL/USDT",
-    "JitoSOL": "JITOSOL/USDT",
-    "mSOL": "MSOL/USDT",
-    "ETH": "ETH/USDT",
+    symbol: entry.exchange_symbol
+    for symbol, entry in curated_kamino_universe().items()
+    if entry.exchange_symbol
 }
 
 
@@ -275,10 +278,13 @@ def build_price_configs(
 ) -> List[OHLCVConfig]:
     """Return exchange symbols required by the selected strategy."""
     if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY:
-        return [
-            OHLCVConfig(symbol=EXCHANGE_SYMBOLS["SOL"], display_name="SOL"),
-            OHLCVConfig(symbol=EXCHANGE_SYMBOLS["ETH"], display_name="ETH"),
-        ]
+        universe = curated_kamino_universe()
+        return exchange_price_configs(
+            {
+                "SOL": universe["SOL"],
+                "ETH": universe["ETH"],
+            }
+        )
     return [
         OHLCVConfig(
             symbol=EXCHANGE_SYMBOLS.get(
