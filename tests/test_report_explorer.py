@@ -214,13 +214,14 @@ def test_build_temperature_frame_combines_sol_price_and_net_exposure():
     assert frame["net_temperature"].round(3).tolist() == [1.5, 0.5, -0.5]
 
 
-def test_build_timeline_frame_extracts_key_handling_events():
+def test_build_timeline_frame_extracts_trade_action_events():
     history = _history([100.0, 120.0, 90.0, 80.0])
     history["selected_long"] = ["SOL", "SOL", "ETH", "ETH"]
-    history["target_long_fraction"] = [1.5, 1.0, 1.0, 0.6]
-    history["target_short_fraction"] = [0.0, 0.0, 0.1, 0.1]
+    history["target_long_fraction"] = [1.0, 1.5, 0.8, 0.8]
+    history["target_short_fraction"] = [0.0, 0.0, 0.2, 0.0]
     history["recovery_boost_active"] = [False, False, True, True]
     history["health_factor"] = [2.0, 1.7, 1.4, 1.6]
+    history["liquidation_count"] = [0, 0, 0, 1]
     prices = {
         "SOL": pd.Series(
             [10.0, 12.0, 8.0, 7.0],
@@ -231,12 +232,14 @@ def test_build_timeline_frame_extracts_key_handling_events():
     frame = build_timeline_frame(history, prices)
 
     assert set(frame["event_family"]) >= {
-        "long_exposure",
-        "hedge",
-        "asset_rotation",
-        "recovery",
-        "health_factor",
-        "drawdown",
+        "buy",
+        "sell",
+        "short",
+        "cover",
+        "rotation",
+        "liquidation",
     }
     assert frame.iloc[0]["event_family"] == "start"
     assert "long target" in " ".join(frame["event"].astype(str))
+    assert "health_factor" not in set(frame["event_family"])
+    assert "drawdown" not in set(frame["event_family"])

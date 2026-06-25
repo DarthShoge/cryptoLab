@@ -189,9 +189,7 @@ def build_timeline_frame(
     sol_price = prices["SOL"].reindex(history.index, method="ffill").astype(float)
     rows: list[dict[str, object]] = []
     previous: pd.Series | None = None
-    previous_hf_stressed = False
-    previous_drawdown_bucket = -1
-    thresholds = [20.0, 35.0, 50.0, 60.0]
+    previous_liquidations = 0.0
 
     for timestamp, row in history.iterrows():
         if pd.isna(sol_price.loc[timestamp]):
@@ -203,6 +201,7 @@ def build_timeline_frame(
         health_factor = float(row.get("health_factor", 0.0))
         drawdown = float(row.get("equity_drawdown_pct", 0.0))
         selected_long = str(row.get("selected_long", ""))
+        liquidations = float(row.get("liquidation_count", row.get("total_liquidations", 0.0)))
 
         base = {
             "timestamp": timestamp,
@@ -231,64 +230,40 @@ def build_timeline_frame(
                 rows.append(
                     {
                         **base,
-                        "event_family": "asset_rotation",
+                        "event_family": "rotation",
                         "event": f"Long asset changed from {previous_selected or 'none'} to {selected_long or 'none'}",
                     }
                 )
             if abs(long - previous_long) >= 0.05:
-                direction = "raised" if long > previous_long else "cut"
+                event_family = "buy" if long > previous_long else "sell"
+                direction = "raised" if event_family == "buy" else "cut"
                 rows.append(
                     {
                         **base,
-                        "event_family": "long_exposure",
+                        "event_family": event_family,
                         "event": f"Long target {direction} from {previous_long:.3f} to {long:.3f}",
                     }
                 )
             if abs(short - previous_short) >= 0.01:
-                direction = "raised" if short > previous_short else "cut"
+                event_family = "short" if short > previous_short else "cover"
+                direction = "raised" if event_family == "short" else "cut"
                 rows.append(
                     {
                         **base,
-                        "event_family": "hedge",
+                        "event_family": event_family,
                         "event": f"Hedge/short target {direction} from {previous_short:.3f} to {short:.3f}",
                     }
                 )
-
-            previous_boost = bool(previous.get("recovery_boost_active", False))
-            boost = bool(row.get("recovery_boost_active", False))
-            if boost != previous_boost:
+            if liquidations > previous_liquidations:
                 rows.append(
                     {
                         **base,
-                        "event_family": "recovery",
-                        "event": "Recovery boost activated" if boost else "Recovery boost deactivated",
+                        "event_family": "liquidation",
+                        "event": f"Liquidations increased from {previous_liquidations:.0f} to {liquidations:.0f}",
                     }
                 )
 
-        hf_stressed = health_factor < 1.5
-        if hf_stressed != previous_hf_stressed:
-            rows.append(
-                {
-                    **base,
-                    "event_family": "health_factor",
-                    "event": (
-                        f"Health factor stress entered at {health_factor:.3f}"
-                        if hf_stressed
-                        else f"Health factor recovered to {health_factor:.3f}"
-                    ),
-                }
-            )
-        previous_hf_stressed = hf_stressed
-
-        drawdown_bucket = sum(drawdown >= threshold for threshold in thresholds)
-        if drawdown_bucket != previous_drawdown_bucket:
-            label = (
-                f"Drawdown crossed {thresholds[drawdown_bucket - 1]:.0f}% at {drawdown:.1f}%"
-                if drawdown_bucket > previous_drawdown_bucket and drawdown_bucket > 0
-                else f"Drawdown improved to {drawdown:.1f}%"
-            )
-            rows.append({**base, "event_family": "drawdown", "event": label})
-        previous_drawdown_bucket = drawdown_bucket
+        previous_liquidations = liquidations
         previous = row
 
     return pd.DataFrame(rows, columns=columns)
