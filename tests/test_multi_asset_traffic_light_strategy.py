@@ -234,3 +234,52 @@ def test_on_bar_can_use_precomputed_green_scores():
 
     assert any(action["type"] == "deposit_collateral" and action["symbol"] == "SOL" for action in actions)
     assert any(action["type"] == "borrow" and action["symbol"] == "ETH" for action in actions)
+
+
+def test_drawdown_governor_caps_long_exposure_after_usd_equity_drawdown():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0 + i for i in range(96)],
+        eth=[2_000.0] * 96,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "atr_period": 3,
+        "supertrend_multiplier": 1.5,
+        "timeframes": ("1h", "4h"),
+        "min_long_green": 2,
+        "max_short_green": -1,
+        "target_long_fraction": 1.50,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "enable_drawdown_governor": True,
+        "drawdown_exposure_tiers": [
+            {"drawdown": 0.0, "target_long_fraction": 1.50},
+            {"drawdown": 0.20, "target_long_fraction": 1.00},
+        ],
+    }
+    high_snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+    strategy.on_bar(high_snapshot, _bar(history))
+
+    low_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=position.amount,
+                price=70.0 if position.symbol == "SOL" else position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in high_snapshot.collateral
+        ],
+        debt=high_snapshot.debt,
+    )
+
+    strategy.on_bar(low_snapshot, _bar(history))
+
+    fields = strategy.history_fields()
+    assert fields["equity_drawdown_pct"] >= 30.0
+    assert fields["target_long_fraction"] == 1.0

@@ -26,7 +26,10 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "selected_short": "",
             "long_green": 0,
             "short_green": 0,
+            "target_long_fraction": 0.0,
+            "equity_drawdown_pct": 0.0,
         }
+        self._peak_equity = 0.0
         market_params = MarketParams.kamino_defaults()
         universe = curated_kamino_universe()
         symbols = list(
@@ -119,22 +122,28 @@ class MultiAssetTrafficLightStrategy(Strategy):
             else ""
         )
 
-        self._history_fields = {
-            "selected_long": selected_long,
-            "selected_short": selected_short,
-            "long_green": ranking.green_counts.get(selected_long, 0),
-            "short_green": ranking.green_counts.get(selected_short, 0),
-        }
-
         actions: list[dict[str, Any]] = []
         equity = max(snapshot.total_collateral_value() - snapshot.total_debt_value(), 0.0)
         if equity <= 0.0:
             return []
 
         threshold = float(config.get("rebalance_threshold", 0.05))
-        target_long_fraction = float(config.get("target_long_fraction", 0.50))
+        target_long_fraction, equity_drawdown = self._target_long_fraction(
+            equity=equity,
+            base_target=float(config.get("target_long_fraction", 0.50)),
+            config=config,
+        )
         target_short_fraction = float(config.get("target_short_fraction", 0.20))
         fee = float(config.get("swap_fee_bps", bar.market_params.swap_fee_bps)) / 10_000.0
+
+        self._history_fields = {
+            "selected_long": selected_long,
+            "selected_short": selected_short,
+            "long_green": ranking.green_counts.get(selected_long, 0),
+            "short_green": ranking.green_counts.get(selected_short, 0),
+            "target_long_fraction": target_long_fraction,
+            "equity_drawdown_pct": equity_drawdown * 100.0,
+        }
 
         actions.extend(
             self._rebalance_collateral(
@@ -164,6 +173,8 @@ class MultiAssetTrafficLightStrategy(Strategy):
                     "selected_long": selected_long,
                     "selected_short": selected_short,
                     "green_counts": ranking.green_counts,
+                    "target_long_fraction": target_long_fraction,
+                    "equity_drawdown_pct": equity_drawdown * 100.0,
                     "action_count": len(actions),
                 }
             )
@@ -192,6 +203,31 @@ class MultiAssetTrafficLightStrategy(Strategy):
             multiplier=float(config.get("supertrend_multiplier", 3.0)),
             timeframes=tuple(config.get("timeframes", ("1h", "4h", "8h", "1d"))),
         )
+
+    def _target_long_fraction(
+        self,
+        equity: float,
+        base_target: float,
+        config: dict[str, Any],
+    ) -> tuple[float, float]:
+        self._peak_equity = max(self._peak_equity, equity)
+        drawdown = (
+            (self._peak_equity - equity) / self._peak_equity
+            if self._peak_equity > 0.0
+            else 0.0
+        )
+        if not bool(config.get("enable_drawdown_governor", False)):
+            return base_target, drawdown
+
+        selected_target = base_target
+        tiers = list(config.get("drawdown_exposure_tiers", []))
+        for tier in sorted(tiers, key=lambda row: float(row["drawdown"])):
+            if drawdown >= float(tier["drawdown"]):
+                selected_target = min(
+                    base_target,
+                    float(tier["target_long_fraction"]),
+                )
+        return selected_target, drawdown
 
     def _rebalance_collateral(
         self,

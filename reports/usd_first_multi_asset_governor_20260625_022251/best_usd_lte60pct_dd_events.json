@@ -1,0 +1,8078 @@
+[
+  {
+    "timestamp": "2021-01-01 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 0.0,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2021-01-06 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.6086643940352,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-01-07 01:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.367034245854551,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-01-10 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.31715731046016,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-01-11 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.673915577795697,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-01-19 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.054529532547157,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-01-20 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.700289601196086,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-01-22 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.9783596123271,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-01-22 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.04772369283173,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-02-06 02:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.616158818771185,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-02-07 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.748814901550327,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-02-07 05:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.112367029451338,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-02-07 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.131825620501024,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-08 07:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 0.0,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-08 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 0.6427005068904492,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-09 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.713980284749903,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-10 02:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.170230445487964,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-13 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.794550774411227,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-13 11:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.82947571728203,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-02-15 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.919431205727165,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-02-15 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.255989029574398,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-16 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.014650647779906,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-16 17:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.507640890168997,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-02-17 04:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.126151901018563,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-02-18 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.223005669571126,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-19 05:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.618806439318245,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-19 07:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.608452582608724,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-20 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.548512432403381,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-20 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.718732202680503,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-02-28 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.449693154026576,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-02-28 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.521139755304134,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-03-05 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.26049813664692,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-03-06 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.324737006014246,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-03-13 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.997729323976266,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-03-13 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.06783346167019,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-03-13 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.939281914584406,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-03-14 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.68363031273937,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-03-14 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.362256490745274,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-03-17 17:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.42763705416255,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-03-21 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.10993420804755,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-03-21 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.17607240801469,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-03-23 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.81253786869605,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-03-24 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.879933642260966,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-03-24 21:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.162332148081695,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-03-27 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.22744357146107,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-04-01 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.89883202539504,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-04-02 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.941701731132312,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-05 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.6883648597002163,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-06 18:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.6529271389125153,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-10 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.335059843959412,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-11 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.172342280953517,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-12 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.39452375923515,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-12 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.275258528945587,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-13 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.93161271071946,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-13 18:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.08484881819867,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-14 03:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.457059338055204,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-15 13:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.961635764764648,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-18 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.593437799300563,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-04-18 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.65878209806199,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-04-18 07:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.73831602640093,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-04-27 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.454725866223734,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-04-28 07:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.733331999592792,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-04-28 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.3506149042025526,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-04-28 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.4504030883634043,
+    "action_count": 6
+  },
+  {
+    "timestamp": "2021-05-03 21:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.502302455550618,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-05-04 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.552376988256423,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-05-05 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.077404258936745,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-05-11 22:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 0.9789042280488861,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-05-12 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 1.1753753690147328,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-05-12 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 4.546709921794262,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-05-13 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.175605464888065,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-05-14 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.263336518706343,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-05-14 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.748819500202128,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-05-15 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.61648749336466,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-05-15 10:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.170543507187432,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-05-15 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.249353210972963,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-05-19 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.05055439638112,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-05-26 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.1192796405301,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-05-28 05:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 41.4977657421623,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-06-01 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 41.559581566850945,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-06-01 17:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 45.534218243539975,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-06-02 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 45.59166793329836,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-06-03 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 44.230417906065504,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-06-04 07:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 44.50308494462366,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2021-06-05 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 44.56154959878628,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2021-06-07 21:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 46.69593983211767,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-06-14 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 46.74951664068303,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-06-16 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 49.39131985242,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-06-16 22:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 49.444648118289095,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-06-17 18:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 50.2851100362622,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-06-28 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 50.33740630151462,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-06-30 04:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.288366527426135,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-06-30 05:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 52.93529318030485,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-06-30 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 52.98479226127253,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-06-30 21:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 52.45339894757749,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-07-01 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.00381244888347,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2021-07-02 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.0515544223934,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2021-07-03 06:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.33404424062842,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-07-05 03:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.62614079062651,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-07-06 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.671808081137044,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-07-08 06:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.46187748287657,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-07-22 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.508628464334386,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-07-22 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 54.79361334109816,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-07-23 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.98137375201168,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-07-24 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 54.97670204395363,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-07-25 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.09267445365479,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-07-27 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.51123775852731,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-07-27 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.556842077082194,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-07-29 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.08541906789753,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-08-07 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 41.78585143503099,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-08-08 18:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 43.35601681783927,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-08-21 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.922080267962698,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-08-22 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.552888341287344,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-08-23 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.052590563439873,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-08-24 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.778754945342873,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-08-25 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.88682846136353,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-08-26 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.370504984852797,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-08-26 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.454370527787795,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-08-31 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.40850430430062,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-09-02 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.6437750779133724,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-09-05 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.016162387773944,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-09-05 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.368500243581972,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-09-08 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.300285370309787,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-09-08 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.389888221010247,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-09-13 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.34006946260281,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-09-18 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.41110423200292,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-09-19 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.504760720900876,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-09-27 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.57365601425217,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-09-28 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.66774751520038,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-09-29 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.73242021736704,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-10-06 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.71202154754586,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-10-06 09:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.18771617601715,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2021-10-06 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.258056365325686,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2021-10-08 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.81288265413466,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-10-10 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.23860953787278,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-10-10 02:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.96907605130418,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-10-14 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.03653334620383,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-10-15 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.55771556683786,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-10-18 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.93355940716038,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-10-18 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.70120905282792,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-10-19 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.38881754177307,
+    "action_count": 6
+  },
+  {
+    "timestamp": "2021-10-20 11:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.792559860092354,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-10-23 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.435616300884085,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-10-24 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.54490769602016,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-10-26 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.16465569835566,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-10-26 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.50608110318901,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-10-28 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.27921595144993,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-10-28 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.357197496714424,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-10-28 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.943204957452533,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-10-28 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.420142948551955,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-10-31 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.231425904204702,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-11-08 02:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.189026664293078,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-11-10 01:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.739483738877841,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-11-10 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.944541651987871,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-11-10 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.382743785086925,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-11-12 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.05551871616884,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2021-11-12 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.95342432460736,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-11-13 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.045158242220879,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-11-15 21:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.630189675761436,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-11-30 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.723000811844264,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-12-01 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.79460945155775,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2021-12-03 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.67738699009818,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-12-16 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.772433854581278,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-12-17 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.593717596481838,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-12-17 17:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.688731100657623,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-12-19 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.8604373788415405,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2021-12-23 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.957189574501373,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2021-12-28 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.056582134735002,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-02-01 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.155228727971256,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-02-02 17:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.603622702186849,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-02-04 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.700811397729835,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-02-08 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 3.6885181116623063,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-02-11 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.045519214463175,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-02-15 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.145029714038252,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-02-17 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.63832338070248,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-03-01 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.726225103544746,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-03-03 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.574990855080216,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-03-17 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.659669563401167,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-03-18 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.748039067330463,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-03-18 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.887847856466554,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-03-20 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.393096365537104,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-03-21 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.48003677490923,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-03-22 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.43469408072349,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-03-24 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.433786810279893,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-03-25 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.957558744987962,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-03-27 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.930220156926204,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-03-27 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.283897903511235,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-04-02 19:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 4.220448669190756,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-04-03 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 4.840000116288017,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-04-03 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 3.984040154213639,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-04-04 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.9724534647161605,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-04-04 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.043414980650486,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-04-05 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.146310486842647,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-04-06 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.835099584338618,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-04-19 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.928110724789049,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-04-20 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.786797330588639,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-04-20 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.12155301697678,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-04-21 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.212232473746742,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-04-21 17:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.949630897859745,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-05-31 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.03401505331318,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-05-31 19:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.685730601757246,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-06-21 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.770281106875977,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-06-22 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.305257264218092,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-06-23 11:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.38204856658722,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-06-28 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.586556405276475,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-07-05 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.662681306003577,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-07-05 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.63651015577342,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-07-05 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.70556694648847,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-07-11 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.05987372286476,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-07-14 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.12715121926589,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-07-17 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.936825641689516,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-07-18 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.374840712105733,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-07-20 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.749889327069933,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-07-21 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.636511971029304,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-07-22 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.903576804148912,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-07-22 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.740896052141196,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-07-23 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.706328987697365,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-07-26 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.06997541038399,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-07-27 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.14181414538368,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-07-28 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.316137156765045,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-07-28 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.91219234895167,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-07-29 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.375991553209392,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-07-30 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.790062319752142,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-07-31 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.942665980925337,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-08-01 11:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.515044951238266,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-08-03 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.16408679645818,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-08-04 09:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.893151664758925,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-08-05 03:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.95849777882705,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-08-05 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.65259085072569,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-08-06 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.969732670351675,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-08-08 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.82897632008773,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-08-09 02:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.25697571749346,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-08-09 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 40.525473752219725,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-08-09 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 41.77970380083883,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-08-10 13:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 41.84126530277955,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-08-10 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 41.99951936011298,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-08-11 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 40.06834285654553,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-08-11 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 42.28613899565911,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-08-12 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 40.75548273941165,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2022-08-16 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 43.064562863555786,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-08-17 07:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 43.1245900800848,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-08-17 09:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 43.1926357146789,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-09-02 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 43.25234668145271,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-09-02 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 44.8451560582058,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-09-04 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 44.90320803532314,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-09-06 18:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 44.06576035860579,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-09-09 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 44.124508709131796,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-09-11 22:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 45.51824467434426,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-09-12 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 45.57558054779386,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-09-13 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 51.78756063921305,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-09-24 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 51.83855236522666,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-09-25 14:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.12843417971944,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-09-26 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.1777652016063,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-10-03 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.488773956029256,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-10-03 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.535678761158735,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-10-09 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.954834739259994,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-10-09 13:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.001152530605914,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-10-10 09:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.35654825746609,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-10-14 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.4024383069151,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-10-14 18:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 58.740300850604754,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-10-17 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 58.78378653568329,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-10-18 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 59.268810216112385,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-10-23 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 59.31164597892196,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-10-30 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 50.44097149009313,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-11-02 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 54.51190519272701,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-11-03 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.96894044813991,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-11-04 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 54.01734198488201,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-11-07 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.18679589112908,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-11-07 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.45121913779174,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-11-24 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.50117760577062,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-11-26 19:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.21771304404116,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-11-28 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.8375600824622,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-11-30 04:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.886466046600376,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-12-03 09:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.806449030413795,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-12-04 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.85326472404973,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-12-05 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 53.25254335430705,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-12-07 07:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 54.49684728266486,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-12-08 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 54.54521411908366,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-12-09 21:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.27176575150566,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2022-12-10 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.317737848145576,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-12-11 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.35863611594872,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-12-11 23:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.51251569025977,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-12-13 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.55872038519038,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2022-12-14 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 55.970717950410744,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2022-12-15 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 56.7086485430298,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2022-12-15 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 57.969568993518195,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-01-02 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 58.01233786619457,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-01-08 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 50.1400318216738,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-01-08 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 50.21013875348872,
+    "action_count": 6
+  },
+  {
+    "timestamp": "2023-01-11 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 42.61378211447898,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-01-11 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.81022185289167,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-18 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.612285485340593,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-18 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.023428251278755,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-19 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.360681793459804,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-20 17:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.64545296129774,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-22 21:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.210955573464528,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-23 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.804471268289644,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-30 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.233886607215174,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-01-30 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.859591132592904,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-01-31 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.951388139069497,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-02-01 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.529415644040611,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-02-03 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.336429351080534,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-02-05 13:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.390925862146101,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-02-06 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.05245230207156,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-02-08 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.140641108230774,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-02-08 19:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.31298293686894,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-02-09 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.248750720256968,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-02-12 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.332676512005367,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-02-13 02:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.790931061155643,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-02-14 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.87236061509819,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-02-15 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.287607598864895,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-02-16 22:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.791090197690394,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-02-16 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.367443681766105,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-02-24 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.6154863278066,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-03-01 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.699053027368596,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-03-02 17:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.177026732840215,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-03-13 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.258899175114884,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-03-14 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.341478998489666,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-03-15 11:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.922495344624917,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-03-15 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.078604561761676,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-03-18 22:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.79507866401387,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-03-19 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.20344704559975,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-03-20 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.509106855409566,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-03-21 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.407119944421494,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-03-22 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.864956995852566,
+    "action_count": 6
+  },
+  {
+    "timestamp": "2023-03-23 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.119631078842833,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-03-23 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.6948996408458,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-03-24 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.809334883281757,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-04-11 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.593238727688306,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-04-19 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.431811053745268,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-04-26 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.520693419952911,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-04-26 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.223931714779642,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-04-28 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.30702085555521,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-05-01 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.95793334111223,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-05-02 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.036994822122765,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-05-03 11:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.917291597738874,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-05-05 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.993201770617322,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-05-05 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.787287418497996,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-05-06 13:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.173142530327862,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-05-07 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.249703534228406,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-05-08 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 30.69785231939481,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-05-23 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 30.77053827229554,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-05-24 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 0,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.9699095961548,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-05-29 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.041474568922254,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-05-29 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.8604948921764,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-05-30 02:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.379543995836315,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-05-31 06:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.38795391716908,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-06-02 05:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.45703809103834,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-06-02 06:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 34.65571912836306,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-06-05 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.07754278680013,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-06-07 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.14392043791119,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-06-07 10:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.17093692266809,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-06-17 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.2349241159179,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-06-18 23:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 0,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 40.15399701047481,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-06-20 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 40.21694623951216,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-06-21 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.20700969830143,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-06-22 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.45449309510338,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-06-26 02:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.90392979797155,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-06-26 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.79199773235927,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-06-28 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.452025935978604,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-06-29 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.515765035182675,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-06-29 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 39.69927583099648,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-06-30 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.49382010622947,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-07-02 18:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.16419367305318,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-07-02 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.02452947639653,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-07-03 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.24928990404954,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-07-18 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.10178370091661,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-07-19 06:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.189216790785363,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-07-20 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.991598680724426,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-07-23 18:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.07788700025408,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-07-23 22:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.972539811511734,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-07-26 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.056749634450068,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-07-30 14:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.328002744332647,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-08-02 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.412759433516804,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-08-02 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.77631095041441,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-08-07 02:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.859649266402567,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-08-07 14:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.59700433474551,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-08-08 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.679447971279934,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-08-15 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.17825158724306,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-08-29 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.25907782128544,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-08-30 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.94054323335354,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-08-30 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.170289547150904,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-08-31 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.247711953196802,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-08-31 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.864530837422166,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-09-14 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.93789361574673,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-09-15 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 30.026170321047736,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-09-15 23:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 30.099721907629412,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-09-17 17:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.110061311061976,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-09-18 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.182521101405648,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-09-18 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 30.253892141519827,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-09-21 10:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.91299553256732,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-09-28 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.987320889002646,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-09-28 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 30.6596654415802,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-10-09 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.845494076649004,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-10-16 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.927430065380893,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-11-03 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.837438526800774,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-11-04 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.84684591029898,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-11-05 22:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.87576998222177,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-11-07 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.777148761898367,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-11-09 19:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.90581116406129,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-11-10 11:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.390278410388375,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-11-13 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.83068395020214,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-11-14 01:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.824734703558303,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-11-17 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.43146380108644,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-11-18 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.516156755939317,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-11-20 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.377346383818228,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-11-21 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.34471712014259,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-11-22 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.426322979892912,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-11-24 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.013714282173034,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-11-27 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.152753339890392,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-11-28 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.22924323650434,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2023-12-04 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.292807000281105,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-12-07 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.046103672295697,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-12-10 21:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.717613556938893,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-12-11 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.577570554339568,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2023-12-13 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.734349691218288,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-12-13 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.821434307659807,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-12-18 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.048613731541664,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2023-12-18 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.132764559817172,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-12-27 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.203772611310193,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-12-29 07:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.678120904441844,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2023-12-30 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.644372121654765,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2023-12-31 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.63117816845443,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-01-02 04:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.987353021501756,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-01-02 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.67255813579709,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-01-02 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.858657728879294,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-01-03 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.18541324094953,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2024-01-04 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.27126534988178,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2024-01-05 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.78410943613661,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-01-08 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.860325900406156,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-01-09 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.4420213915654,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-01-10 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.653209717986336,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-01-13 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.665850925987222,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-01-14 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.12632208055139,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-01-15 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.680148225186205,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-01-16 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.754929834460555,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-01-18 17:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.590195219726972,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-01-26 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.666397286906243,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-01-31 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.894860748258395,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-01-31 10:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.769378707911713,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2024-01-31 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.849804967534215,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2024-01-31 22:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.970795888642094,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-02-06 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.046698321117596,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-02-10 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.52855664054082,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-02-12 03:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.75015807657999,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-02-12 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.52236297243969,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-02-12 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.35774263598464,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-12 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.688283271596596,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-13 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.654045365297808,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-13 17:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.1867608066464,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-14 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.949160225421998,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-14 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.906048356140564,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-15 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.445761630815465,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-16 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.829634602094256,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-17 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.83398020325598,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-02-28 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 0.867871336698862,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-03-05 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.685509205552318,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-03-06 06:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.774257178478493,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-03-07 02:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.007622426839534,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-03-20 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.351282646134614,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-03-20 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.438599409552758,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-03-21 19:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.7528123774005,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-03-24 21:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.83832639743992,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-04-01 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.431803938391674,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-04-08 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.520522605132985,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-04-09 14:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.90247173647211,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-04-28 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.987882897423805,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-04-29 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 0,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.81524538459596,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-05-03 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.89956649728977,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-05-08 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.512305639381237,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-05-10 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.60088643070616,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-05-10 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.36073508511745,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-05-15 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.445683131534476,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-05-21 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.640440744598062,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-05-22 13:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.888868614714134,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-05-23 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.233846193609311,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-05-23 22:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.983573098212739,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-05-24 05:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 18.61677542734183,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-05-24 06:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.065413657111474,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-05-24 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.71423641144602,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-05-28 02:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.67306584002734,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-05-28 05:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.874622939528788,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-05-29 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.814077407188954,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-05-29 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 19.662020462100585,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-05-30 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.605637152917442,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-05-30 18:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.68823215086145,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-05-31 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.159491786584436,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-06-02 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.2393309961639,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-06-02 10:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.18902912438743,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-06-03 07:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.267708074945638,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-06-03 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.778154158120664,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-06-03 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.856191444754977,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-06-07 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.27751001490638,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-06-25 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.354020944147884,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-06-28 06:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.150731646745697,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-06-30 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.23129166914631,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-07-03 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.382635996882087,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-07-06 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.464175312635923,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-07-07 14:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.716826954184533,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-07-08 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.795069207922953,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-07-11 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.651155071848017,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-07-13 10:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.728294890527838,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-07-23 06:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.453016879686973,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-07-23 17:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.147672632229435,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-07-25 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.196972390292045,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-07-26 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.287470708611368,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-07-30 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.269378283550246,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-08-08 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.365693552906404,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-08-09 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.360082763598324,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-08-23 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.452401733919997,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-08-25 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.70755747898759,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-08-26 03:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.161890565007031,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2024-09-19 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.25991791186445,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2024-09-19 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.808124038498349,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-09-22 10:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.812361831831475,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-09-22 15:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.374196619795237,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-09-23 02:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.125711841249582,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-09-23 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 4.263729995598489,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-09-26 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 1.845378223374934,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-09-26 11:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 1.7118054410134844,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-09-28 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.019160984703833,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-09-29 07:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 3.363702277079346,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-10-01 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 4.457033203664915,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-10-01 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.836818726292664,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-10-07 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.932961805452926,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-10-07 19:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.589628807227447,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-10-11 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.683688883335506,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-10-15 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.031793731674198,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-10-15 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.538862032509155,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-10-26 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.868130299337996,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-10-26 21:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.961653312299906,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-10-30 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.692661390900456,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-10-31 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.717121377312212,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-10-31 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.35103336761087,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-11-01 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.444334814010086,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-11-01 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.11345995639429,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-11-06 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.204867438795326,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-11-09 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.943232885708417,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2024-11-10 05:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.525861121510167,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-11-12 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.10244966412685,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-11-13 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.448324758671715,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-11-24 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.717325272701392,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-11-24 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 6.78062126290283,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-11-25 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.9715428616707324,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-12-05 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 3.8968262984410043,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-12-06 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 3.1679373882419495,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-12-08 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 4.855256369265969,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-12-08 10:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 4.496069863210081,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2024-12-09 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.2115314252969815,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-12-12 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.309318213007683,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-12-14 14:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.646618465560833,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2024-12-16 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.742705792085617,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2024-12-17 19:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.188550332863066,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-01-02 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 10.283022393142058,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-01-05 10:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.064184778075331,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-01-06 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 5.399170837295738,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-01-07 12:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 8.996549703795013,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-01-07 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.681971474920534,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-01-15 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.7783569893595,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-01-27 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.408886309542694,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-01-28 05:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.493885943437494,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-01-28 21:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.502689034573965,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-01-30 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 0
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.58339898487781,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-01-31 19:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.91151165290392,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-02-01 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.094161452016635,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-03-02 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.17754505863641,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-03-03 09:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.4203776456127,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-03-03 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.356793934499606,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-03-19 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 35.431729274763484,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-03-20 17:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.01138113191879,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-03-22 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.0753137773557,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-03-24 02:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.085991860679215,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-03-24 05:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 38.1510683152813,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-03-24 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 36.89823994763556,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-03-26 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.50343122115137,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-04-11 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 37.57137880258197,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-04-15 18:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.33040437732614,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-04-16 20:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 1
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 33.39768139588822,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-04-27 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.90305098860124,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-04-27 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.1016675865125,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-04-29 07:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.09788577716315,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-04-30 13:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.7172416693066,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-04-30 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.622923763183934,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-04-30 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.691691404959652,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-01 02:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.25721058776716,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-06 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.86644917123314,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-05-06 23:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.941530614069745,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-05-11 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.801544965021666,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-05-12 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.293112521160094,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-13 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.75980916036528,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-13 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.144083057177706,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-14 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.6758535484364,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-15 06:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.429352319243865,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-19 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.44081695090125,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-05-19 17:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.521683449509933,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-05-20 02:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.614866655137362,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-05-26 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.172976521334906,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-27 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.168688022688812,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-05-28 10:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.950200219460417,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-05-29 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.317176147282984,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-05-29 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.832442217796363,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-05-31 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.018556669017237,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-06-03 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.10005489664783,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-06-05 15:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.19748927721499,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-06-09 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 23.278270950724544,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-06-13 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.894097450532144,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-06-16 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.972122940554698,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-06-16 23:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.595431311518617,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-06-25 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.670615598869915,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-06-25 19:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.310855147106324,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-06-26 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.385186097827187,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-06-26 18:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.29488826874806,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-06-28 06:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.367198670182457,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-07-01 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.331821056118624,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-07-01 13:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.778567342745312,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-07-02 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.852600443855504,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-07-04 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.095799877672874,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-07-06 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.16515082971124,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-07-07 08:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 30.511470963626458,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-07-07 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.72531890221391,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-07-08 13:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 32.796565454772434,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-07-10 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 31.08320271233832,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-07-11 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.504516976906494,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-12 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.242499900426033,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-12 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.787582711420857,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-13 13:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 26.96495789056097,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-13 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.12732764370582,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-15 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 27.81929137398933,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-15 04:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 28.597717425863138,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-15 14:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 29.844270481758688,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-16 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 25.922506264541333,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-18 21:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.78779480943753,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-20 09:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 17.393355656410435,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-07-24 15:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.354038267632593,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-08-01 00:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.853199917195923,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-08-04 20:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.942991554953238,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-08-05 08:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.617553329827626,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-08-06 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 16.705278502065063,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-08-10 14:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 3.898288774273547,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-08-11 03:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 2.0992920130590424,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-08-13 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 0.1756074048621689,
+    "action_count": 7
+  },
+  {
+    "timestamp": "2025-08-15 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.431710668312824,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-08-17 03:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.526105894639674,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-08-18 02:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.26677191955956,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-08-22 16:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.354393074733979,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-08-23 00:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 4,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.28765410792213,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-08-25 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.072396261412067,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-08-26 19:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.158059575540296,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-09-15 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.235499543005422,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-09-17 07:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 7.332304806623507,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-09-17 18:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.312360141901086,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-09-17 22:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.407779040257472,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-09-22 04:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.615118177530007,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-10-01 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 14.705132197496,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-10-04 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.531922462957793,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-10-07 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.636314425627303,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-10-27 08:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.731919893750556,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-10-28 03:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.39338859473086,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-12-02 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.482100397119915,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-12-04 22:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 11.564028577647393,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-12-05 14:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 12.949474255478858,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-12-07 18:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.041803541677751,
+    "action_count": 2
+  },
+  {
+    "timestamp": "2025-12-08 12:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.05167563821027,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-12-08 19:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 15.999159740487503,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-12-09 16:00:00+00:00",
+    "selected_long": "SOL",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 9.292010522471413,
+    "action_count": 5
+  },
+  {
+    "timestamp": "2025-12-10 00:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 3,
+      "ETH": 4
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 13.724104288625313,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-12-12 16:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.38466141476513,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-12-13 11:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 20.468708787777018,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-12-14 12:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.110330067791505,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-12-22 01:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 0,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 21.19328082080939,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-12-22 20:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 1,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.440943838971354,
+    "action_count": 3
+  },
+  {
+    "timestamp": "2025-12-29 04:00:00+00:00",
+    "selected_long": "ETH",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 3
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 22.52252675911732,
+    "action_count": 4
+  },
+  {
+    "timestamp": "2025-12-29 10:00:00+00:00",
+    "selected_long": "",
+    "selected_short": "",
+    "green_counts": {
+      "SOL": 2,
+      "ETH": 2
+    },
+    "target_long_fraction": 1.05,
+    "equity_drawdown_pct": 24.577175097612734,
+    "action_count": 3
+  }
+]
