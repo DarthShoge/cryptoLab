@@ -455,6 +455,113 @@ def test_protective_hedge_candidates_choose_weakest_symbol_other_than_selected_l
     )
 
 
+def test_drawdown_slope_hedge_gate_waits_for_worsening_equity_drawdown():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [3] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 3,
+        "max_short_green": -1,
+        "target_long_fraction": 1.00,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "enable_protective_short_hedge": True,
+        "protective_short_symbol": "ETH",
+        "protective_hedge_floors": {3: 0.20},
+        "enable_drawdown_slope_hedge_gate": True,
+        "drawdown_slope_min_drawdown": 0.10,
+        "drawdown_slope_min_worsening": 0.05,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+
+    first_actions = strategy.on_bar(snapshot, _bar(history))
+
+    assert not any(
+        action["type"] == "borrow" and action["symbol"] == "ETH"
+        for action in first_actions
+    )
+    assert strategy.history_fields()["target_short_fraction"] == 0.0
+    assert strategy.history_fields()["hedge_gate_active"] is False
+
+    lower_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=position.amount,
+                price=80.0 if position.symbol == "SOL" else position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=snapshot.debt,
+    )
+
+    second_actions = strategy.on_bar(lower_snapshot, _bar(history))
+
+    borrow = next(
+        action
+        for action in second_actions
+        if action["type"] == "borrow" and action["symbol"] == "ETH"
+    )
+    assert borrow["amount"] == 0.8
+    assert strategy.history_fields()["target_short_fraction"] == 0.20
+    assert strategy.history_fields()["hedge_gate_active"] is True
+
+
+def test_relative_strength_hedge_gate_suppresses_strong_short_asset():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0, 107.0],
+        eth=[2_000.0, 2_050.0, 2_100.0, 2_150.0, 2_200.0, 2_250.0, 2_300.0, 2_350.0],
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [3] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    snapshot = strategy.setup(
+        AccountSnapshot(collateral=[], debt=[]),
+        {
+            "initial_collateral_symbol": "SOL",
+            "initial_collateral_amount": 100.0,
+            "directional_symbols": ["SOL", "ETH"],
+            "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+            "green_scores": green_scores,
+            "min_long_green": 3,
+            "max_short_green": -1,
+            "target_long_fraction": 1.00,
+            "target_short_fraction": 0.00,
+            "rebalance_threshold": 0.01,
+            "enable_protective_short_hedge": True,
+            "protective_short_symbol": "ETH",
+            "protective_hedge_floors": {3: 0.20},
+            "enable_relative_strength_hedge_gate": True,
+            "relative_strength_lookback_bars": 3,
+            "relative_strength_min_underperformance": 0.00,
+        },
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(history))
+
+    assert not any(
+        action["type"] == "borrow" and action["symbol"] == "ETH"
+        for action in actions
+    )
+    assert strategy.history_fields()["target_short_fraction"] == 0.0
+    assert strategy.history_fields()["hedge_gate_active"] is False
+
+
 def test_protective_hedge_covers_before_releveraging_long_collateral():
     strategy = MultiAssetTrafficLightStrategy()
     history = _history(

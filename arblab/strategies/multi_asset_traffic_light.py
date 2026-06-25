@@ -29,8 +29,10 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "target_long_fraction": 0.0,
             "target_short_fraction": 0.0,
             "equity_drawdown_pct": 0.0,
+            "hedge_gate_active": True,
         }
         self._peak_equity = 0.0
+        self._previous_equity_drawdown: float | None = None
         market_params = MarketParams.kamino_defaults()
         universe = curated_kamino_universe()
         symbols = list(
@@ -154,6 +156,15 @@ class MultiAssetTrafficLightStrategy(Strategy):
                 ranking.green_counts.get(selected_long, 0),
             ),
         )
+        target_short_fraction, hedge_gate_active = self._apply_protective_hedge_gates(
+            config=config,
+            target_short_fraction=target_short_fraction,
+            current_drawdown=equity_drawdown,
+            previous_drawdown=self._previous_equity_drawdown,
+            bar=bar,
+            hedge_basis_symbol=hedge_basis_symbol,
+            protective_short_symbol=protective_short,
+        )
         fee = float(config.get("swap_fee_bps", bar.market_params.swap_fee_bps)) / 10_000.0
 
         self._history_fields = {
@@ -164,7 +175,9 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "target_long_fraction": target_long_fraction,
             "target_short_fraction": target_short_fraction,
             "equity_drawdown_pct": equity_drawdown * 100.0,
+            "hedge_gate_active": hedge_gate_active,
         }
+        self._previous_equity_drawdown = equity_drawdown
 
         actions.extend(
             self._cover_excess_protective_short(
@@ -215,6 +228,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
                     "target_long_fraction": target_long_fraction,
                     "target_short_fraction": target_short_fraction,
                     "equity_drawdown_pct": equity_drawdown * 100.0,
+                    "hedge_gate_active": hedge_gate_active,
                     "action_count": len(actions),
                 }
             )
@@ -323,6 +337,80 @@ class MultiAssetTrafficLightStrategy(Strategy):
         if configured:
             return str(configured)
         return next((symbol for symbol in symbols if symbol != selected_long), "")
+
+    def _apply_protective_hedge_gates(
+        self,
+        config: dict[str, Any],
+        target_short_fraction: float,
+        current_drawdown: float,
+        previous_drawdown: float | None,
+        bar: BarData,
+        hedge_basis_symbol: str,
+        protective_short_symbol: str,
+    ) -> tuple[float, bool]:
+        if (
+            target_short_fraction <= 0.0
+            or not bool(config.get("enable_protective_short_hedge", False))
+        ):
+            return target_short_fraction, True
+
+        active = True
+        if bool(config.get("enable_drawdown_slope_hedge_gate", False)):
+            min_drawdown = float(config.get("drawdown_slope_min_drawdown", 0.0))
+            min_worsening = float(config.get("drawdown_slope_min_worsening", 0.0))
+            worsening = (
+                current_drawdown - previous_drawdown
+                if previous_drawdown is not None
+                else 0.0
+            )
+            active = active and current_drawdown >= min_drawdown and worsening >= min_worsening
+
+        if bool(config.get("enable_relative_strength_hedge_gate", False)):
+            lookback = int(config.get("relative_strength_lookback_bars", 24 * 7))
+            min_underperformance = float(config.get("relative_strength_min_underperformance", 0.0))
+            active = active and self._relative_strength_gate_active(
+                bar=bar,
+                hedge_basis_symbol=hedge_basis_symbol,
+                protective_short_symbol=protective_short_symbol,
+                lookback=lookback,
+                min_underperformance=min_underperformance,
+            )
+
+        return (target_short_fraction if active else 0.0), active
+
+    def _relative_strength_gate_active(
+        self,
+        bar: BarData,
+        hedge_basis_symbol: str,
+        protective_short_symbol: str,
+        lookback: int,
+        min_underperformance: float,
+    ) -> bool:
+        if (
+            not hedge_basis_symbol
+            or not protective_short_symbol
+            or hedge_basis_symbol == protective_short_symbol
+            or lookback <= 0
+            or len(bar.history) <= lookback
+        ):
+            return False
+
+        try:
+            basis_close = bar.history[(hedge_basis_symbol, "close")]
+            short_close = bar.history[(protective_short_symbol, "close")]
+        except KeyError:
+            return False
+
+        basis_start = float(basis_close.iloc[-lookback - 1])
+        basis_end = float(basis_close.iloc[-1])
+        short_start = float(short_close.iloc[-lookback - 1])
+        short_end = float(short_close.iloc[-1])
+        if basis_start <= 0.0 or short_start <= 0.0:
+            return False
+
+        basis_return = basis_end / basis_start - 1.0
+        short_return = short_end / short_start - 1.0
+        return short_return <= basis_return - min_underperformance
 
     def _protective_long_basis_symbol(
         self,
