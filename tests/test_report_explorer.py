@@ -10,6 +10,7 @@ from arblab.backtest.report_explorer import (
     build_buy_hold_frame,
     build_composition_frame,
     final_composition_table,
+    build_temperature_frame,
     build_metric_frame,
     discover_report_dirs,
     history_label_options,
@@ -193,3 +194,20 @@ def test_final_composition_table_handles_zero_final_debt_values():
 
     assert list(table.columns) == ["asset", "value_usd", "share_pct"]
     assert table.empty
+
+
+def test_build_temperature_frame_combines_sol_price_and_net_exposure():
+    history = _history([100.0, 120.0, 90.0])
+    history["target_long_fraction"] = [1.5, 0.6, 0.2]
+    history["target_short_fraction"] = [0.0, 0.1, 0.7]
+    prices = {
+        "SOL": pd.Series(
+            [10.0, 12.0, 8.0],
+            index=history.index,
+        )
+    }
+
+    frame = build_temperature_frame(history, prices)
+
+    assert frame["sol_price"].tolist() == [10.0, 12.0, 8.0]
+    assert frame["net_temperature"].round(3).tolist() == [1.5, 0.5, -0.5]

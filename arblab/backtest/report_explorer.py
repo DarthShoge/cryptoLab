@@ -145,6 +145,28 @@ def build_buy_hold_frame(
     return pd.DataFrame(data, index=index)
 
 
+def build_temperature_frame(
+    history: pd.DataFrame,
+    prices: dict[str, pd.Series],
+) -> pd.DataFrame:
+    """Return aligned SOL price and net long/short exposure temperature."""
+    columns = ["sol_price", "net_temperature"]
+    if history.empty or "SOL" not in prices:
+        return pd.DataFrame(columns=columns, index=history.index)
+
+    long = history.get("target_long_fraction", pd.Series(0.0, index=history.index))
+    short = history.get("target_short_fraction", pd.Series(0.0, index=history.index))
+    sol_price = prices["SOL"].reindex(history.index, method="ffill").astype(float)
+    frame = pd.DataFrame(
+        {
+            "sol_price": sol_price,
+            "net_temperature": long.astype(float) - short.astype(float),
+        },
+        index=history.index,
+    )
+    return frame.dropna(how="any")
+
+
 def build_composition_frame(history: pd.DataFrame, side: str) -> pd.DataFrame:
     """Return asset value composition for collateral or debt."""
     prefix = f"{side}_"

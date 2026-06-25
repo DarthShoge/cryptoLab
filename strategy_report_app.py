@@ -12,6 +12,7 @@ from arblab.backtest.report_explorer import (
     build_buy_hold_frame,
     build_composition_frame,
     build_metric_frame,
+    build_temperature_frame,
     discover_report_dirs,
     final_composition_table,
     history_label_options,
@@ -143,6 +144,64 @@ def _composition_chart(
         )
     )
     return alt.layer(area, line).resolve_scale(y="independent").properties(height=320)
+
+
+def _temperature_chart(
+    temperature: pd.DataFrame,
+) -> alt.Chart:
+    chart_frame = _downsample(temperature).copy()
+    chart_frame.index.name = "timestamp"
+    data = chart_frame.reset_index()
+
+    temperature_bars = (
+        alt.Chart(data)
+        .mark_bar(opacity=0.44)
+        .encode(
+            x=alt.X("timestamp:T", title=None),
+            y=alt.Y(
+                "net_temperature:Q",
+                title="Net exposure temperature",
+                scale=alt.Scale(domain=[-1.5, 1.5]),
+            ),
+            color=alt.Color(
+                "net_temperature:Q",
+                title="Temperature",
+                scale=alt.Scale(
+                    domain=[-1.0, 0.0, 1.5],
+                    range=["#2563eb", "#e5e7eb", "#dc2626"],
+                ),
+            ),
+            tooltip=[
+                alt.Tooltip("timestamp:T", title="Time"),
+                alt.Tooltip(
+                    "net_temperature:Q",
+                    title="Net temperature",
+                    format=",.3f",
+                ),
+            ],
+        )
+    )
+    sol_line = (
+        alt.Chart(data)
+        .mark_line(color="#111827", strokeWidth=2)
+        .encode(
+            x=alt.X("timestamp:T", title=None),
+            y=alt.Y(
+                "sol_price:Q",
+                title="SOL price (USD)",
+                axis=alt.Axis(orient="right"),
+            ),
+            tooltip=[
+                alt.Tooltip("timestamp:T", title="Time"),
+                alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
+            ],
+        )
+    )
+    return (
+        alt.layer(temperature_bars, sol_line)
+        .resolve_scale(y="independent")
+        .properties(height=320)
+    )
 
 
 def _render_kpis(summary: pd.DataFrame, names: list[str]) -> None:
@@ -296,6 +355,14 @@ with tabs[0]:
             with chart_cols[idx % 2]:
                 st.subheader(title)
                 st.line_chart(_downsample(frame))
+
+        st.subheader("SOL Price Temperature")
+        for name, history in histories.items():
+            temperature = build_temperature_frame(history, prices)
+            if temperature.empty:
+                continue
+            with st.expander(name, expanded=False):
+                st.altair_chart(_temperature_chart(temperature), use_container_width=True)
 
         st.subheader("Position Values")
         for name, history in histories.items():
