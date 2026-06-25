@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -81,6 +82,67 @@ def _summary_table(summary: pd.DataFrame) -> pd.DataFrame:
     ]
     existing = [column for column in columns if column in summary.columns]
     return summary[existing].copy()
+
+
+def _aligned_sol_price(index: pd.Index, prices: dict[str, pd.Series]) -> pd.Series:
+    sol_price = prices.get("SOL")
+    if sol_price is None or len(index) == 0:
+        return pd.Series(dtype=float, index=index)
+    return sol_price.reindex(index, method="ffill").astype(float)
+
+
+def _composition_chart(
+    composition: pd.DataFrame,
+    prices: dict[str, pd.Series],
+) -> alt.Chart:
+    chart_frame = _downsample(composition).copy()
+    chart_frame.index.name = "timestamp"
+    composition_long = chart_frame.reset_index().melt(
+        id_vars="timestamp",
+        var_name="asset",
+        value_name="value_usd",
+    )
+    area = (
+        alt.Chart(composition_long)
+        .mark_area(opacity=0.78)
+        .encode(
+            x=alt.X("timestamp:T", title=None),
+            y=alt.Y("value_usd:Q", title="Asset value (USD)", stack="zero"),
+            color=alt.Color("asset:N", title="Asset"),
+            tooltip=[
+                alt.Tooltip("timestamp:T", title="Time"),
+                alt.Tooltip("asset:N", title="Asset"),
+                alt.Tooltip("value_usd:Q", title="Value", format=",.2f"),
+            ],
+        )
+    )
+
+    sol_price = _aligned_sol_price(composition.index, prices).dropna()
+    if sol_price.empty:
+        return area.properties(height=320)
+
+    price_frame = _downsample(
+        pd.DataFrame({"sol_price": sol_price}, index=sol_price.index)
+    ).copy()
+    price_frame.index.name = "timestamp"
+    price_data = price_frame.reset_index()
+    line = (
+        alt.Chart(price_data)
+        .mark_line(color="#111827", strokeWidth=2)
+        .encode(
+            x=alt.X("timestamp:T", title=None),
+            y=alt.Y(
+                "sol_price:Q",
+                title="SOL price (USD)",
+                axis=alt.Axis(orient="right"),
+            ),
+            tooltip=[
+                alt.Tooltip("timestamp:T", title="Time"),
+                alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
+            ],
+        )
+    )
+    return alt.layer(area, line).resolve_scale(y="independent").properties(height=320)
 
 
 def _render_kpis(summary: pd.DataFrame, names: list[str]) -> None:
@@ -275,6 +337,7 @@ with tabs[1]:
         if not histories:
             st.info("No selected strategies have matching local history CSVs.")
             st.stop()
+        prices = _load_prices()
         for name, history in histories.items():
             st.header(name)
             col_a, col_b = st.columns(2)
@@ -285,7 +348,10 @@ with tabs[1]:
                 if collateral.empty:
                     st.info("No collateral composition columns found.")
                 else:
-                    st.area_chart(_downsample(collateral))
+                    st.altair_chart(
+                        _composition_chart(collateral, prices),
+                        use_container_width=True,
+                    )
                     st.dataframe(
                         final_composition_table(history, "collateral"),
                         use_container_width=True,
@@ -295,7 +361,10 @@ with tabs[1]:
                 if debt.empty or float(debt.sum().sum()) == 0.0:
                     st.info("No debt composition values found.")
                 else:
-                    st.area_chart(_downsample(debt))
+                    st.altair_chart(
+                        _composition_chart(debt, prices),
+                        use_container_width=True,
+                    )
                     st.dataframe(
                         final_composition_table(history, "debt"),
                         use_container_width=True,
