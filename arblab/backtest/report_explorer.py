@@ -182,6 +182,7 @@ def build_timeline_frame(
         "target_short_fraction",
         "health_factor",
         "drawdown_pct",
+        "portfolio_snapshot",
     ]
     if history.empty or "SOL" not in prices:
         return pd.DataFrame(columns=columns)
@@ -211,6 +212,7 @@ def build_timeline_frame(
             "target_short_fraction": short,
             "health_factor": health_factor,
             "drawdown_pct": drawdown,
+            "portfolio_snapshot": _portfolio_snapshot(row),
         }
 
         if previous is None:
@@ -267,6 +269,24 @@ def build_timeline_frame(
         previous = row
 
     return pd.DataFrame(rows, columns=columns)
+
+
+def _portfolio_snapshot(row: pd.Series) -> str:
+    parts: list[str] = []
+    if "portfolio_value" in row:
+        parts.append(f"portfolio=${float(row['portfolio_value']):,.2f}")
+    for prefix, label in (("collateral_", "collateral"), ("debt_", "debt")):
+        for column, value in row.items():
+            if not column.startswith(prefix) or not column.endswith("_value"):
+                continue
+            if column in {"collateral_value", "debt_value"}:
+                continue
+            value = float(value)
+            if value <= 0.0:
+                continue
+            asset = column.removeprefix(prefix).removesuffix("_value")
+            parts.append(f"{label} {asset}=${value:,.2f}")
+    return " | ".join(parts)
 
 
 def build_composition_frame(history: pd.DataFrame, side: str) -> pd.DataFrame:

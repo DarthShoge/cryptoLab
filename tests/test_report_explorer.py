@@ -243,3 +243,22 @@ def test_build_timeline_frame_extracts_trade_action_events():
     assert "long target" in " ".join(frame["event"].astype(str))
     assert "health_factor" not in set(frame["event_family"])
     assert "drawdown" not in set(frame["event_family"])
+
+
+def test_build_timeline_frame_includes_portfolio_snapshot():
+    history = _history([100.0, 120.0])
+    history["target_long_fraction"] = [1.0, 1.5]
+    history["target_short_fraction"] = [0.0, 0.1]
+    prices = {
+        "SOL": pd.Series(
+            [10.0, 12.0],
+            index=history.index,
+        )
+    }
+
+    frame = build_timeline_frame(history, prices)
+
+    snapshot = str(frame.iloc[-1]["portfolio_snapshot"])
+    assert "portfolio=$120.00" in snapshot
+    assert "collateral SOL=$120.00" in snapshot
+    assert "debt USDC=$12.00" in snapshot

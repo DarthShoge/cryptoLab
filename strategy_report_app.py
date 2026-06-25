@@ -239,6 +239,7 @@ def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
                 alt.Tooltip("health_factor:Q", title="HF", format=",.3f"),
                 alt.Tooltip("drawdown_pct:Q", title="Drawdown", format=",.2f"),
                 alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
+                alt.Tooltip("portfolio_snapshot:N", title="Portfolio"),
             ],
         )
     )
@@ -516,6 +517,7 @@ with tabs[2]:
                         "health_factor",
                         "drawdown_pct",
                         "sol_price",
+                        "portfolio_snapshot",
                     ]
                 ],
                 use_container_width=True,
