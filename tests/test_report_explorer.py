@@ -11,6 +11,7 @@ from arblab.backtest.report_explorer import (
     build_composition_frame,
     final_composition_table,
     build_temperature_frame,
+    build_timeline_frame,
     build_metric_frame,
     discover_report_dirs,
     history_label_options,
@@ -211,3 +212,31 @@ def test_build_temperature_frame_combines_sol_price_and_net_exposure():
 
     assert frame["sol_price"].tolist() == [10.0, 12.0, 8.0]
     assert frame["net_temperature"].round(3).tolist() == [1.5, 0.5, -0.5]
+
+
+def test_build_timeline_frame_extracts_key_handling_events():
+    history = _history([100.0, 120.0, 90.0, 80.0])
+    history["selected_long"] = ["SOL", "SOL", "ETH", "ETH"]
+    history["target_long_fraction"] = [1.5, 1.0, 1.0, 0.6]
+    history["target_short_fraction"] = [0.0, 0.0, 0.1, 0.1]
+    history["recovery_boost_active"] = [False, False, True, True]
+    history["health_factor"] = [2.0, 1.7, 1.4, 1.6]
+    prices = {
+        "SOL": pd.Series(
+            [10.0, 12.0, 8.0, 7.0],
+            index=history.index,
+        )
+    }
+
+    frame = build_timeline_frame(history, prices)
+
+    assert set(frame["event_family"]) >= {
+        "long_exposure",
+        "hedge",
+        "asset_rotation",
+        "recovery",
+        "health_factor",
+        "drawdown",
+    }
+    assert frame.iloc[0]["event_family"] == "start"
+    assert "long target" in " ".join(frame["event"].astype(str))

@@ -13,6 +13,7 @@ from arblab.backtest.report_explorer import (
     build_composition_frame,
     build_metric_frame,
     build_temperature_frame,
+    build_timeline_frame,
     discover_report_dirs,
     final_composition_table,
     history_label_options,
@@ -204,6 +205,45 @@ def _temperature_chart(
     )
 
 
+def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
+    chart_frame = _downsample(timeline, max_points=1200).copy()
+    price_data = chart_frame[["timestamp", "sol_price"]].drop_duplicates("timestamp")
+    price_line = (
+        alt.Chart(price_data)
+        .mark_line(color="#111827", strokeWidth=2)
+        .encode(
+            x=alt.X("timestamp:T", title=None),
+            y=alt.Y("sol_price:Q", title="SOL price (USD)"),
+            tooltip=[
+                alt.Tooltip("timestamp:T", title="Time"),
+                alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
+            ],
+        )
+    )
+    markers = (
+        alt.Chart(chart_frame)
+        .mark_point(filled=True, size=88, opacity=0.88)
+        .encode(
+            x=alt.X("timestamp:T", title=None),
+            y=alt.Y("sol_price:Q", title="SOL price (USD)"),
+            color=alt.Color("event_family:N", title="Event"),
+            shape=alt.Shape("event_family:N", title="Event"),
+            tooltip=[
+                alt.Tooltip("timestamp:T", title="Time"),
+                alt.Tooltip("event_family:N", title="Family"),
+                alt.Tooltip("event:N", title="Event"),
+                alt.Tooltip("selected_long:N", title="Long"),
+                alt.Tooltip("target_long_fraction:Q", title="Long target", format=",.3f"),
+                alt.Tooltip("target_short_fraction:Q", title="Short target", format=",.3f"),
+                alt.Tooltip("health_factor:Q", title="HF", format=",.3f"),
+                alt.Tooltip("drawdown_pct:Q", title="Drawdown", format=",.2f"),
+                alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
+            ],
+        )
+    )
+    return alt.layer(price_line, markers).properties(height=360)
+
+
 def _render_kpis(summary: pd.DataFrame, names: list[str]) -> None:
     if summary.empty or not names:
         return
@@ -308,7 +348,7 @@ if custom_range and bundle.histories:
 st.caption(str(bundle.path))
 _render_kpis(summary, selected_names)
 
-tabs = st.tabs(["Dynamics", "Composition", "Regimes", "Report", "Raw Tables"])
+tabs = st.tabs(["Dynamics", "Composition", "Timeline", "Regimes", "Report", "Raw Tables"])
 
 with tabs[0]:
     if not bundle.histories or not selected_history_names:
@@ -438,6 +478,50 @@ with tabs[1]:
                     )
 
 with tabs[2]:
+    if not bundle.histories or not selected_history_names:
+        st.info("No local history CSVs are available for timeline charts.")
+    else:
+        histories = _slice_histories(bundle.histories, selected_history_names, start, end)
+        if not histories:
+            st.info("No selected strategies have matching local history CSVs.")
+            st.stop()
+        prices = _load_prices()
+        for name, history in histories.items():
+            st.header(name)
+            timeline = build_timeline_frame(history, prices)
+            if timeline.empty:
+                st.info("No timeline events could be derived for this strategy.")
+                continue
+            selected_families = st.multiselect(
+                "Event families",
+                sorted(timeline["event_family"].dropna().unique()),
+                default=sorted(timeline["event_family"].dropna().unique()),
+                key=f"timeline_families_{name}",
+            )
+            view = timeline[timeline["event_family"].isin(selected_families)]
+            if view.empty:
+                st.info("No events match the selected family filter.")
+                continue
+            st.altair_chart(_timeline_chart(view), use_container_width=True)
+            st.dataframe(
+                view[
+                    [
+                        "timestamp",
+                        "event_family",
+                        "event",
+                        "selected_long",
+                        "target_long_fraction",
+                        "target_short_fraction",
+                        "health_factor",
+                        "drawdown_pct",
+                        "sol_price",
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+
+with tabs[3]:
     if bundle.regimes.empty:
         st.info("No regime_summary.csv is available for this report.")
     else:
@@ -446,13 +530,13 @@ with tabs[2]:
             regime_view = regime_view[regime_view["name"].astype(str).isin(selected_names)]
         st.dataframe(regime_view, use_container_width=True)
 
-with tabs[3]:
+with tabs[4]:
     if bundle.markdown:
         st.markdown(bundle.markdown)
     else:
         st.info("No report.md is available for this report.")
 
-with tabs[4]:
+with tabs[5]:
     st.subheader("Summary")
     st.dataframe(_summary_table(summary), use_container_width=True)
     if bundle.histories:

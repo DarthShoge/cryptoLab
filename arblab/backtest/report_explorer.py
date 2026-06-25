@@ -167,6 +167,133 @@ def build_temperature_frame(
     return frame.dropna(how="any")
 
 
+def build_timeline_frame(
+    history: pd.DataFrame,
+    prices: dict[str, pd.Series],
+) -> pd.DataFrame:
+    """Extract key strategy-handling events with aligned SOL price."""
+    columns = [
+        "timestamp",
+        "sol_price",
+        "event_family",
+        "event",
+        "selected_long",
+        "target_long_fraction",
+        "target_short_fraction",
+        "health_factor",
+        "drawdown_pct",
+    ]
+    if history.empty or "SOL" not in prices:
+        return pd.DataFrame(columns=columns)
+
+    sol_price = prices["SOL"].reindex(history.index, method="ffill").astype(float)
+    rows: list[dict[str, object]] = []
+    previous: pd.Series | None = None
+    previous_hf_stressed = False
+    previous_drawdown_bucket = -1
+    thresholds = [20.0, 35.0, 50.0, 60.0]
+
+    for timestamp, row in history.iterrows():
+        if pd.isna(sol_price.loc[timestamp]):
+            previous = row
+            continue
+
+        long = float(row.get("target_long_fraction", 0.0))
+        short = float(row.get("target_short_fraction", 0.0))
+        health_factor = float(row.get("health_factor", 0.0))
+        drawdown = float(row.get("equity_drawdown_pct", 0.0))
+        selected_long = str(row.get("selected_long", ""))
+
+        base = {
+            "timestamp": timestamp,
+            "sol_price": float(sol_price.loc[timestamp]),
+            "selected_long": selected_long,
+            "target_long_fraction": long,
+            "target_short_fraction": short,
+            "health_factor": health_factor,
+            "drawdown_pct": drawdown,
+        }
+
+        if previous is None:
+            rows.append(
+                {
+                    **base,
+                    "event_family": "start",
+                    "event": f"Started with {selected_long or 'no'} long target {long:.3f}",
+                }
+            )
+        else:
+            previous_long = float(previous.get("target_long_fraction", 0.0))
+            previous_short = float(previous.get("target_short_fraction", 0.0))
+            previous_selected = str(previous.get("selected_long", ""))
+
+            if selected_long != previous_selected:
+                rows.append(
+                    {
+                        **base,
+                        "event_family": "asset_rotation",
+                        "event": f"Long asset changed from {previous_selected or 'none'} to {selected_long or 'none'}",
+                    }
+                )
+            if abs(long - previous_long) >= 0.05:
+                direction = "raised" if long > previous_long else "cut"
+                rows.append(
+                    {
+                        **base,
+                        "event_family": "long_exposure",
+                        "event": f"Long target {direction} from {previous_long:.3f} to {long:.3f}",
+                    }
+                )
+            if abs(short - previous_short) >= 0.01:
+                direction = "raised" if short > previous_short else "cut"
+                rows.append(
+                    {
+                        **base,
+                        "event_family": "hedge",
+                        "event": f"Hedge/short target {direction} from {previous_short:.3f} to {short:.3f}",
+                    }
+                )
+
+            previous_boost = bool(previous.get("recovery_boost_active", False))
+            boost = bool(row.get("recovery_boost_active", False))
+            if boost != previous_boost:
+                rows.append(
+                    {
+                        **base,
+                        "event_family": "recovery",
+                        "event": "Recovery boost activated" if boost else "Recovery boost deactivated",
+                    }
+                )
+
+        hf_stressed = health_factor < 1.5
+        if hf_stressed != previous_hf_stressed:
+            rows.append(
+                {
+                    **base,
+                    "event_family": "health_factor",
+                    "event": (
+                        f"Health factor stress entered at {health_factor:.3f}"
+                        if hf_stressed
+                        else f"Health factor recovered to {health_factor:.3f}"
+                    ),
+                }
+            )
+        previous_hf_stressed = hf_stressed
+
+        drawdown_bucket = sum(drawdown >= threshold for threshold in thresholds)
+        if drawdown_bucket != previous_drawdown_bucket:
+            label = (
+                f"Drawdown crossed {thresholds[drawdown_bucket - 1]:.0f}% at {drawdown:.1f}%"
+                if drawdown_bucket > previous_drawdown_bucket and drawdown_bucket > 0
+                else f"Drawdown improved to {drawdown:.1f}%"
+            )
+            rows.append({**base, "event_family": "drawdown", "event": label})
+        previous_drawdown_bucket = drawdown_bucket
+        previous = row
+
+    return pd.DataFrame(rows, columns=columns)
+
+
 def build_composition_frame(history: pd.DataFrame, side: str) -> pd.DataFrame:
     """Return asset value composition for collateral or debt."""
     prefix = f"{side}_"
