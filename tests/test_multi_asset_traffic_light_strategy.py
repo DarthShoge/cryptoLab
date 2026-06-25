@@ -562,6 +562,176 @@ def test_relative_strength_hedge_gate_suppresses_strong_short_asset():
     assert strategy.history_fields()["hedge_gate_active"] is False
 
 
+def test_state_machine_orange_caps_long_and_raises_hedge_floor_on_worsening_drawdown():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [3] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 3,
+        "max_short_green": -1,
+        "target_long_fraction": 1.10,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "enable_protective_short_hedge": True,
+        "protective_short_symbol": "ETH",
+        "protective_hedge_floors": {3: 0.05},
+        "enable_traffic_light_state_machine": True,
+        "state_machine_orange_min_drawdown": 0.10,
+        "state_machine_orange_min_worsening": 0.05,
+        "state_machine_targets": {
+            "orange": {"target_long_fraction": 0.50, "target_short_fraction": 0.15},
+        },
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+    strategy.on_bar(snapshot, _bar(history))
+    lower_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=position.amount,
+                price=80.0 if position.symbol == "SOL" else position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=snapshot.debt,
+    )
+
+    actions = strategy.on_bar(lower_snapshot, _bar(history))
+
+    fields = strategy.history_fields()
+    assert fields["traffic_light_state"] == "orange"
+    assert fields["target_long_fraction"] == 0.50
+    assert fields["target_short_fraction"] == 0.15
+    assert any(
+        action["type"] == "borrow" and action["symbol"] == "ETH"
+        for action in actions
+    )
+
+
+def test_state_machine_recovery_can_boost_long_when_drawdown_is_improving():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 3,
+        "max_short_green": -1,
+        "target_long_fraction": 1.10,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "enable_traffic_light_state_machine": True,
+        "state_machine_recovery_min_drawdown": 0.10,
+        "state_machine_recovery_max_worsening": -0.03,
+        "state_machine_recovery_min_green": 4,
+        "state_machine_targets": {
+            "recovery": {"target_long_fraction": 1.20, "target_short_fraction": 0.00},
+        },
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+    strategy.on_bar(snapshot, _bar(history))
+    lower_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=position.amount,
+                price=70.0 if position.symbol == "SOL" else position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=snapshot.debt,
+    )
+    strategy.on_bar(lower_snapshot, _bar(history))
+    recovering_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=position.amount,
+                price=80.0 if position.symbol == "SOL" else position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=snapshot.debt,
+    )
+
+    actions = strategy.on_bar(recovering_snapshot, _bar(history))
+
+    fields = strategy.history_fields()
+    assert fields["traffic_light_state"] == "recovery"
+    assert fields["target_long_fraction"] == 1.20
+    assert any(
+        action["type"] == "borrow" and action["symbol"] == "USDC"
+        for action in actions
+    )
+
+
+def test_realized_vol_governor_caps_long_exposure_when_selected_asset_is_volatile():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0, 120.0, 80.0, 125.0, 75.0, 130.0, 70.0, 135.0],
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    snapshot = strategy.setup(
+        AccountSnapshot(collateral=[], debt=[]),
+        {
+            "initial_collateral_symbol": "SOL",
+            "initial_collateral_amount": 100.0,
+            "directional_symbols": ["SOL", "ETH"],
+            "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+            "green_scores": green_scores,
+            "min_long_green": 3,
+            "max_short_green": -1,
+            "target_long_fraction": 1.10,
+            "target_short_fraction": 0.00,
+            "rebalance_threshold": 0.01,
+            "enable_realized_vol_governor": True,
+            "realized_vol_lookback_bars": 4,
+            "realized_vol_target": 0.01,
+            "realized_vol_min_long_fraction": 0.60,
+        },
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(history))
+
+    fields = strategy.history_fields()
+    assert fields["target_long_fraction"] == 0.60
+    assert fields["realized_vol_pct"] > 1.0
+    assert any(
+        action["type"] == "withdraw_collateral" and action["symbol"] == "SOL"
+        for action in actions
+    )
+
+
 def test_protective_hedge_covers_before_releveraging_long_collateral():
     strategy = MultiAssetTrafficLightStrategy()
     history = _history(

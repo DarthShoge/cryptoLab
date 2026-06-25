@@ -30,6 +30,8 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "target_short_fraction": 0.0,
             "equity_drawdown_pct": 0.0,
             "hedge_gate_active": True,
+            "traffic_light_state": "base",
+            "realized_vol_pct": 0.0,
         }
         self._peak_equity = 0.0
         self._previous_equity_drawdown: float | None = None
@@ -149,12 +151,28 @@ class MultiAssetTrafficLightStrategy(Strategy):
             config=config,
             long_green=ranking.green_counts.get(selected_long, 0),
         )
+        target_long_fraction, realized_vol = self._apply_realized_vol_governor(
+            config=config,
+            target_long_fraction=target_long_fraction,
+            bar=bar,
+            selected_long=selected_long,
+        )
         target_short_fraction = self._target_short_fraction(
             config=config,
             long_green=ranking.green_counts.get(
                 hedge_basis_symbol,
                 ranking.green_counts.get(selected_long, 0),
             ),
+        )
+        target_long_fraction, target_short_fraction, traffic_light_state = (
+            self._apply_traffic_light_state_machine(
+                config=config,
+                target_long_fraction=target_long_fraction,
+                target_short_fraction=target_short_fraction,
+                long_green=ranking.green_counts.get(selected_long, 0),
+                current_drawdown=equity_drawdown,
+                previous_drawdown=self._previous_equity_drawdown,
+            )
         )
         target_short_fraction, hedge_gate_active = self._apply_protective_hedge_gates(
             config=config,
@@ -176,6 +194,8 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "target_short_fraction": target_short_fraction,
             "equity_drawdown_pct": equity_drawdown * 100.0,
             "hedge_gate_active": hedge_gate_active,
+            "traffic_light_state": traffic_light_state,
+            "realized_vol_pct": realized_vol * 100.0,
         }
         self._previous_equity_drawdown = equity_drawdown
 
@@ -229,6 +249,8 @@ class MultiAssetTrafficLightStrategy(Strategy):
                     "target_short_fraction": target_short_fraction,
                     "equity_drawdown_pct": equity_drawdown * 100.0,
                     "hedge_gate_active": hedge_gate_active,
+                    "traffic_light_state": traffic_light_state,
+                    "realized_vol_pct": realized_vol * 100.0,
                     "action_count": len(actions),
                 }
             )
@@ -312,6 +334,109 @@ class MultiAssetTrafficLightStrategy(Strategy):
         floors = dict(config.get("protective_hedge_floors", {}))
         floor = float(floors.get(long_green, 0.0))
         return max(target, floor)
+
+    def _apply_realized_vol_governor(
+        self,
+        config: dict[str, Any],
+        target_long_fraction: float,
+        bar: BarData,
+        selected_long: str,
+    ) -> tuple[float, float]:
+        if (
+            not bool(config.get("enable_realized_vol_governor", False))
+            or not selected_long
+        ):
+            return target_long_fraction, 0.0
+
+        lookback = int(config.get("realized_vol_lookback_bars", 24 * 7))
+        target_vol = float(config.get("realized_vol_target", 0.0))
+        if lookback <= 1 or target_vol <= 0.0 or len(bar.history) <= lookback:
+            return target_long_fraction, 0.0
+
+        try:
+            closes = bar.history[(selected_long, "close")].astype(float)
+        except KeyError:
+            return target_long_fraction, 0.0
+
+        returns = closes.tail(lookback + 1).pct_change().dropna()
+        if returns.empty:
+            return target_long_fraction, 0.0
+
+        realized_vol = float(returns.std(ddof=0))
+        if realized_vol <= target_vol:
+            return target_long_fraction, realized_vol
+
+        scaled_target = target_long_fraction * target_vol / realized_vol
+        min_target = float(config.get("realized_vol_min_long_fraction", 0.0))
+        capped_target = min(target_long_fraction, max(min_target, scaled_target))
+        return capped_target, realized_vol
+
+    def _apply_traffic_light_state_machine(
+        self,
+        config: dict[str, Any],
+        target_long_fraction: float,
+        target_short_fraction: float,
+        long_green: int,
+        current_drawdown: float,
+        previous_drawdown: float | None,
+    ) -> tuple[float, float, str]:
+        if not bool(config.get("enable_traffic_light_state_machine", False)):
+            return target_long_fraction, target_short_fraction, "base"
+
+        state = self._traffic_light_state(
+            config=config,
+            long_green=long_green,
+            current_drawdown=current_drawdown,
+            previous_drawdown=previous_drawdown,
+        )
+        state_targets = dict(config.get("state_machine_targets", {})).get(state, {})
+        if "target_long_fraction" in state_targets:
+            target_long_fraction = float(state_targets["target_long_fraction"])
+        if "target_short_fraction" in state_targets:
+            target_short_fraction = max(
+                target_short_fraction,
+                float(state_targets["target_short_fraction"]),
+            )
+        return target_long_fraction, target_short_fraction, state
+
+    def _traffic_light_state(
+        self,
+        config: dict[str, Any],
+        long_green: int,
+        current_drawdown: float,
+        previous_drawdown: float | None,
+    ) -> str:
+        worsening = (
+            current_drawdown - previous_drawdown
+            if previous_drawdown is not None
+            else 0.0
+        )
+
+        recovery_min_drawdown = float(config.get("state_machine_recovery_min_drawdown", 0.0))
+        recovery_max_worsening = float(config.get("state_machine_recovery_max_worsening", -0.01))
+        recovery_min_green = int(config.get("state_machine_recovery_min_green", 4))
+        if (
+            current_drawdown >= recovery_min_drawdown
+            and worsening <= recovery_max_worsening
+            and long_green >= recovery_min_green
+        ):
+            return "recovery"
+
+        orange_min_drawdown = float(config.get("state_machine_orange_min_drawdown", 0.10))
+        orange_min_worsening = float(config.get("state_machine_orange_min_worsening", 0.03))
+        if (
+            current_drawdown >= orange_min_drawdown
+            and worsening >= orange_min_worsening
+        ):
+            return "orange"
+
+        if long_green <= int(config.get("state_machine_red_max_green", 1)):
+            return "red"
+        if long_green >= int(config.get("state_machine_green_min_green", 4)):
+            return "green"
+        if long_green >= int(config.get("state_machine_yellow_min_green", 3)):
+            return "yellow"
+        return "red"
 
     def _protective_short_symbol(
         self,
