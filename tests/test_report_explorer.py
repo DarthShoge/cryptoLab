@@ -7,10 +7,12 @@ from pathlib import Path
 import pandas as pd
 
 from arblab.backtest.report_explorer import (
+    build_buy_hold_frame,
     build_metric_frame,
     discover_report_dirs,
     history_label_options,
     history_selection_for_summary,
+    load_price_cache,
     load_report_bundle,
     max_drawdown_series,
     slice_regime,
@@ -119,3 +121,38 @@ def test_history_selection_maps_comparison_aliases_to_summary_names():
     assert options["static_long1.50"] == "highest_return"
     assert options["rv336_dd_e_tight_2_rec_t1.250_dd0.22_w0.012"] == "high_sortino"
     assert selected == ["highest_return", "high_sortino"]
+
+
+def test_load_price_cache_reads_symbol_close_series(tmp_path: Path):
+    cache = tmp_path / ".price_cache"
+    cache.mkdir()
+    (cache / "SOL_USDT_1h_test.csv").write_text(
+        "timestamp,open,high,low,close,volume\n"
+        "2024-01-01 00:00:00+00:00,1,1,1,10,100\n"
+        "2024-01-01 01:00:00+00:00,1,1,1,12,100\n"
+    )
+
+    prices = load_price_cache(cache, ["SOL", "ETH"])
+
+    assert list(prices) == ["SOL"]
+    assert prices["SOL"].tolist() == [10, 12]
+    assert prices["SOL"].index.tz is not None
+
+
+def test_build_buy_hold_frame_uses_common_initial_portfolio_value():
+    histories = {"strategy": _history([100.0, 110.0, 120.0])}
+    prices = {
+        "SOL": pd.Series(
+            [10.0, 20.0, 15.0],
+            index=histories["strategy"].index,
+        ),
+        "ETH": pd.Series(
+            [50.0, 25.0, 100.0],
+            index=histories["strategy"].index,
+        ),
+    }
+
+    frame = build_buy_hold_frame(histories, prices)
+
+    assert frame["Buy & Hold SOL"].tolist() == [100.0, 200.0, 150.0]
+    assert frame["Buy & Hold ETH"].tolist() == [100.0, 50.0, 200.0]

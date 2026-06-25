@@ -91,6 +91,60 @@ def build_metric_frame(
     return pd.DataFrame(data)
 
 
+def load_price_cache(
+    cache_dir: Path = Path("notebooks/.price_cache"),
+    symbols: list[str] | None = None,
+) -> dict[str, pd.Series]:
+    """Load cached close-price series keyed by display symbol."""
+    if symbols is None:
+        symbols = ["SOL", "ETH"]
+    if not cache_dir.exists():
+        return {}
+
+    prices: dict[str, pd.Series] = {}
+    for symbol in symbols:
+        matches = sorted(cache_dir.glob(f"{symbol}_USDT_1h_*.csv"))
+        if not matches:
+            continue
+        df = pd.read_csv(matches[-1], parse_dates=["timestamp"])
+        if "close" not in df:
+            continue
+        series = df.set_index("timestamp")["close"].astype(float)
+        if series.index.tz is None:
+            series.index = series.index.tz_localize("UTC")
+        prices[symbol] = series
+    return prices
+
+
+def build_buy_hold_frame(
+    histories: dict[str, pd.DataFrame],
+    prices: dict[str, pd.Series],
+    symbols: list[str] | None = None,
+) -> pd.DataFrame:
+    """Build SOL/ETH buy-and-hold value series using common initial equity."""
+    if symbols is None:
+        symbols = ["SOL", "ETH"]
+    if not histories:
+        return pd.DataFrame()
+
+    first_history = next((history for history in histories.values() if not history.empty), None)
+    if first_history is None or "portfolio_value" not in first_history:
+        return pd.DataFrame()
+
+    index = first_history.index
+    initial_value = float(first_history["portfolio_value"].iloc[0])
+    data: dict[str, pd.Series] = {}
+    for symbol in symbols:
+        if symbol not in prices:
+            continue
+        aligned = prices[symbol].reindex(index, method="ffill")
+        if aligned.empty or pd.isna(aligned.iloc[0]) or float(aligned.iloc[0]) <= 0.0:
+            continue
+        units = initial_value / float(aligned.iloc[0])
+        data[f"Buy & Hold {symbol}"] = aligned * units
+    return pd.DataFrame(data, index=index)
+
+
 def history_label_options(
     summary: pd.DataFrame,
     histories: dict[str, pd.DataFrame],

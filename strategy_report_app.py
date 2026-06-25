@@ -8,10 +8,12 @@ import pandas as pd
 import streamlit as st
 
 from arblab.backtest.report_explorer import (
+    build_buy_hold_frame,
     build_metric_frame,
     discover_report_dirs,
     history_label_options,
     history_selection_for_summary,
+    load_price_cache,
     load_report_bundle,
     regime_date_bounds,
     slice_regime,
@@ -39,6 +41,11 @@ def _report_dirs() -> list[str]:
 @st.cache_data(show_spinner="Loading report artifacts...")
 def _load_report(path: str):
     return load_report_bundle(Path(path))
+
+
+@st.cache_data(show_spinner=False)
+def _load_prices():
+    return load_price_cache(Path("notebooks/.price_cache"), ["SOL", "ETH"])
 
 
 def _format_money(value: object) -> str:
@@ -188,6 +195,25 @@ with tabs[0]:
         if not histories:
             st.info("No selected strategies have matching local history CSVs.")
             st.stop()
+        prices = _load_prices()
+        buy_hold = build_buy_hold_frame(histories, prices, ["SOL", "ETH"])
+        if not buy_hold.empty:
+            buy_hold = slice_regime(buy_hold, start, end)
+
+            st.subheader("Portfolio Value vs Buy & Hold")
+            portfolio_frame = build_metric_frame(histories, "portfolio_value")
+            combined_portfolio = pd.concat([portfolio_frame, buy_hold], axis=1)
+            st.line_chart(_downsample(combined_portfolio.dropna(how="all")))
+
+            st.subheader("Normalized Value vs Buy & Hold")
+            normalized_strategy = build_metric_frame(histories, "normalized_portfolio_value")
+            normalized_buy_hold = buy_hold / buy_hold.iloc[0] * 100.0
+            combined_normalized = pd.concat(
+                [normalized_strategy, normalized_buy_hold],
+                axis=1,
+            )
+            st.line_chart(_downsample(combined_normalized.dropna(how="all")))
+
         chart_cols = st.columns(2)
         chart_specs = [
             ("Normalized portfolio value", "normalized_portfolio_value"),
