@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from arblab.backtest.data import OHLCVConfig, fetch_ohlcv
 from arblab.backtest.engine import BacktestEngine, EngineConfig
 from arblab.backtest.traffic_lights import asset_green_counts_by_bar
 from arblab.strategies.multi_asset_traffic_light import MultiAssetTrafficLightStrategy
@@ -22,11 +23,28 @@ from temp.run_realized_vol_governor_sweep import (
     SYMBOLS,
     TIMEFRAMES,
     _base_scenario,
-    _price_data,
     _rv_best_scenario,
     _signal_tiers,
 )
 from temp.run_return_recovery_sweep import _with_recovery_boost
+
+
+START = "2021-01-01"
+END = "2026-06-01"
+
+
+def _price_data() -> pd.DataFrame:
+    return fetch_ohlcv(
+        symbols=[
+            OHLCVConfig(symbol="SOL/USDT", display_name="SOL"),
+            OHLCVConfig(symbol="ETH/USDT", display_name="ETH"),
+        ],
+        timeframe="1h",
+        start=START,
+        end=END,
+        cache_dir=Path("notebooks/.price_cache"),
+        use_cache=True,
+    )
 
 
 def _max_drawdown_pct(values: pd.Series) -> float:
@@ -156,11 +174,12 @@ def _run_scenario(
 
 def _regime_rows(summary_rows: dict[str, dict[str, object]], histories: dict[str, pd.DataFrame]) -> pd.DataFrame:
     regimes = {
-        "full_2021_2025": ("2021-01-01", None),
+        "full_2021_2026": ("2021-01-01", None),
         "bull_2021": ("2021-01-01", "2021-12-31"),
         "crash_2022": ("2022-01-01", "2022-12-31"),
         "recovery_2023": ("2023-01-01", "2023-12-31"),
         "post_2024": ("2024-01-01", None),
+        "ytd_2026": ("2026-01-01", None),
     }
     rows = []
     for name, history in histories.items():
@@ -267,7 +286,7 @@ def _write_report(
             "",
             "## Similarities",
             "",
-            "- Both strategies start from 100 SOL collateral and use the same cached hourly SOL/ETH data from 2021-01-01 to 2025-12-31.",
+            f"- Both strategies start from 100 SOL collateral and use the same cached hourly SOL/ETH data from {START} to {END}.",
             "- Both use the multi-timeframe traffic-light model to decide whether there is a qualifying long candidate.",
             "- Both can borrow USDC to add long exposure, so both are path-dependent and sensitive to sharp SOL/ETH drawdowns.",
             "- Neither run liquidated in the backtest.",
@@ -304,7 +323,7 @@ def _write_report(
 
 
 def main() -> None:
-    out_dir = Path("reports") / f"strategy_comparison_{datetime.now():%Y%m%d_%H%M%S}"
+    out_dir = Path("reports") / f"strategy_comparison_through_20260601_{datetime.now():%Y%m%d_%H%M%S}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     price_data = _price_data()
