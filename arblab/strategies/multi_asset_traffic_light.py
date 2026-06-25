@@ -27,6 +27,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "long_green": 0,
             "short_green": 0,
             "target_long_fraction": 0.0,
+            "target_short_fraction": 0.0,
             "equity_drawdown_pct": 0.0,
         }
         self._peak_equity = 0.0
@@ -121,6 +122,13 @@ class MultiAssetTrafficLightStrategy(Strategy):
             and ranking.weakest != selected_long
             else ""
         )
+        protective_short = self._protective_short_symbol(config, selected_long, symbols)
+        hedge_basis_symbol = self._protective_long_basis_symbol(
+            snapshot=snapshot,
+            selected_long=selected_long,
+            short_symbol=protective_short,
+            symbols=symbols,
+        )
 
         actions: list[dict[str, Any]] = []
         equity = max(snapshot.total_collateral_value() - snapshot.total_debt_value(), 0.0)
@@ -134,7 +142,13 @@ class MultiAssetTrafficLightStrategy(Strategy):
             config=config,
             long_green=ranking.green_counts.get(selected_long, 0),
         )
-        target_short_fraction = float(config.get("target_short_fraction", 0.20))
+        target_short_fraction = self._target_short_fraction(
+            config=config,
+            long_green=ranking.green_counts.get(
+                hedge_basis_symbol,
+                ranking.green_counts.get(selected_long, 0),
+            ),
+        )
         fee = float(config.get("swap_fee_bps", bar.market_params.swap_fee_bps)) / 10_000.0
 
         self._history_fields = {
@@ -143,9 +157,22 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "long_green": ranking.green_counts.get(selected_long, 0),
             "short_green": ranking.green_counts.get(selected_short, 0),
             "target_long_fraction": target_long_fraction,
+            "target_short_fraction": target_short_fraction,
             "equity_drawdown_pct": equity_drawdown * 100.0,
         }
 
+        actions.extend(
+            self._cover_excess_protective_short(
+                snapshot=snapshot,
+                selected_long=selected_long,
+                hedge_basis_symbol=hedge_basis_symbol,
+                protective_short_symbol=protective_short,
+                symbols=symbols,
+                target_short_fraction=target_short_fraction,
+                threshold_usd=equity * threshold,
+                fee=fee,
+            )
+        )
         actions.extend(
             self._rebalance_collateral(
                 snapshot=snapshot,
@@ -160,8 +187,14 @@ class MultiAssetTrafficLightStrategy(Strategy):
             self._rebalance_debt(
                 snapshot=snapshot,
                 selected_short=selected_short,
+                hedge_basis_symbol=hedge_basis_symbol,
+                protective_short_symbol=protective_short,
                 symbols=symbols,
-                target_short_usd=equity * target_short_fraction if selected_short else 0.0,
+                target_short_usd=(
+                    target_short_fraction
+                    if bool(config.get("enable_protective_short_hedge", False))
+                    else equity * target_short_fraction if selected_short else 0.0
+                ),
                 threshold_usd=equity * threshold,
                 fee=fee,
             )
@@ -175,6 +208,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
                     "selected_short": selected_short,
                     "green_counts": ranking.green_counts,
                     "target_long_fraction": target_long_fraction,
+                    "target_short_fraction": target_short_fraction,
                     "equity_drawdown_pct": equity_drawdown * 100.0,
                     "action_count": len(actions),
                 }
@@ -246,6 +280,108 @@ class MultiAssetTrafficLightStrategy(Strategy):
             if long_green >= int(tier["green"]):
                 selected_target = float(tier["target_long_fraction"])
         return min(target, selected_target)
+
+    def _target_short_fraction(
+        self,
+        config: dict[str, Any],
+        long_green: int,
+    ) -> float:
+        target = float(config.get("target_short_fraction", 0.20))
+        if not bool(config.get("enable_protective_short_hedge", False)):
+            return target
+
+        floors = dict(config.get("protective_hedge_floors", {}))
+        floor = float(floors.get(long_green, 0.0))
+        return max(target, floor)
+
+    def _protective_short_symbol(
+        self,
+        config: dict[str, Any],
+        selected_long: str,
+        symbols: list[str],
+    ) -> str:
+        configured = config.get("protective_short_symbol")
+        if configured:
+            return str(configured)
+        return next((symbol for symbol in symbols if symbol != selected_long), "")
+
+    def _protective_long_basis_symbol(
+        self,
+        snapshot: AccountSnapshot,
+        selected_long: str,
+        short_symbol: str,
+        symbols: list[str],
+    ) -> str:
+        if selected_long:
+            position = self._collateral(snapshot, selected_long)
+            if position is not None and position.value() > 0.0:
+                return selected_long
+
+        candidates = [
+            position
+            for position in snapshot.collateral
+            if position.symbol in symbols
+            and position.symbol != short_symbol
+            and position.price > 0.0
+            and position.value() > 0.0
+        ]
+        if not candidates:
+            return selected_long
+        return max(candidates, key=lambda position: position.value()).symbol
+
+    def _cover_excess_protective_short(
+        self,
+        snapshot: AccountSnapshot,
+        selected_long: str,
+        hedge_basis_symbol: str,
+        protective_short_symbol: str,
+        symbols: list[str],
+        target_short_fraction: float,
+        threshold_usd: float,
+        fee: float,
+    ) -> list[dict[str, Any]]:
+        config = self._config
+        if not bool(config.get("enable_protective_short_hedge", False)):
+            return []
+        short_symbol = protective_short_symbol or self._protective_short_symbol(config, selected_long, symbols)
+        if not short_symbol:
+            return []
+        long_position = self._collateral(snapshot, hedge_basis_symbol)
+        debt_position = self._debt(snapshot, short_symbol)
+        usdc = self._collateral(snapshot, "USDC")
+        if (
+            long_position is None
+            or debt_position is None
+            or usdc is None
+            or debt_position.price <= 0
+        ):
+            return []
+
+        target_short_usd = long_position.value() * target_short_fraction
+        current_short_usd = debt_position.value()
+        excess_usd = current_short_usd - target_short_usd
+        if excess_usd < threshold_usd or usdc.amount <= 0:
+            return []
+
+        repay_cost = min(excess_usd * (1.0 + fee), usdc.amount)
+        repay_tokens = min(
+            repay_cost / (1.0 + fee) / debt_position.price,
+            debt_position.amount,
+        )
+        if repay_tokens <= 0:
+            return []
+        return [
+            {
+                "type": "withdraw_collateral",
+                "symbol": "USDC",
+                "amount": repay_tokens * debt_position.price * (1.0 + fee),
+            },
+            {
+                "type": "repay",
+                "symbol": short_symbol,
+                "amount": repay_tokens,
+            },
+        ]
 
     def _rebalance_collateral(
         self,
@@ -371,6 +507,8 @@ class MultiAssetTrafficLightStrategy(Strategy):
         self,
         snapshot: AccountSnapshot,
         selected_short: str,
+        hedge_basis_symbol: str,
+        protective_short_symbol: str,
         symbols: list[str],
         target_short_usd: float,
         threshold_usd: float,
@@ -380,12 +518,29 @@ class MultiAssetTrafficLightStrategy(Strategy):
         usdc = self._collateral(snapshot, "USDC")
         if usdc is None:
             return actions
+        if bool(self._config.get("enable_protective_short_hedge", False)):
+            short_symbol = protective_short_symbol or self._protective_short_symbol(
+                self._config,
+                selected_long=self._history_fields.get("selected_long", ""),
+                symbols=symbols,
+            )
+            selected_short = short_symbol or selected_short
 
         for position in snapshot.debt:
             if position.symbol not in symbols or position.price <= 0:
                 continue
+            if (
+                bool(self._config.get("enable_protective_short_hedge", False))
+                and position.symbol != selected_short
+            ):
+                continue
             current_usd = position.value()
-            target_usd = target_short_usd if position.symbol == selected_short else 0.0
+            if bool(self._config.get("enable_protective_short_hedge", False)):
+                long_position = self._collateral(snapshot, hedge_basis_symbol)
+                basis_usd = long_position.value() if long_position is not None else 0.0
+                target_usd = basis_usd * target_short_usd
+            else:
+                target_usd = target_short_usd if position.symbol == selected_short else 0.0
             diff = target_usd - current_usd
             if abs(diff) < threshold_usd:
                 continue
@@ -407,6 +562,8 @@ class MultiAssetTrafficLightStrategy(Strategy):
                             },
                         ]
                     )
+            elif bool(self._config.get("enable_protective_short_hedge", False)):
+                continue
             elif diff < 0 and current_usd > 0:
                 repay_usd = min(-diff, current_usd)
                 repay_cost = repay_usd * (1.0 + fee)
