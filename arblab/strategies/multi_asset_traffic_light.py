@@ -32,6 +32,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "hedge_gate_active": True,
             "traffic_light_state": "base",
             "realized_vol_pct": 0.0,
+            "recovery_boost_active": False,
         }
         self._peak_equity = 0.0
         self._previous_equity_drawdown: float | None = None
@@ -157,6 +158,14 @@ class MultiAssetTrafficLightStrategy(Strategy):
             bar=bar,
             selected_long=selected_long,
         )
+        target_long_fraction, recovery_boost_active = self._apply_recovery_boost(
+            config=config,
+            target_long_fraction=target_long_fraction,
+            long_green=ranking.green_counts.get(selected_long, 0),
+            current_drawdown=equity_drawdown,
+            previous_drawdown=self._previous_equity_drawdown,
+            realized_vol=realized_vol,
+        )
         target_short_fraction = self._target_short_fraction(
             config=config,
             long_green=ranking.green_counts.get(
@@ -196,6 +205,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "hedge_gate_active": hedge_gate_active,
             "traffic_light_state": traffic_light_state,
             "realized_vol_pct": realized_vol * 100.0,
+            "recovery_boost_active": recovery_boost_active,
         }
         self._previous_equity_drawdown = equity_drawdown
 
@@ -251,6 +261,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
                     "hedge_gate_active": hedge_gate_active,
                     "traffic_light_state": traffic_light_state,
                     "realized_vol_pct": realized_vol * 100.0,
+                    "recovery_boost_active": recovery_boost_active,
                     "action_count": len(actions),
                 }
             )
@@ -370,6 +381,39 @@ class MultiAssetTrafficLightStrategy(Strategy):
         min_target = float(config.get("realized_vol_min_long_fraction", 0.0))
         capped_target = min(target_long_fraction, max(min_target, scaled_target))
         return capped_target, realized_vol
+
+    def _apply_recovery_boost(
+        self,
+        config: dict[str, Any],
+        target_long_fraction: float,
+        long_green: int,
+        current_drawdown: float,
+        previous_drawdown: float | None,
+        realized_vol: float,
+    ) -> tuple[float, bool]:
+        if not bool(config.get("enable_recovery_boost", False)):
+            return target_long_fraction, False
+
+        worsening = (
+            current_drawdown - previous_drawdown
+            if previous_drawdown is not None
+            else 0.0
+        )
+        max_realized_vol = config.get("recovery_boost_max_realized_vol")
+        if max_realized_vol is not None and realized_vol > float(max_realized_vol):
+            return target_long_fraction, False
+
+        if (
+            current_drawdown < float(config.get("recovery_boost_min_drawdown", 0.0))
+            or worsening > float(config.get("recovery_boost_max_worsening", -0.01))
+            or long_green < int(config.get("recovery_boost_min_green", 4))
+        ):
+            return target_long_fraction, False
+
+        boosted_target = float(
+            config.get("recovery_boost_target_long_fraction", target_long_fraction)
+        )
+        return max(target_long_fraction, boosted_target), True
 
     def _apply_traffic_light_state_machine(
         self,

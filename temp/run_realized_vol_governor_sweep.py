@@ -201,6 +201,10 @@ def _run_scenario(
     history = result.history
     final_sol = result.metrics.final_value / final_sol_price
     realized_vol = history.get("realized_vol_pct", pd.Series(0.0, index=history.index))
+    recovery_boost = history.get(
+        "recovery_boost_active",
+        pd.Series(False, index=history.index),
+    )
     return {
         "name": scenario["name"],
         "final_portfolio_value_usd": result.metrics.final_value,
@@ -225,6 +229,7 @@ def _run_scenario(
                 < history["long_green"].map({3: 1.025, 4: 1.075}).fillna(0.0)
             ).mean()
         ),
+        "recovery_boost_active_share": float(recovery_boost.astype(bool).mean()),
         "usd_gap_vs_reference": result.metrics.final_value - REFERENCE["final_usd"],
         "sol_gap_vs_reference": final_sol - REFERENCE["final_sol"],
         "dd_gap_vs_reference": result.metrics.max_drawdown_pct

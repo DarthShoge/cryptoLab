@@ -732,6 +732,79 @@ def test_realized_vol_governor_caps_long_exposure_when_selected_asset_is_volatil
     )
 
 
+def test_recovery_boost_releverages_when_drawdown_improves_with_green_lights():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 3,
+        "max_short_green": -1,
+        "target_long_fraction": 1.10,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "enable_drawdown_governor": True,
+        "drawdown_exposure_tiers": [
+            {"drawdown": 0.00, "target_long_fraction": 1.10},
+            {"drawdown": 0.20, "target_long_fraction": 0.60},
+        ],
+        "enable_recovery_boost": True,
+        "recovery_boost_min_drawdown": 0.10,
+        "recovery_boost_max_worsening": -0.03,
+        "recovery_boost_min_green": 4,
+        "recovery_boost_target_long_fraction": 1.20,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+    strategy.on_bar(snapshot, _bar(history))
+    lower_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=position.amount,
+                price=70.0 if position.symbol == "SOL" else position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=snapshot.debt,
+    )
+    strategy.on_bar(lower_snapshot, _bar(history))
+    recovering_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=position.amount,
+                price=80.0 if position.symbol == "SOL" else position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=snapshot.debt,
+    )
+
+    actions = strategy.on_bar(recovering_snapshot, _bar(history))
+
+    fields = strategy.history_fields()
+    assert fields["target_long_fraction"] == 1.20
+    assert fields["recovery_boost_active"] is True
+    assert any(
+        action["type"] == "borrow" and action["symbol"] == "USDC"
+        for action in actions
+    )
+
+
 def test_protective_hedge_covers_before_releveraging_long_collateral():
     strategy = MultiAssetTrafficLightStrategy()
     history = _history(
