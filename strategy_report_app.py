@@ -208,6 +208,7 @@ def _temperature_chart(
 def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
     chart_frame = _downsample(timeline, max_points=1200).copy()
     price_data = chart_frame[["timestamp", "sol_price"]].drop_duplicates("timestamp")
+    zoom = alt.selection_interval(bind="scales", encodings=["x"])
     price_line = (
         alt.Chart(price_data)
         .mark_line(color="#111827", strokeWidth=2)
@@ -241,7 +242,7 @@ def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
             ],
         )
     )
-    return alt.layer(price_line, markers).properties(height=360)
+    return alt.layer(price_line, markers).add_params(zoom).properties(height=360)
 
 
 def _render_kpis(summary: pd.DataFrame, names: list[str]) -> None:
