@@ -283,3 +283,42 @@ def test_drawdown_governor_caps_long_exposure_after_usd_equity_drawdown():
     fields = strategy.history_fields()
     assert fields["equity_drawdown_pct"] >= 30.0
     assert fields["target_long_fraction"] == 1.0
+
+
+def test_signal_governor_caps_exposure_before_equity_drawdown():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [3] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    snapshot = strategy.setup(
+        AccountSnapshot(collateral=[], debt=[]),
+        {
+            "initial_collateral_symbol": "SOL",
+            "initial_collateral_amount": 100.0,
+            "directional_symbols": ["SOL", "ETH"],
+            "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+            "green_scores": green_scores,
+            "min_long_green": 3,
+            "max_short_green": -1,
+            "target_long_fraction": 1.10,
+            "target_short_fraction": 0.00,
+            "rebalance_threshold": 0.01,
+            "enable_signal_governor": True,
+            "signal_exposure_tiers": [
+                {"green": 4, "target_long_fraction": 1.10},
+                {"green": 3, "target_long_fraction": 1.00},
+            ],
+        },
+    )
+
+    strategy.on_bar(snapshot, _bar(history))
+
+    fields = strategy.history_fields()
+    assert fields["long_green"] == 3
+    assert fields["target_long_fraction"] == 1.0
+    assert fields["equity_drawdown_pct"] == 0.0

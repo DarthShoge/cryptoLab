@@ -132,6 +132,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
             equity=equity,
             base_target=float(config.get("target_long_fraction", 0.50)),
             config=config,
+            long_green=ranking.green_counts.get(selected_long, 0),
         )
         target_short_fraction = float(config.get("target_short_fraction", 0.20))
         fee = float(config.get("swap_fee_bps", bar.market_params.swap_fee_bps)) / 10_000.0
@@ -209,6 +210,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
         equity: float,
         base_target: float,
         config: dict[str, Any],
+        long_green: int,
     ) -> tuple[float, float]:
         self._peak_equity = max(self._peak_equity, equity)
         drawdown = (
@@ -217,7 +219,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
             else 0.0
         )
         if not bool(config.get("enable_drawdown_governor", False)):
-            return base_target, drawdown
+            return self._signal_governed_target(base_target, config, long_green), drawdown
 
         selected_target = base_target
         tiers = list(config.get("drawdown_exposure_tiers", []))
@@ -227,7 +229,23 @@ class MultiAssetTrafficLightStrategy(Strategy):
                     base_target,
                     float(tier["target_long_fraction"]),
                 )
-        return selected_target, drawdown
+        return self._signal_governed_target(selected_target, config, long_green), drawdown
+
+    def _signal_governed_target(
+        self,
+        target: float,
+        config: dict[str, Any],
+        long_green: int,
+    ) -> float:
+        if not bool(config.get("enable_signal_governor", False)):
+            return target
+
+        selected_target = 0.0
+        tiers = list(config.get("signal_exposure_tiers", []))
+        for tier in sorted(tiers, key=lambda row: int(row["green"])):
+            if long_green >= int(tier["green"]):
+                selected_target = float(tier["target_long_fraction"])
+        return min(target, selected_target)
 
     def _rebalance_collateral(
         self,
