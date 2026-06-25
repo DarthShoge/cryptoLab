@@ -184,3 +184,12 @@ def test_final_composition_table_returns_latest_values_and_percentages():
     assert table.iloc[0]["asset"] == "SOL"
     assert table.iloc[0]["value_usd"] == 120.0
     assert table.iloc[0]["share_pct"] == 100.0
+
+
+def test_final_composition_table_handles_zero_final_debt_values():
+    history = _history([100.0, 0.0])
+
+    table = final_composition_table(history, "debt")
+
+    assert list(table.columns) == ["asset", "value_usd", "share_pct"]
+    assert table.empty

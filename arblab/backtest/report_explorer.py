@@ -161,9 +161,10 @@ def build_composition_frame(history: pd.DataFrame, side: str) -> pd.DataFrame:
 
 def final_composition_table(history: pd.DataFrame, side: str) -> pd.DataFrame:
     """Return latest asset composition values and percentage shares."""
+    columns = ["asset", "value_usd", "share_pct"]
     frame = build_composition_frame(history, side)
     if frame.empty:
-        return pd.DataFrame(columns=["asset", "value_usd", "share_pct"])
+        return pd.DataFrame(columns=columns)
     latest = frame.iloc[-1]
     total = float(latest.sum())
     rows = []
@@ -178,6 +179,8 @@ def final_composition_table(history: pd.DataFrame, side: str) -> pd.DataFrame:
                 "share_pct": value / total * 100.0 if total > 0.0 else 0.0,
             }
         )
+    if not rows:
+        return pd.DataFrame(columns=columns)
     return pd.DataFrame(rows).sort_values("value_usd", ascending=False).reset_index(drop=True)
 
 
