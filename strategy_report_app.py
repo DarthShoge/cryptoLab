@@ -10,6 +10,8 @@ import streamlit as st
 from arblab.backtest.report_explorer import (
     build_metric_frame,
     discover_report_dirs,
+    history_label_options,
+    history_selection_for_summary,
     load_report_bundle,
     regime_date_bounds,
     slice_regime,
@@ -144,15 +146,16 @@ if bundle.summary.empty:
 
 summary = bundle.summary
 strategy_names = summary["name"].astype(str).tolist() if "name" in summary else []
-history_names = [name for name in strategy_names if name in bundle.histories]
+history_options = history_label_options(summary, bundle.histories)
 
 st.sidebar.header("Strategies")
-default_selection = history_names[:2] if history_names else strategy_names[:2]
+default_selection = strategy_names[:2]
 selected_names = st.sidebar.multiselect(
     "Compare",
     strategy_names,
     default=default_selection,
 )
+selected_history_names = history_selection_for_summary(selected_names, history_options)
 
 st.sidebar.header("Regime")
 regime_bounds = regime_date_bounds(bundle.regimes)
@@ -178,10 +181,13 @@ _render_kpis(summary, selected_names)
 tabs = st.tabs(["Dynamics", "Regimes", "Report", "Raw Tables"])
 
 with tabs[0]:
-    if not bundle.histories or not selected_names:
+    if not bundle.histories or not selected_history_names:
         st.info("No local history CSVs are available for dynamic charts.")
     else:
-        histories = _slice_histories(bundle.histories, selected_names, start, end)
+        histories = _slice_histories(bundle.histories, selected_history_names, start, end)
+        if not histories:
+            st.info("No selected strategies have matching local history CSVs.")
+            st.stop()
         chart_cols = st.columns(2)
         chart_specs = [
             ("Normalized portfolio value", "normalized_portfolio_value"),
@@ -254,3 +260,13 @@ with tabs[3]:
     if bundle.histories:
         st.subheader("Available Histories")
         st.write(", ".join(bundle.histories.keys()))
+        st.subheader("Summary to History Mapping")
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {"summary_name": name, "history_name": history_options.get(name, "")}
+                    for name in strategy_names
+                ]
+            ),
+            use_container_width=True,
+        )

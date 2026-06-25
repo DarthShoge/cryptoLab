@@ -91,6 +91,44 @@ def build_metric_frame(
     return pd.DataFrame(data)
 
 
+def history_label_options(
+    summary: pd.DataFrame,
+    histories: dict[str, pd.DataFrame],
+) -> dict[str, str]:
+    """Map summary strategy labels to available history artifact labels."""
+    if summary.empty or "name" not in summary:
+        return {name: name for name in histories}
+
+    summary_names = summary["name"].dropna().astype(str).tolist()
+    history_names = list(histories)
+    options: dict[str, str] = {}
+    unused = list(history_names)
+    for name in summary_names:
+        match = _history_match_for_summary_name(name, unused)
+        if match is None:
+            match = _history_match_for_summary_name(name, history_names)
+        if match is not None:
+            options[name] = match
+            if match in unused:
+                unused.remove(match)
+    for name in history_names:
+        options.setdefault(name, name)
+    return options
+
+
+def history_selection_for_summary(
+    selected_summary_names: list[str],
+    options: dict[str, str],
+) -> list[str]:
+    """Return history labels corresponding to selected summary labels."""
+    selected: list[str] = []
+    for name in selected_summary_names:
+        history_name = options.get(name, name)
+        if history_name not in selected:
+            selected.append(history_name)
+    return selected
+
+
 def regime_date_bounds(regimes: pd.DataFrame) -> dict[str, tuple[str | None, str | None]]:
     """Return known date bounds for common regime labels."""
     known = {
@@ -135,3 +173,24 @@ def _load_histories(path: Path) -> dict[str, pd.DataFrame]:
         name = csv_path.stem.removesuffix("_history")
         histories[name] = history
     return histories
+
+
+def _history_match_for_summary_name(
+    summary_name: str,
+    history_names: list[str],
+) -> str | None:
+    if summary_name in history_names:
+        return summary_name
+    lowered = summary_name.lower()
+    if "static" in lowered or "highest_return" in lowered:
+        if "highest_return" in history_names:
+            return "highest_return"
+    if "sortino" in lowered or lowered.startswith("rv"):
+        if "high_sortino" in history_names:
+            return "high_sortino"
+    compact = lowered.replace("_", "").replace(".", "")
+    for history_name in history_names:
+        history_compact = history_name.lower().replace("_", "").replace(".", "")
+        if history_compact in compact or compact in history_compact:
+            return history_name
+    return None

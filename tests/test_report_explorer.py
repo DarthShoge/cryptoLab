@@ -9,6 +9,8 @@ import pandas as pd
 from arblab.backtest.report_explorer import (
     build_metric_frame,
     discover_report_dirs,
+    history_label_options,
+    history_selection_for_summary,
     load_report_bundle,
     max_drawdown_series,
     slice_regime,
@@ -89,3 +91,31 @@ def test_build_metric_frame_combines_histories_with_normalized_value_and_drawdow
     assert normalized.iloc[-1]["B"] == 150.0
     drawdown = build_metric_frame(histories, "drawdown_pct")
     assert round(float(drawdown.iloc[-1]["A"]), 3) == 25.0
+
+
+def test_history_selection_maps_comparison_aliases_to_summary_names():
+    summary = pd.DataFrame(
+        {
+            "name": [
+                "static_long1.50",
+                "rv336_dd_e_tight_2_rec_t1.250_dd0.22_w0.012",
+            ]
+        }
+    )
+    histories = {
+        "highest_return": _history([100.0, 120.0]),
+        "high_sortino": _history([100.0, 110.0]),
+    }
+
+    options = history_label_options(summary, histories)
+    selected = history_selection_for_summary(
+        [
+            "static_long1.50",
+            "rv336_dd_e_tight_2_rec_t1.250_dd0.22_w0.012",
+        ],
+        options,
+    )
+
+    assert options["static_long1.50"] == "highest_return"
+    assert options["rv336_dd_e_tight_2_rec_t1.250_dd0.22_w0.012"] == "high_sortino"
+    assert selected == ["highest_return", "high_sortino"]
