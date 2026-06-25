@@ -145,6 +145,42 @@ def build_buy_hold_frame(
     return pd.DataFrame(data, index=index)
 
 
+def build_composition_frame(history: pd.DataFrame, side: str) -> pd.DataFrame:
+    """Return asset value composition for collateral or debt."""
+    prefix = f"{side}_"
+    data: dict[str, pd.Series] = {}
+    for column in history.columns:
+        if not column.startswith(prefix) or not column.endswith("_value"):
+            continue
+        if column in {"collateral_value", "debt_value"}:
+            continue
+        asset = column.removeprefix(prefix).removesuffix("_value")
+        data[asset] = history[column].clip(lower=0.0)
+    return pd.DataFrame(data, index=history.index)
+
+
+def final_composition_table(history: pd.DataFrame, side: str) -> pd.DataFrame:
+    """Return latest asset composition values and percentage shares."""
+    frame = build_composition_frame(history, side)
+    if frame.empty:
+        return pd.DataFrame(columns=["asset", "value_usd", "share_pct"])
+    latest = frame.iloc[-1]
+    total = float(latest.sum())
+    rows = []
+    for asset, value in latest.items():
+        value = float(value)
+        if value <= 0.0:
+            continue
+        rows.append(
+            {
+                "asset": asset,
+                "value_usd": value,
+                "share_pct": value / total * 100.0 if total > 0.0 else 0.0,
+            }
+        )
+    return pd.DataFrame(rows).sort_values("value_usd", ascending=False).reset_index(drop=True)
+
+
 def history_label_options(
     summary: pd.DataFrame,
     histories: dict[str, pd.DataFrame],

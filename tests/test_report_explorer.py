@@ -8,6 +8,8 @@ import pandas as pd
 
 from arblab.backtest.report_explorer import (
     build_buy_hold_frame,
+    build_composition_frame,
+    final_composition_table,
     build_metric_frame,
     discover_report_dirs,
     history_label_options,
@@ -27,6 +29,10 @@ def _history(values: list[float]) -> pd.DataFrame:
             "health_factor": [2.0] * len(values),
             "target_long_fraction": [1.0] * len(values),
             "target_short_fraction": [0.0] * len(values),
+            "collateral_SOL_value": values,
+            "collateral_USDC_value": [0.0] * len(values),
+            "debt_USDC_value": [value * 0.1 for value in values],
+            "debt_ETH_value": [0.0] * len(values),
         },
         index=index,
     )
@@ -156,3 +162,25 @@ def test_build_buy_hold_frame_uses_common_initial_portfolio_value():
 
     assert frame["Buy & Hold SOL"].tolist() == [100.0, 200.0, 150.0]
     assert frame["Buy & Hold ETH"].tolist() == [100.0, 50.0, 200.0]
+
+
+def test_build_composition_frame_extracts_collateral_and_debt_values():
+    history = _history([100.0, 120.0])
+
+    collateral = build_composition_frame(history, "collateral")
+    debt = build_composition_frame(history, "debt")
+
+    assert list(collateral.columns) == ["SOL", "USDC"]
+    assert collateral.iloc[-1]["SOL"] == 120.0
+    assert list(debt.columns) == ["USDC", "ETH"]
+    assert debt.iloc[-1]["USDC"] == 12.0
+
+
+def test_final_composition_table_returns_latest_values_and_percentages():
+    history = _history([100.0, 120.0])
+
+    table = final_composition_table(history, "collateral")
+
+    assert table.iloc[0]["asset"] == "SOL"
+    assert table.iloc[0]["value_usd"] == 120.0
+    assert table.iloc[0]["share_pct"] == 100.0

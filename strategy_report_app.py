@@ -9,8 +9,10 @@ import streamlit as st
 
 from arblab.backtest.report_explorer import (
     build_buy_hold_frame,
+    build_composition_frame,
     build_metric_frame,
     discover_report_dirs,
+    final_composition_table,
     history_label_options,
     history_selection_for_summary,
     load_price_cache,
@@ -185,7 +187,7 @@ if custom_range and bundle.histories:
 st.caption(str(bundle.path))
 _render_kpis(summary, selected_names)
 
-tabs = st.tabs(["Dynamics", "Regimes", "Report", "Raw Tables"])
+tabs = st.tabs(["Dynamics", "Composition", "Regimes", "Report", "Raw Tables"])
 
 with tabs[0]:
     if not bundle.histories or not selected_history_names:
@@ -266,6 +268,40 @@ with tabs[0]:
                     st.dataframe(history[visible_columns].tail(250), use_container_width=True)
 
 with tabs[1]:
+    if not bundle.histories or not selected_history_names:
+        st.info("No local history CSVs are available for composition charts.")
+    else:
+        histories = _slice_histories(bundle.histories, selected_history_names, start, end)
+        if not histories:
+            st.info("No selected strategies have matching local history CSVs.")
+            st.stop()
+        for name, history in histories.items():
+            st.header(name)
+            col_a, col_b = st.columns(2)
+            collateral = build_composition_frame(history, "collateral")
+            debt = build_composition_frame(history, "debt")
+            with col_a:
+                st.subheader("Collateral value by asset")
+                if collateral.empty:
+                    st.info("No collateral composition columns found.")
+                else:
+                    st.area_chart(_downsample(collateral))
+                    st.dataframe(
+                        final_composition_table(history, "collateral"),
+                        use_container_width=True,
+                    )
+            with col_b:
+                st.subheader("Debt value by asset")
+                if debt.empty or float(debt.sum().sum()) == 0.0:
+                    st.info("No debt composition values found.")
+                else:
+                    st.area_chart(_downsample(debt))
+                    st.dataframe(
+                        final_composition_table(history, "debt"),
+                        use_container_width=True,
+                    )
+
+with tabs[2]:
     if bundle.regimes.empty:
         st.info("No regime_summary.csv is available for this report.")
     else:
@@ -274,13 +310,13 @@ with tabs[1]:
             regime_view = regime_view[regime_view["name"].astype(str).isin(selected_names)]
         st.dataframe(regime_view, use_container_width=True)
 
-with tabs[2]:
+with tabs[3]:
     if bundle.markdown:
         st.markdown(bundle.markdown)
     else:
         st.info("No report.md is available for this report.")
 
-with tabs[3]:
+with tabs[4]:
     st.subheader("Summary")
     st.dataframe(_summary_table(summary), use_container_width=True)
     if bundle.histories:
