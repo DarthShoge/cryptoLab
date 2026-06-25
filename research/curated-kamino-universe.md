@@ -12,6 +12,7 @@ This universe is the starting point for multi-asset traffic-light research. It i
 | JitoSOL | Yes | `JITOSOL/USDT` exchange OHLCV | SOL liquid staking token collateral/borrow leg |
 | mSOL | Yes | `MSOL/USDT` exchange OHLCV | SOL liquid staking token collateral/borrow leg |
 | ETH | Yes | `ETH/USDT` exchange OHLCV | Major exchange asset and existing hedge leg |
+| BTC | Yes | `BTC/USDT` exchange OHLCV | Major exchange asset added for directional/protective hedge research |
 | USDC | No | USD peg | Quote, reserve, collateral, debt, and cash leg |
 | USDT | No | USD peg | Stable collateral/debt capacity |
 

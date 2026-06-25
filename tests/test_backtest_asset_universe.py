@@ -38,7 +38,7 @@ def test_curated_universe_separates_exchange_prices_from_pegged_assets():
         if entry.price_kind == PriceKind.PEGGED
     }
 
-    assert exchange_symbols == {"SOL", "JitoSOL", "mSOL", "ETH"}
+    assert exchange_symbols == {"SOL", "JitoSOL", "mSOL", "ETH", "BTC"}
     assert pegged_symbols == {"USDC", "USDT"}
     assert universe["USDC"].peg_target == "USD"
     assert universe["USDT"].peg_target == "USD"
@@ -54,6 +54,7 @@ def test_exchange_price_configs_are_deterministic_and_skip_pegged_assets():
         ("JitoSOL", "JITOSOL/USDT"),
         ("mSOL", "MSOL/USDT"),
         ("ETH", "ETH/USDT"),
+        ("BTC", "BTC/USDT"),
     ]
 
 
@@ -65,6 +66,7 @@ def test_research_symbols_can_filter_for_long_short_candidates():
         "JitoSOL",
         "mSOL",
         "ETH",
+        "BTC",
     ]
     assert research_symbols(universe, long_short_only=False) == [
         "SOL",
@@ -73,15 +75,16 @@ def test_research_symbols_can_filter_for_long_short_candidates():
         "USDC",
         "USDT",
         "ETH",
+        "BTC",
     ]
 
 
 def test_validation_rejects_assets_missing_from_market_params():
     universe = {
-        "BTC": AssetUniverseEntry(
-            symbol="BTC",
+        "WIF": AssetUniverseEntry(
+            symbol="WIF",
             price_kind=PriceKind.EXCHANGE,
-            exchange_symbol="BTC/USDT",
+            exchange_symbol="WIF/USDT",
             can_be_collateral=True,
             can_be_borrowed=True,
             include_in_long_short_research=True,

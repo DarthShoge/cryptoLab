@@ -122,7 +122,12 @@ class MultiAssetTrafficLightStrategy(Strategy):
             and ranking.weakest != selected_long
             else ""
         )
-        protective_short = self._protective_short_symbol(config, selected_long, symbols)
+        protective_short = self._protective_short_symbol(
+            config,
+            selected_long,
+            symbols,
+            ranking.green_counts,
+        )
         hedge_basis_symbol = self._protective_long_basis_symbol(
             snapshot=snapshot,
             selected_long=selected_long,
@@ -299,7 +304,21 @@ class MultiAssetTrafficLightStrategy(Strategy):
         config: dict[str, Any],
         selected_long: str,
         symbols: list[str],
+        green_counts: dict[str, int] | None = None,
     ) -> str:
+        configured_candidates = config.get("protective_short_symbols")
+        if configured_candidates:
+            candidates = [
+                str(symbol)
+                for symbol in configured_candidates
+                if str(symbol) in symbols and str(symbol) != selected_long
+            ]
+            if not candidates:
+                return ""
+            if green_counts is None:
+                return candidates[0]
+            return min(candidates, key=lambda symbol: (green_counts.get(symbol, 0), symbol))
+
         configured = config.get("protective_short_symbol")
         if configured:
             return str(configured)

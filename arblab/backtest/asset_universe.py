@@ -95,6 +95,15 @@ def curated_kamino_universe() -> dict[str, AssetUniverseEntry]:
             include_in_long_short_research=True,
             notes="Major exchange asset currently used as the SOL hedge leg.",
         ),
+        AssetUniverseEntry(
+            symbol="BTC",
+            price_kind=PriceKind.EXCHANGE,
+            exchange_symbol="BTC/USDT",
+            can_be_collateral=True,
+            can_be_borrowed=True,
+            include_in_long_short_research=True,
+            notes="Major exchange asset added for BTC directional and protective hedge research.",
+        ),
     ]
     return {entry.symbol: entry for entry in entries}
 

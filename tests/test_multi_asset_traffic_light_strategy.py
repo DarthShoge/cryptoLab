@@ -32,12 +32,19 @@ def _bar(history: pd.DataFrame, index: int = -1) -> BarData:
     )
 
 
-def _history(sol: list[float], eth: list[float]) -> pd.DataFrame:
+def _history(
+    sol: list[float],
+    eth: list[float],
+    btc: list[float] | None = None,
+) -> pd.DataFrame:
     dates = pd.date_range("2024-01-01", periods=len(sol), freq="h", tz="UTC")
+    if btc is None:
+        btc = [40_000.0] * len(sol)
     data = {}
     for symbol, values in {
         "SOL": sol,
         "ETH": eth,
+        "BTC": btc,
         "JitoSOL": sol,
         "mSOL": sol,
         "USDC": [1.0] * len(sol),
@@ -403,6 +410,49 @@ def test_protective_hedge_floor_uses_existing_collateral_when_no_long_selected()
     assert borrow["amount"] == 1.0
     assert strategy.history_fields()["selected_long"] == ""
     assert strategy.history_fields()["target_short_fraction"] == 0.20
+
+
+def test_protective_hedge_candidates_choose_weakest_symbol_other_than_selected_long():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+        btc=[40_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [3] * len(history), "ETH": [2] * len(history), "BTC": [1] * len(history)},
+        index=history.index,
+    )
+    snapshot = strategy.setup(
+        AccountSnapshot(collateral=[], debt=[]),
+        {
+            "initial_collateral_symbol": "SOL",
+            "initial_collateral_amount": 100.0,
+            "directional_symbols": ["SOL", "ETH", "BTC"],
+            "initial_prices": {"SOL": 100.0, "ETH": 2_000.0, "BTC": 40_000.0},
+            "green_scores": green_scores,
+            "min_long_green": 3,
+            "max_short_green": -1,
+            "target_long_fraction": 1.00,
+            "target_short_fraction": 0.00,
+            "rebalance_threshold": 0.01,
+            "enable_protective_short_hedge": True,
+            "protective_short_symbols": ["SOL", "BTC"],
+            "protective_hedge_floors": {3: 0.20},
+        },
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(history))
+
+    assert strategy.history_fields()["selected_long"] == "SOL"
+    assert any(
+        action["type"] == "borrow" and action["symbol"] == "BTC"
+        for action in actions
+    )
+    assert not any(
+        action["type"] == "borrow" and action["symbol"] == "SOL"
+        for action in actions
+    )
 
 
 def test_protective_hedge_covers_before_releveraging_long_collateral():

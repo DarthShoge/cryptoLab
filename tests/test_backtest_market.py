@@ -423,7 +423,7 @@ def test_simulate_liquidation_cascade_position_wiped():
 def test_kamino_defaults_has_expected_assets():
     """kamino_defaults() produces a MarketParams with the expected asset set."""
     params = MarketParams.kamino_defaults()
-    expected_symbols = {"SOL", "JitoSOL", "mSOL", "USDC", "USDT", "ETH"}
+    expected_symbols = {"SOL", "JitoSOL", "mSOL", "USDC", "USDT", "ETH", "BTC"}
     assert set(params.assets.keys()) == expected_symbols
 
 
@@ -434,7 +434,7 @@ def test_kamino_defaults_lst_flags():
         cfg = params.assets[symbol]
         assert cfg.is_lst is True
         assert cfg.lst_base_apy > 0
-    for symbol in ("SOL", "USDC", "USDT", "ETH"):
+    for symbol in ("SOL", "USDC", "USDT", "ETH", "BTC"):
         cfg = params.assets[symbol]
         assert cfg.is_lst is False
 
