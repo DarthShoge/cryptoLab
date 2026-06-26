@@ -91,6 +91,17 @@ def build_metric_frame(
     return pd.DataFrame(data)
 
 
+def chart_debt_values_negative(frame: pd.DataFrame) -> pd.DataFrame:
+    """Return chart data with debt value columns displayed as negative values."""
+    out = frame.copy()
+    for column in out.columns:
+        if column == "debt_value" or (
+            column.startswith("debt_") and column.endswith("_value")
+        ):
+            out[column] = -out[column].abs()
+    return out
+
+
 def load_price_cache(
     cache_dir: Path = Path("notebooks/.price_cache"),
     symbols: list[str] | None = None,

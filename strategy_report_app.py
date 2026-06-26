@@ -14,6 +14,7 @@ from arblab.backtest.report_explorer import (
     build_metric_frame,
     build_temperature_frame,
     build_timeline_frame,
+    chart_debt_values_negative,
     discover_report_dirs,
     final_composition_table,
     history_label_options,
@@ -428,7 +429,9 @@ with tabs[0]:
                     )
                 ]
                 if position_columns:
-                    st.line_chart(_downsample(history[position_columns]))
+                    st.line_chart(
+                        _downsample(chart_debt_values_negative(history[position_columns]))
+                    )
                 visible_columns = [
                     column
                     for column in [
@@ -479,7 +482,7 @@ with tabs[1]:
                     st.info("No debt composition values found.")
                 else:
                     st.altair_chart(
-                        _composition_chart(debt, prices),
+                        _composition_chart(chart_debt_values_negative(debt), prices),
                         use_container_width=True,
                     )
                     st.dataframe(

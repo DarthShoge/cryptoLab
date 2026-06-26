@@ -12,6 +12,7 @@ from arblab.backtest.report_explorer import (
     final_composition_table,
     build_temperature_frame,
     build_timeline_frame,
+    chart_debt_values_negative,
     build_metric_frame,
     discover_report_dirs,
     history_label_options,
@@ -280,3 +281,23 @@ def test_build_timeline_frame_includes_structured_snapshot_fields():
     assert row["snapshot_portfolio"] == "$120.00"
     assert row["snapshot_collateral_SOL"] == "$120.00"
     assert row["snapshot_debt_USDC"] == "$12.00"
+
+
+def test_chart_debt_values_negative_flips_only_debt_value_columns():
+    frame = pd.DataFrame(
+        {
+            "portfolio_value": [100.0],
+            "collateral_SOL_value": [120.0],
+            "debt_USDC_value": [20.0],
+            "debt_value": [20.0],
+            "target_short_fraction": [0.5],
+        }
+    )
+
+    adjusted = chart_debt_values_negative(frame)
+
+    assert adjusted.iloc[0]["portfolio_value"] == 100.0
+    assert adjusted.iloc[0]["collateral_SOL_value"] == 120.0
+    assert adjusted.iloc[0]["debt_USDC_value"] == -20.0
+    assert adjusted.iloc[0]["debt_value"] == -20.0
+    assert adjusted.iloc[0]["target_short_fraction"] == 0.5
