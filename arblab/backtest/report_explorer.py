@@ -32,6 +32,19 @@ def discover_report_dirs(root: Path = Path("reports")) -> list[Path]:
     return sorted(dirs, key=lambda path: path.name, reverse=True)
 
 
+def default_report_index(report_paths: list[str]) -> int:
+    """Return the preferred default report index for the explorer app."""
+    preferred_markers = [
+        "strategy_comparison_through_20260601",
+        "strategy_comparison",
+    ]
+    for marker in preferred_markers:
+        for index, path in enumerate(report_paths):
+            if marker in path:
+                return index
+    return 0
+
+
 def load_report_bundle(path: Path) -> ReportBundle:
     """Load summary, regime, markdown, and local history CSVs for a report."""
     summary = _read_csv_if_exists(path / "summary.csv")

@@ -15,6 +15,7 @@ from arblab.backtest.report_explorer import (
     build_temperature_frame,
     build_timeline_frame,
     chart_debt_values_negative,
+    default_report_index,
     discover_report_dirs,
     final_composition_table,
     history_label_options,
@@ -305,11 +306,12 @@ if not report_paths:
     st.warning("No report directories with summary.csv or report.md were found.")
     st.stop()
 
-default_index = 0
-for index, path in enumerate(report_paths):
-    if "strategy_comparison" in path:
-        default_index = index
-        break
+if st.sidebar.button("Refresh reports"):
+    _report_dirs.clear()
+    _load_report.clear()
+    st.rerun()
+
+default_index = default_report_index(report_paths)
 
 selected_path = st.sidebar.selectbox(
     "Report directory",

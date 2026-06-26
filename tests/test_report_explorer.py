@@ -13,6 +13,7 @@ from arblab.backtest.report_explorer import (
     build_temperature_frame,
     build_timeline_frame,
     chart_debt_values_negative,
+    default_report_index,
     build_metric_frame,
     discover_report_dirs,
     history_label_options,
@@ -301,3 +302,13 @@ def test_chart_debt_values_negative_flips_only_debt_value_columns():
     assert adjusted.iloc[0]["debt_USDC_value"] == -20.0
     assert adjusted.iloc[0]["debt_value"] == -20.0
     assert adjusted.iloc[0]["target_short_fraction"] == 0.5
+
+
+def test_default_report_index_prefers_latest_through_june_comparison():
+    paths = [
+        "reports/usd_first_multi_asset_governor_20260625_022251",
+        "reports/strategy_comparison_20260625_180556",
+        "reports/strategy_comparison_through_20260601_20260626_150122",
+    ]
+
+    assert default_report_index(paths) == 2
