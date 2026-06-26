@@ -183,6 +183,15 @@ def build_timeline_frame(
         "health_factor",
         "drawdown_pct",
         "portfolio_snapshot",
+        "snapshot_portfolio",
+        "snapshot_collateral_SOL",
+        "snapshot_collateral_ETH",
+        "snapshot_collateral_BTC",
+        "snapshot_collateral_USDC",
+        "snapshot_debt_SOL",
+        "snapshot_debt_ETH",
+        "snapshot_debt_BTC",
+        "snapshot_debt_USDC",
     ]
     if history.empty or "SOL" not in prices:
         return pd.DataFrame(columns=columns)
@@ -213,6 +222,7 @@ def build_timeline_frame(
             "health_factor": health_factor,
             "drawdown_pct": drawdown,
             "portfolio_snapshot": _portfolio_snapshot(row),
+            **_structured_portfolio_snapshot(row),
         }
 
         if previous is None:
@@ -287,6 +297,26 @@ def _portfolio_snapshot(row: pd.Series) -> str:
             asset = column.removeprefix(prefix).removesuffix("_value")
             parts.append(f"{label} {asset}=${value:,.2f}")
     return " | ".join(parts)
+
+
+def _structured_portfolio_snapshot(row: pd.Series) -> dict[str, str]:
+    assets = ("SOL", "ETH", "BTC", "USDC")
+    snapshot: dict[str, str] = {
+        "snapshot_portfolio": _format_snapshot_value(row.get("portfolio_value", 0.0)),
+    }
+    for side in ("collateral", "debt"):
+        for asset in assets:
+            snapshot[f"snapshot_{side}_{asset}"] = _format_snapshot_value(
+                row.get(f"{side}_{asset}_value", 0.0)
+            )
+    return snapshot
+
+
+def _format_snapshot_value(value: object) -> str:
+    value = float(value)
+    if value <= 0.0:
+        return ""
+    return f"${value:,.2f}"
 
 
 def build_composition_frame(history: pd.DataFrame, side: str) -> pd.DataFrame:

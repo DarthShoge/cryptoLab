@@ -239,7 +239,15 @@ def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
                 alt.Tooltip("health_factor:Q", title="HF", format=",.3f"),
                 alt.Tooltip("drawdown_pct:Q", title="Drawdown", format=",.2f"),
                 alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
-                alt.Tooltip("portfolio_snapshot:N", title="Portfolio"),
+                alt.Tooltip("snapshot_portfolio:N", title="Portfolio"),
+                alt.Tooltip("snapshot_collateral_SOL:N", title="Collateral SOL"),
+                alt.Tooltip("snapshot_collateral_ETH:N", title="Collateral ETH"),
+                alt.Tooltip("snapshot_collateral_BTC:N", title="Collateral BTC"),
+                alt.Tooltip("snapshot_collateral_USDC:N", title="Collateral USDC"),
+                alt.Tooltip("snapshot_debt_SOL:N", title="Debt SOL"),
+                alt.Tooltip("snapshot_debt_ETH:N", title="Debt ETH"),
+                alt.Tooltip("snapshot_debt_BTC:N", title="Debt BTC"),
+                alt.Tooltip("snapshot_debt_USDC:N", title="Debt USDC"),
             ],
         )
     )

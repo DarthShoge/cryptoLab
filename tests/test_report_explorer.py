@@ -262,3 +262,21 @@ def test_build_timeline_frame_includes_portfolio_snapshot():
     assert "portfolio=$120.00" in snapshot
     assert "collateral SOL=$120.00" in snapshot
     assert "debt USDC=$12.00" in snapshot
+
+
+def test_build_timeline_frame_includes_structured_snapshot_fields():
+    history = _history([100.0, 120.0])
+    history["target_long_fraction"] = [1.0, 1.5]
+    prices = {
+        "SOL": pd.Series(
+            [10.0, 12.0],
+            index=history.index,
+        )
+    }
+
+    frame = build_timeline_frame(history, prices)
+    row = frame.iloc[-1]
+
+    assert row["snapshot_portfolio"] == "$120.00"
+    assert row["snapshot_collateral_SOL"] == "$120.00"
+    assert row["snapshot_debt_USDC"] == "$12.00"
