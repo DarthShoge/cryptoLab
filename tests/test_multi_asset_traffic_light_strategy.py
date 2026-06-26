@@ -6,7 +6,7 @@ import pandas as pd
 
 from arblab.backtest.market import MarketParams
 from arblab.backtest.strategy import BarData, PriceBar
-from arblab.kamino_risk import AccountSnapshot
+from arblab.kamino_risk import AccountSnapshot, apply_actions
 from arblab.strategies.multi_asset_traffic_light import MultiAssetTrafficLightStrategy
 
 
@@ -860,3 +860,140 @@ def test_protective_hedge_covers_before_releveraging_long_collateral():
     repay_index = next(i for i, action in enumerate(actions) if action["type"] == "repay" and action["symbol"] == "ETH")
     long_add_index = next(i for i, action in enumerate(actions) if action["type"] == "deposit_collateral" and action["symbol"] == "SOL")
     assert repay_index < long_add_index
+
+
+def test_protective_hedge_covers_selected_long_debt_before_rotating_long():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    snapshot = strategy.setup(
+        AccountSnapshot(collateral=[], debt=[]),
+        {
+            "initial_usdc": 10_000.0,
+            "directional_symbols": ["SOL", "ETH"],
+            "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+            "green_scores": green_scores,
+            "min_long_green": 4,
+            "max_short_green": -1,
+            "target_long_fraction": 1.00,
+            "target_short_fraction": 0.00,
+            "rebalance_threshold": 0.01,
+            "enable_protective_short_hedge": True,
+            "protective_short_symbols": ["SOL", "ETH"],
+            "protective_hedge_floors": {4: 0.10},
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=2_100.0 if position.symbol == "USDC" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=10.0 if position.symbol == "SOL" else position.amount,
+                price=position.price,
+                borrow_factor=position.borrow_factor,
+            )
+            for position in snapshot.debt
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(history))
+
+    sol_repay_index = next(
+        i
+        for i, action in enumerate(actions)
+        if action["type"] == "repay" and action["symbol"] == "SOL"
+    )
+    sol_deposit_index = next(
+        i
+        for i, action in enumerate(actions)
+        if action["type"] == "deposit_collateral" and action["symbol"] == "SOL"
+    )
+    assert sol_repay_index < sol_deposit_index
+    final = apply_actions(snapshot, actions)
+    sol_collateral = next(position for position in final.collateral if position.symbol == "SOL")
+    sol_debt = next(position for position in final.debt if position.symbol == "SOL")
+    assert not (sol_collateral.value() > 0.0 and sol_debt.value() > 0.0)
+
+
+def test_protective_hedge_covers_stale_non_selected_short_debt():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+        btc=[40_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [2] * len(history), "BTC": [1] * len(history)},
+        index=history.index,
+    )
+    snapshot = strategy.setup(
+        AccountSnapshot(collateral=[], debt=[]),
+        {
+            "initial_collateral_symbol": "SOL",
+            "initial_collateral_amount": 100.0,
+            "directional_symbols": ["SOL", "ETH", "BTC"],
+            "initial_prices": {"SOL": 100.0, "ETH": 2_000.0, "BTC": 40_000.0},
+            "green_scores": green_scores,
+            "min_long_green": 4,
+            "max_short_green": -1,
+            "target_long_fraction": 1.00,
+            "target_short_fraction": 0.00,
+            "rebalance_threshold": 0.01,
+            "enable_protective_short_hedge": True,
+            "protective_short_symbols": ["ETH", "BTC"],
+            "protective_hedge_floors": {4: 0.10},
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=2_100.0 if position.symbol == "USDC" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in snapshot.collateral
+        ],
+        debt=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=1.0 if position.symbol == "ETH" else position.amount,
+                price=position.price,
+                borrow_factor=position.borrow_factor,
+            )
+            for position in snapshot.debt
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(history))
+
+    eth_repay_index = next(
+        i
+        for i, action in enumerate(actions)
+        if action["type"] == "repay" and action["symbol"] == "ETH"
+    )
+    btc_borrow_index = next(
+        i
+        for i, action in enumerate(actions)
+        if action["type"] == "borrow" and action["symbol"] == "BTC"
+    )
+    assert eth_repay_index < btc_borrow_index
+    final = apply_actions(snapshot, actions)
+    eth_debt = next(position for position in final.debt if position.symbol == "ETH")
+    assert eth_debt.value() == 0.0

@@ -8,7 +8,12 @@ from arblab.backtest.asset_universe import curated_kamino_universe, research_sym
 from arblab.backtest.market import MarketParams
 from arblab.backtest.strategy import BarData, Strategy
 from arblab.backtest.traffic_lights import asset_green_counts_by_bar, latest_asset_rankings
-from arblab.kamino_risk import AccountSnapshot, CollateralPosition, DebtPosition
+from arblab.kamino_risk import (
+    AccountSnapshot,
+    CollateralPosition,
+    DebtPosition,
+    apply_actions,
+)
 
 
 class MultiAssetTrafficLightStrategy(Strategy):
@@ -209,44 +214,61 @@ class MultiAssetTrafficLightStrategy(Strategy):
         }
         self._previous_equity_drawdown = equity_drawdown
 
-        actions.extend(
-            self._cover_excess_protective_short(
-                snapshot=snapshot,
-                selected_long=selected_long,
-                hedge_basis_symbol=hedge_basis_symbol,
-                protective_short_symbol=protective_short,
-                symbols=symbols,
-                target_short_fraction=target_short_fraction,
-                threshold_usd=equity * threshold,
-                fee=fee,
-            )
+        planning_snapshot = snapshot
+        conflict_actions = self._cover_directional_debt_conflicts(
+            snapshot=planning_snapshot,
+            selected_long=selected_long,
+            selected_short=selected_short,
+            protective_short_symbol=protective_short,
+            symbols=symbols,
+            fee=fee,
         )
-        actions.extend(
-            self._rebalance_collateral(
-                snapshot=snapshot,
-                selected_long=selected_long,
-                symbols=symbols,
-                target_long_usd=equity * target_long_fraction if selected_long else 0.0,
-                threshold_usd=equity * threshold,
-                fee=fee,
-            )
+        if conflict_actions:
+            actions.extend(conflict_actions)
+            planning_snapshot = apply_actions(planning_snapshot, conflict_actions)
+
+        excess_short_actions = self._cover_excess_protective_short(
+            snapshot=planning_snapshot,
+            selected_long=selected_long,
+            hedge_basis_symbol=hedge_basis_symbol,
+            protective_short_symbol=protective_short,
+            symbols=symbols,
+            target_short_fraction=target_short_fraction,
+            threshold_usd=equity * threshold,
+            fee=fee,
         )
-        actions.extend(
-            self._rebalance_debt(
-                snapshot=snapshot,
-                selected_short=selected_short,
-                hedge_basis_symbol=hedge_basis_symbol,
-                protective_short_symbol=protective_short,
-                symbols=symbols,
-                target_short_usd=(
-                    target_short_fraction
-                    if bool(config.get("enable_protective_short_hedge", False))
-                    else equity * target_short_fraction if selected_short else 0.0
-                ),
-                threshold_usd=equity * threshold,
-                fee=fee,
-            )
+        if excess_short_actions:
+            actions.extend(excess_short_actions)
+            planning_snapshot = apply_actions(planning_snapshot, excess_short_actions)
+
+        debt_actions = self._rebalance_debt(
+            snapshot=planning_snapshot,
+            selected_short=selected_short,
+            hedge_basis_symbol=hedge_basis_symbol,
+            protective_short_symbol=protective_short,
+            symbols=symbols,
+            target_short_usd=(
+                target_short_fraction
+                if bool(config.get("enable_protective_short_hedge", False))
+                else equity * target_short_fraction if selected_short else 0.0
+            ),
+            threshold_usd=equity * threshold,
+            fee=fee,
         )
+        if debt_actions:
+            actions.extend(debt_actions)
+            planning_snapshot = apply_actions(planning_snapshot, debt_actions)
+
+        collateral_actions = self._rebalance_collateral(
+            snapshot=planning_snapshot,
+            selected_long=selected_long,
+            symbols=symbols,
+            target_long_usd=equity * target_long_fraction if selected_long else 0.0,
+            threshold_usd=equity * threshold,
+            fee=fee,
+        )
+        if collateral_actions:
+            actions.extend(collateral_actions)
 
         if actions:
             self.event_log.append(
@@ -659,6 +681,92 @@ class MultiAssetTrafficLightStrategy(Strategy):
             },
         ]
 
+    def _cover_directional_debt_conflicts(
+        self,
+        snapshot: AccountSnapshot,
+        selected_long: str,
+        selected_short: str,
+        protective_short_symbol: str,
+        symbols: list[str],
+        fee: float,
+    ) -> list[dict[str, Any]]:
+        if not bool(self._config.get("enable_protective_short_hedge", False)):
+            return []
+
+        desired_short = protective_short_symbol or selected_short
+        actions: list[dict[str, Any]] = []
+        usdc_amount = (self._collateral(snapshot, "USDC") or CollateralPosition(
+            symbol="USDC",
+            amount=0.0,
+            price=1.0,
+            ltv=0.0,
+            liquidation_threshold=0.0,
+        )).amount
+
+        for debt_position in snapshot.debt:
+            if (
+                debt_position.symbol not in symbols
+                or debt_position.price <= 0.0
+                or debt_position.amount <= 0.0
+            ):
+                continue
+
+            must_cover = debt_position.symbol == selected_long
+            must_cover = must_cover or (
+                debt_position.symbol != desired_short
+                and debt_position.value() > 0.0
+            )
+            if not must_cover:
+                continue
+
+            remaining_debt = debt_position.amount
+            collateral_position = self._collateral(snapshot, debt_position.symbol)
+            if collateral_position is not None and collateral_position.amount > 0.0:
+                direct_repay_tokens = min(collateral_position.amount, remaining_debt)
+                if direct_repay_tokens > 0.0:
+                    actions.extend(
+                        [
+                            {
+                                "type": "withdraw_collateral",
+                                "symbol": debt_position.symbol,
+                                "amount": direct_repay_tokens,
+                            },
+                            {
+                                "type": "repay",
+                                "symbol": debt_position.symbol,
+                                "amount": direct_repay_tokens,
+                            },
+                        ]
+                    )
+                    remaining_debt -= direct_repay_tokens
+
+            if remaining_debt <= 0.0 or usdc_amount <= 0.0:
+                continue
+
+            repay_tokens = min(
+                usdc_amount / (debt_position.price * (1.0 + fee)),
+                remaining_debt,
+            )
+            if repay_tokens <= 0.0:
+                continue
+            repay_cost = repay_tokens * debt_position.price * (1.0 + fee)
+            actions.extend(
+                [
+                    {
+                        "type": "withdraw_collateral",
+                        "symbol": "USDC",
+                        "amount": repay_cost,
+                    },
+                    {
+                        "type": "repay",
+                        "symbol": debt_position.symbol,
+                        "amount": repay_tokens,
+                    },
+                ]
+            )
+            usdc_amount -= repay_cost
+        return actions
+
     def _rebalance_collateral(
         self,
         snapshot: AccountSnapshot,
@@ -681,6 +789,14 @@ class MultiAssetTrafficLightStrategy(Strategy):
             target_usd = target_long_usd if position.symbol == selected_long else 0.0
             diff = target_usd - current_usd
             if abs(diff) < threshold_usd:
+                continue
+            selected_long_debt = self._debt(snapshot, position.symbol)
+            if (
+                diff > 0
+                and position.symbol == selected_long
+                and selected_long_debt is not None
+                and selected_long_debt.amount > 1e-9
+            ):
                 continue
             if diff > 0 and usdc.amount > 0:
                 spend_usdc = min(diff / max(1.0 - fee, 1e-9), usdc.amount)
