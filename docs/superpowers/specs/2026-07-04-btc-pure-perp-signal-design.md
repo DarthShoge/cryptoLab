@@ -79,19 +79,40 @@ Configurable inputs:
 - Rebalance deadband, default `0.10`
 - Fee rate, default to a conservative Binance taker fee unless configured
 - Funding model, initially configurable as zero funding or a simple fixed rate placeholder
+- Stop loss percentage, optional and defaulting to disabled
+- Take profit percentage, optional and defaulting to disabled
+- Post-exit re-entry rule, defaulting to no same-direction re-entry until the signal has first returned to flat or flipped direction
 
 Per bar:
 
 1. Compute the closed-candle target signal `s` in `[-1, 1]`.
 2. Convert signal to target notional: `target_notional = equity * max_gross_exposure * s`.
-3. If the absolute target exposure change is below the rebalance deadband, keep the current position.
-4. Trade the delta between current notional and target notional.
-5. Apply fees on traded notional.
-6. Mark the position to market using close-to-close BTC returns.
-7. Apply funding when a funding model is enabled.
-8. Record account state, signal components, turnover, costs, and benchmark values.
+3. Check stop loss and take profit conditions against the active position's average entry price.
+4. If a stop loss or take profit fires, flatten the position and record the exit reason.
+5. Apply the re-entry rule before accepting a new same-direction target after a stop or take-profit exit.
+6. If the absolute target exposure change is below the rebalance deadband, keep the current position.
+7. Trade the delta between current notional and target notional.
+8. Apply fees on traded notional.
+9. Mark the position to market using close-to-close BTC returns.
+10. Apply funding when a funding model is enabled.
+11. Record account state, signal components, turnover, costs, stop/take-profit state, and benchmark values.
 
 Default execution should avoid smoothing target exposure because smoothing makes execution path-dependent. It may be added later as an explicitly named execution option, not as part of the pure signal.
+
+## Stop Loss and Take Profit
+
+Stop loss and take profit are execution controls, not signal inputs. They may override the target exposure produced by the signal, but the signal calculation must not read stop state, entry price, realized PnL, or prior exits.
+
+Version 1 uses fixed percentage thresholds from average entry price:
+
+- Long stop loss fires when price is at or below `entry_price * (1 - stop_loss_pct)`.
+- Long take profit fires when price is at or above `entry_price * (1 + take_profit_pct)`.
+- Short stop loss fires when price is at or above `entry_price * (1 + stop_loss_pct)`.
+- Short take profit fires when price is at or below `entry_price * (1 - take_profit_pct)`.
+
+When exposure increases in the same direction, the simulator should update average entry using notional-weighted entry accounting. When exposure is reduced without fully closing, the remaining position keeps the existing average entry. When exposure flips direction, the old position closes and the new opposite-direction position receives a fresh entry price.
+
+If a stop or take profit exits a position, the default re-entry guard blocks a new position in the same direction until the signal first goes flat or flips direction. This prevents immediate churn when a strong unchanged signal remains active after a stop. The guard should be configurable, but this conservative behavior is the v1 default.
 
 ## Outputs
 
@@ -100,8 +121,8 @@ Each run should write artifacts to a new timestamped report directory and should
 Required artifacts:
 
 - `signals.csv`: timestamp, BTC close, final signal, component scores, and timeframe votes
-- `history.csv`: equity, position notional, exposure, traded notional, fees, funding, drawdown, and BTC buy-and-hold benchmark
-- `summary.json`: total return, annualized return, max drawdown, Sharpe, Sortino, turnover, fee drag, funding drag, percent time long, percent time short, percent time flat
+- `history.csv`: equity, position notional, exposure, traded notional, fees, funding, drawdown, stop/take-profit exit reason, and BTC buy-and-hold benchmark
+- `summary.json`: total return, annualized return, max drawdown, Sharpe, Sortino, turnover, fee drag, funding drag, stop count, take-profit count, percent time long, percent time short, percent time flat
 - `report.md`: plain-English report comparing strategy performance against BTC buy-and-hold and calling out suspicious behavior
 
 ## Testing Requirements
@@ -113,6 +134,9 @@ Tests should cover:
 - Higher-timeframe indicators use closed candles only
 - Rebalance deadband suppresses tiny target changes
 - Fee and PnL accounting reconcile on simple deterministic price paths
+- Fixed percentage stop loss exits long and short positions at the configured threshold
+- Fixed percentage take profit exits long and short positions at the configured threshold
+- Same-direction re-entry is blocked after a stop or take-profit exit until the signal resets
 - BTC buy-and-hold benchmark uses the same start and end window as the strategy
 - Generated outputs include the signal components needed to explain any bar
 
