@@ -47,6 +47,7 @@ def test_summarize_perp_history_includes_required_metrics():
         "sharpe",
         "sortino",
         "turnover",
+        "trade_count",
         "fee_drag",
         "funding_drag",
         "stop_count",
@@ -58,6 +59,7 @@ def test_summarize_perp_history_includes_required_metrics():
     }.issubset(summary)
     assert summary["total_return"] == pytest.approx(0.08)
     assert summary["take_profit_count"] == 1
+    assert summary["trade_count"] == 3
 
 
 def test_write_perp_report_creates_required_artifacts(tmp_path):
@@ -76,4 +78,5 @@ def test_write_perp_report_creates_required_artifacts(tmp_path):
     summary = json.loads((output_dir / "summary.json").read_text())
 
     assert summary["final_equity"] == 10_800.0
+    assert summary["trade_count"] == 3
     assert "BTC Pure Perp Signal Backtest" in (output_dir / "report.md").read_text()

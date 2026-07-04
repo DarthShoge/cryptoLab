@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import pandas as pd
 
@@ -13,17 +13,30 @@ from arblab.strategies.sol_supertrend_short import supertrend_direction
 class PureSignalConfig:
     """Configuration for a stateless BTC exposure signal."""
 
-    timeframes: tuple[str, ...] = ("1h", "4h", "1d", "1w")
+    timeframes: tuple[str, ...] = ("1w", "1d", "4h")
     atr_period: int = 10
     supertrend_multiplier: float = 3.0
+    supertrend_params_by_timeframe: dict[str, tuple[int, float]] = field(
+        default_factory=lambda: {
+            "1w": (7, 4.0),
+            "1d": (21, 4.0),
+            "4h": (7, 4.0),
+        }
+    )
     ema_fast: int = 50
     ema_slow: int = 200
     rsi_period: int = 14
     rsi_overbought: float = 70.0
     rsi_oversold: float = 30.0
-    supertrend_weight: float = 0.50
-    ema_weight: float = 0.35
-    rsi_weight: float = 0.15
+    supertrend_weight: float = 1.0
+    ema_weight: float = 0.0
+    rsi_weight: float = 0.0
+    rsi_filter_enabled: bool = True
+    rsi_filter_timeframe: str = "1d"
+    rsi_filter_period: int = 42
+    rsi_filter_oversold: float = 35.0
+    rsi_filter_overbought: float = 80.0
+    rsi_filter_weight: float = 0.5
     no_trade_zone: float = 0.15
 
 
@@ -46,7 +59,7 @@ def generate_btc_signal(
 
     for timeframe in config.timeframes:
         ohlcv = _closed_resampled_ohlcv(price_data, symbol, timeframe)
-        supertrend = _supertrend_vote(ohlcv, config)
+        supertrend = _supertrend_vote(ohlcv, config, timeframe)
         ema = _ema_vote(ohlcv, config)
         rsi = _rsi_modifier(ohlcv["close"], config)
 
@@ -70,7 +83,27 @@ def generate_btc_signal(
         + config.ema_weight * output["ema_score"]
         + config.rsi_weight * output["rsi_score"]
     )
-    output["signal"] = output["raw_score"].clip(-1.0, 1.0)
+    output["rsi_filter_signal"] = 0.0
+    output["filtered_score"] = output["raw_score"].clip(-1.0, 1.0)
+    if config.rsi_filter_enabled and config.rsi_filter_weight != 0.0:
+        filter_ohlcv = _closed_resampled_ohlcv(
+            price_data,
+            symbol,
+            config.rsi_filter_timeframe,
+        )
+        rsi_filter = _rsi_modifier_from_params(
+            filter_ohlcv["close"],
+            period=config.rsi_filter_period,
+            oversold=config.rsi_filter_oversold,
+            overbought=config.rsi_filter_overbought,
+        )
+        output["rsi_filter_signal"] = _map_to_base(rsi_filter, price_data.index)
+        output["filtered_score"] = _apply_rsi_filter(
+            output["filtered_score"],
+            output["rsi_filter_signal"],
+            weight=config.rsi_filter_weight,
+        )
+    output["signal"] = output["filtered_score"].clip(-1.0, 1.0)
     output.loc[output["signal"].abs() < config.no_trade_zone, "signal"] = 0.0
     return output
 
@@ -111,13 +144,21 @@ def _map_to_base(series: pd.Series, index: pd.Index) -> pd.Series:
     return mapped.fillna(0.0).astype(float)
 
 
-def _supertrend_vote(ohlcv: pd.DataFrame, config: PureSignalConfig) -> pd.Series:
-    if len(ohlcv) < max(config.atr_period, 2):
+def _supertrend_vote(
+    ohlcv: pd.DataFrame,
+    config: PureSignalConfig,
+    timeframe: str,
+) -> pd.Series:
+    atr_period, multiplier = config.supertrend_params_by_timeframe.get(
+        timeframe,
+        (config.atr_period, config.supertrend_multiplier),
+    )
+    if len(ohlcv) < max(atr_period, 2):
         return pd.Series(0.0, index=ohlcv.index)
     direction = supertrend_direction(
         ohlcv,
-        atr_period=config.atr_period,
-        multiplier=config.supertrend_multiplier,
+        atr_period=atr_period,
+        multiplier=multiplier,
     )
     return direction.map({True: 1.0, False: -1.0}).astype(float)
 
@@ -130,15 +171,42 @@ def _ema_vote(ohlcv: pd.DataFrame, config: PureSignalConfig) -> pd.Series:
 
 
 def _rsi_modifier(close: pd.Series, config: PureSignalConfig) -> pd.Series:
+    return _rsi_modifier_from_params(
+        close,
+        period=config.rsi_period,
+        oversold=config.rsi_oversold,
+        overbought=config.rsi_overbought,
+    )
+
+
+def _rsi_modifier_from_params(
+    close: pd.Series,
+    period: int,
+    oversold: float,
+    overbought: float,
+) -> pd.Series:
     delta = close.astype(float).diff()
     gains = delta.clip(lower=0.0)
     losses = -delta.clip(upper=0.0)
-    avg_gain = gains.rolling(config.rsi_period, min_periods=1).mean()
-    avg_loss = losses.rolling(config.rsi_period, min_periods=1).mean()
+    avg_gain = gains.rolling(period, min_periods=1).mean()
+    avg_loss = losses.rolling(period, min_periods=1).mean()
     rs = avg_gain / avg_loss.where(avg_loss != 0.0)
     rsi = (100.0 - (100.0 / (1.0 + rs))).fillna(100.0)
 
     modifier = pd.Series(0.0, index=close.index)
-    modifier.loc[rsi <= config.rsi_oversold] = 1.0
-    modifier.loc[rsi >= config.rsi_overbought] = -1.0
+    modifier.loc[rsi <= oversold] = 1.0
+    modifier.loc[rsi >= overbought] = -1.0
     return modifier
+
+
+def _apply_rsi_filter(
+    base: pd.Series,
+    rsi_filter: pd.Series,
+    weight: float,
+) -> pd.Series:
+    filtered = base.copy()
+    long_stretched = (base > 0.0) & (rsi_filter < 0.0)
+    short_stretched = (base < 0.0) & (rsi_filter > 0.0)
+    filtered.loc[long_stretched] = (base.loc[long_stretched] + weight * rsi_filter.loc[long_stretched]).clip(lower=0.0)
+    filtered.loc[short_stretched] = (base.loc[short_stretched] + weight * rsi_filter.loc[short_stretched]).clip(upper=0.0)
+    return filtered

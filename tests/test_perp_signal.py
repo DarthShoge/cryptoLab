@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from arblab.perps.signal import PureSignalConfig, generate_btc_signal
 
@@ -76,6 +77,106 @@ def test_generate_btc_signal_includes_explainable_components():
         "rsi_1h",
     }.issubset(signals.columns)
     assert signals.index.equals(history.index)
+
+
+def test_default_signal_uses_calibrated_trend_and_rsi_filter_settings():
+    config = PureSignalConfig()
+
+    assert config.timeframes == ("1w", "1d", "4h")
+    assert config.supertrend_params_by_timeframe == {
+        "1w": (7, 4.0),
+        "1d": (21, 4.0),
+        "4h": (7, 4.0),
+    }
+    assert config.supertrend_weight == 1.0
+    assert config.ema_weight == 0.0
+    assert config.rsi_weight == 0.0
+    assert config.rsi_filter_enabled is True
+    assert config.rsi_filter_timeframe == "1d"
+    assert config.rsi_filter_period == 42
+    assert config.rsi_filter_oversold == 35.0
+    assert config.rsi_filter_overbought == 80.0
+    assert config.rsi_filter_weight == 0.5
+
+
+def test_supertrend_params_can_be_calibrated_per_timeframe(monkeypatch):
+    calls: list[tuple[int, float]] = []
+
+    def fake_supertrend_direction(ohlcv, atr_period, multiplier):
+        calls.append((atr_period, multiplier))
+        return pd.Series(True, index=ohlcv.index)
+
+    monkeypatch.setattr(
+        "arblab.perps.signal.supertrend_direction",
+        fake_supertrend_direction,
+    )
+    history = _btc_history([100.0 + i for i in range(120)])
+
+    generate_btc_signal(
+        history,
+        PureSignalConfig(
+            timeframes=("1h", "4h"),
+            supertrend_params_by_timeframe={"1h": (7, 2.0), "4h": (21, 4.0)},
+            supertrend_weight=1.0,
+            ema_weight=0.0,
+            rsi_weight=0.0,
+            rsi_filter_enabled=False,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert calls == [(7, 2.0), (21, 4.0)]
+
+
+def test_rsi_filter_reduces_stretched_same_direction_exposure():
+    rising = _btc_history([100.0 + i for i in range(80)])
+
+    long_signals = generate_btc_signal(
+        rising,
+        PureSignalConfig(
+            timeframes=("1h",),
+            supertrend_weight=0.0,
+            ema_weight=1.0,
+            rsi_weight=0.0,
+            ema_fast=2,
+            ema_slow=5,
+            rsi_filter_enabled=True,
+            rsi_filter_timeframe="1h",
+            rsi_filter_period=2,
+            rsi_filter_oversold=1.0,
+            rsi_filter_overbought=50.0,
+            rsi_filter_weight=0.5,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert long_signals["raw_score"].iloc[-1] == pytest.approx(1.0)
+    assert long_signals["rsi_filter_signal"].iloc[-1] == -1.0
+    assert long_signals["signal"].iloc[-1] == pytest.approx(0.5)
+
+    falling = _btc_history([180.0 - i for i in range(80)])
+    short_signals = generate_btc_signal(
+        falling,
+        PureSignalConfig(
+            timeframes=("1h",),
+            supertrend_weight=0.0,
+            ema_weight=1.0,
+            rsi_weight=0.0,
+            ema_fast=2,
+            ema_slow=5,
+            rsi_filter_enabled=True,
+            rsi_filter_timeframe="1h",
+            rsi_filter_period=2,
+            rsi_filter_oversold=50.0,
+            rsi_filter_overbought=99.0,
+            rsi_filter_weight=0.5,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert short_signals["raw_score"].iloc[-1] == pytest.approx(-1.0)
+    assert short_signals["rsi_filter_signal"].iloc[-1] == 1.0
+    assert short_signals["signal"].iloc[-1] == pytest.approx(-0.5)
 
 
 def test_higher_timeframe_votes_use_only_closed_candles():
