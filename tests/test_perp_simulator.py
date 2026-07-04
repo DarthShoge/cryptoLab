@@ -50,6 +50,33 @@ def test_rebalance_deadband_suppresses_tiny_target_changes():
     assert history["exposure"].iloc[2] == pytest.approx(0.80)
 
 
+def test_simulator_uses_dynamic_target_exposure_when_provided():
+    index = pd.date_range("2024-01-01", periods=2, freq="1h", tz="UTC")
+    result = simulate_perp_account(
+        pd.DataFrame({"btc_close": [100.0, 100.0]}, index=index),
+        pd.DataFrame(
+            {
+                "signal": [1.0, 1.0],
+                "target_exposure": [2.0, 12.0],
+            },
+            index=index,
+        ),
+        PerpSimulatorConfig(
+            starting_equity=10_000.0,
+            max_gross_exposure=10.0,
+            fee_rate=0.0,
+            rebalance_deadband=0.0,
+        ),
+    )
+
+    history = result.history
+
+    assert history["exposure"].iloc[0] == pytest.approx(2.0)
+    assert history["effective_signal"].iloc[0] == pytest.approx(2.0)
+    assert history["exposure"].iloc[1] == pytest.approx(10.0)
+    assert history["effective_signal"].iloc[1] == pytest.approx(10.0)
+
+
 def test_long_stop_loss_flattens_position_and_blocks_same_direction_reentry():
     result = simulate_perp_account(
         _price_frame([100.0, 94.0, 95.0, 96.0, 97.0]),

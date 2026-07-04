@@ -37,6 +37,14 @@ class PureSignalConfig:
     rsi_filter_oversold: float = 35.0
     rsi_filter_overbought: float = 80.0
     rsi_filter_weight: float = 0.5
+    trend_overlay_enabled: bool = False
+    trend_overlay_agreement_exposure: float = 2.0
+    trend_overlay_breakout_exposure: float = 3.0
+    trend_overlay_max_long_exposure: float = 5.0
+    trend_overlay_breakout_timeframe: str = "1d"
+    trend_overlay_breakout_lookback: int = 50
+    trend_overlay_ema_fast: int = 50
+    trend_overlay_ema_slow: int = 200
     no_trade_zone: float = 0.15
 
 
@@ -105,6 +113,11 @@ def generate_btc_signal(
         )
     output["signal"] = output["filtered_score"].clip(-1.0, 1.0)
     output.loc[output["signal"].abs() < config.no_trade_zone, "signal"] = 0.0
+    output["target_exposure"] = output["signal"]
+    output["trend_overlay_active"] = False
+    output["trend_overlay_reason"] = ""
+    if config.trend_overlay_enabled:
+        output = _apply_trend_overlay(output, price_data, symbol, config)
     return output
 
 
@@ -210,3 +223,69 @@ def _apply_rsi_filter(
     filtered.loc[long_stretched] = (base.loc[long_stretched] + weight * rsi_filter.loc[long_stretched]).clip(lower=0.0)
     filtered.loc[short_stretched] = (base.loc[short_stretched] + weight * rsi_filter.loc[short_stretched]).clip(upper=0.0)
     return filtered
+
+
+def _apply_trend_overlay(
+    output: pd.DataFrame,
+    price_data: pd.DataFrame,
+    symbol: str,
+    config: PureSignalConfig,
+) -> pd.DataFrame:
+    target = output["target_exposure"].copy()
+    weekly_green = output.get("supertrend_1w", 0.0).astype(float) > 0.0
+    daily_green = output.get("supertrend_1d", 0.0).astype(float) > 0.0
+    four_hour_green = output.get("supertrend_4h", 0.0).astype(float) > 0.0
+    long_core = output["signal"] > 0.0
+
+    agreement = long_core & weekly_green & daily_green
+    target.loc[agreement] = target.loc[agreement].clip(
+        lower=config.trend_overlay_agreement_exposure
+    )
+
+    breakout = _breakout_structure(price_data, symbol, config)
+    breakout_agreement = agreement & four_hour_green & breakout
+    target.loc[breakout_agreement] = target.loc[breakout_agreement].clip(
+        lower=config.trend_overlay_breakout_exposure
+    )
+    target = target.clip(
+        lower=-1.0,
+        upper=config.trend_overlay_max_long_exposure,
+    )
+
+    output["target_exposure"] = target
+    output.loc[agreement, "trend_overlay_active"] = True
+    output.loc[agreement, "trend_overlay_reason"] = "agreement"
+    output.loc[breakout_agreement, "trend_overlay_reason"] = "breakout"
+    return output
+
+
+def _breakout_structure(
+    price_data: pd.DataFrame,
+    symbol: str,
+    config: PureSignalConfig,
+) -> pd.Series:
+    ohlcv = _closed_resampled_ohlcv(
+        price_data,
+        symbol,
+        config.trend_overlay_breakout_timeframe,
+    )
+    close = ohlcv["close"].astype(float)
+    fast = close.ewm(
+        span=config.trend_overlay_ema_fast,
+        adjust=False,
+        min_periods=1,
+    ).mean()
+    slow = close.ewm(
+        span=config.trend_overlay_ema_slow,
+        adjust=False,
+        min_periods=1,
+    ).mean()
+    prior_high = (
+        ohlcv["high"]
+        .astype(float)
+        .rolling(config.trend_overlay_breakout_lookback, min_periods=1)
+        .max()
+        .shift(1)
+    )
+    breakout = (close > prior_high) | ((close > fast) & (fast > slow))
+    return _map_to_base(breakout.astype(float), price_data.index).astype(bool)

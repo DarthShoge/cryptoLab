@@ -23,12 +23,17 @@ def main() -> None:
     parser.add_argument("--end", default=None, help="optional inclusive end date")
     parser.add_argument("--timeframe", default="1h", help="Binance OHLCV timeframe")
     parser.add_argument("--starting-equity", type=float, default=10_000.0)
-    parser.add_argument("--max-gross-exposure", type=float, default=1.0)
+    parser.add_argument("--max-gross-exposure", type=float, default=10.0)
     parser.add_argument("--fee-rate", type=float, default=0.0006)
     parser.add_argument("--funding-rate-per-bar", type=float, default=0.0)
     parser.add_argument("--rebalance-deadband", type=float, default=0.10)
     parser.add_argument("--stop-loss-pct", type=float, default=None)
     parser.add_argument("--take-profit-pct", type=float, default=None)
+    parser.add_argument("--enable-trend-overlay", action="store_true")
+    parser.add_argument("--trend-agreement-exposure", type=float, default=2.0)
+    parser.add_argument("--trend-breakout-exposure", type=float, default=3.0)
+    parser.add_argument("--trend-max-long-exposure", type=float, default=5.0)
+    parser.add_argument("--trend-breakout-lookback", type=int, default=50)
     parser.add_argument("--output-root", default="reports", help="artifact root directory")
     args = parser.parse_args()
 
@@ -39,10 +44,22 @@ def main() -> None:
         end=args.end,
         exchange_id="binance",
     )
-    signals = generate_btc_signal(price_data, PureSignalConfig())
+    signals = generate_btc_signal(
+        price_data,
+        PureSignalConfig(
+            trend_overlay_enabled=args.enable_trend_overlay,
+            trend_overlay_agreement_exposure=args.trend_agreement_exposure,
+            trend_overlay_breakout_exposure=args.trend_breakout_exposure,
+            trend_overlay_max_long_exposure=args.trend_max_long_exposure,
+            trend_overlay_breakout_lookback=args.trend_breakout_lookback,
+        ),
+    )
+    signal_columns = ["signal"]
+    if "target_exposure" in signals.columns:
+        signal_columns.append("target_exposure")
     result = simulate_perp_account(
         signals[["btc_close"]],
-        signals[["signal"]],
+        signals[signal_columns],
         PerpSimulatorConfig(
             starting_equity=args.starting_equity,
             max_gross_exposure=args.max_gross_exposure,

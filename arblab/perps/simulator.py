@@ -36,7 +36,10 @@ def simulate_perp_account(
 ) -> PerpBacktestResult:
     """Simulate a one-asset perp account from a pure target exposure signal."""
     config = config or PerpSimulatorConfig()
-    aligned = price_data[["btc_close"]].join(signals[["signal"]], how="inner")
+    signal_columns = ["signal"]
+    if "target_exposure" in signals.columns:
+        signal_columns.append("target_exposure")
+    aligned = price_data[["btc_close"]].join(signals[signal_columns], how="inner")
     if aligned.empty:
         raise ValueError("price_data and signals must overlap")
 
@@ -50,7 +53,7 @@ def simulate_perp_account(
 
     for timestamp, row in aligned.iterrows():
         price = float(row["btc_close"])
-        raw_signal = float(max(-1.0, min(1.0, row["signal"])))
+        raw_signal = _target_exposure_for_row(row, config)
         realized_pnl = 0.0
         fees = 0.0
         funding = 0.0
@@ -90,7 +93,7 @@ def simulate_perp_account(
             elif signal_direction == blocked_direction:
                 raw_signal = 0.0
 
-        target_notional = equity * config.max_gross_exposure * raw_signal
+        target_notional = equity * raw_signal
         current_notional = quantity * price
         current_exposure = _exposure(current_notional, equity)
         target_exposure = _exposure(target_notional, equity)
@@ -162,6 +165,23 @@ def _exit_reason(
         if take_profit_pct is not None and price <= average_entry * (1.0 - take_profit_pct):
             return "take_profit"
     return ""
+
+
+def _target_exposure_for_row(
+    row: pd.Series,
+    config: PerpSimulatorConfig,
+) -> float:
+    if "target_exposure" in row and pd.notna(row["target_exposure"]):
+        target = float(row["target_exposure"])
+    else:
+        signal = float(max(-1.0, min(1.0, row["signal"])))
+        target = signal * config.max_gross_exposure
+    return float(
+        max(
+            -config.max_gross_exposure,
+            min(config.max_gross_exposure, target),
+        )
+    )
 
 
 def _apply_trade(

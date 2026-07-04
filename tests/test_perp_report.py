@@ -48,6 +48,8 @@ def test_summarize_perp_history_includes_required_metrics():
         "sortino",
         "turnover",
         "trade_count",
+        "max_abs_exposure",
+        "average_abs_exposure",
         "fee_drag",
         "funding_drag",
         "stop_count",
@@ -60,6 +62,8 @@ def test_summarize_perp_history_includes_required_metrics():
     assert summary["total_return"] == pytest.approx(0.08)
     assert summary["take_profit_count"] == 1
     assert summary["trade_count"] == 3
+    assert summary["max_abs_exposure"] == pytest.approx(1.0)
+    assert summary["average_abs_exposure"] == pytest.approx(0.731475)
 
 
 def test_write_perp_report_creates_required_artifacts(tmp_path):

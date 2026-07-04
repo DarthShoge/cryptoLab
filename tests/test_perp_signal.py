@@ -179,6 +179,38 @@ def test_rsi_filter_reduces_stretched_same_direction_exposure():
     assert short_signals["signal"].iloc[-1] == pytest.approx(-0.5)
 
 
+def test_trend_overlay_raises_long_target_exposure_on_confirmed_breakout(monkeypatch):
+    history = _btc_history([100.0 + i for i in range(600)])
+
+    def fake_supertrend_vote(ohlcv, config, timeframe):
+        return pd.Series(1.0, index=ohlcv.index)
+
+    monkeypatch.setattr("arblab.perps.signal._supertrend_vote", fake_supertrend_vote)
+
+    signals = generate_btc_signal(
+        history,
+        PureSignalConfig(
+            timeframes=("1w", "1d", "4h"),
+            supertrend_weight=1.0,
+            ema_weight=0.0,
+            rsi_weight=0.0,
+            rsi_filter_enabled=False,
+            trend_overlay_enabled=True,
+            trend_overlay_agreement_exposure=2.0,
+            trend_overlay_breakout_exposure=3.0,
+            trend_overlay_breakout_lookback=20,
+            trend_overlay_ema_fast=5,
+            trend_overlay_ema_slow=20,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert signals["signal"].iloc[-1] == pytest.approx(1.0)
+    assert bool(signals["trend_overlay_active"].iloc[-1]) is True
+    assert signals["trend_overlay_reason"].iloc[-1] == "breakout"
+    assert signals["target_exposure"].iloc[-1] == pytest.approx(3.0)
+
+
 def test_higher_timeframe_votes_use_only_closed_candles():
     history = _btc_history([100.0] * 8)
     base_config = PureSignalConfig(
