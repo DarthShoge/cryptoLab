@@ -60,6 +60,13 @@ def main() -> None:
     parser.add_argument("--vol-target-window", type=int, default=336)
     parser.add_argument("--vol-target-long-cap", type=float, default=2.0)
     parser.add_argument("--vol-target-short-cap", type=float, default=1.0)
+    parser.add_argument("--enable-vol-target-confidence", action="store_true")
+    parser.add_argument("--vol-target-strong-mult", type=float, default=1.20)
+    parser.add_argument("--vol-target-mixed-mult", type=float, default=1.00)
+    parser.add_argument("--vol-target-weak-mult", type=float, default=0.70)
+    parser.add_argument("--enable-vol-target-bull-floor", action="store_true")
+    parser.add_argument("--vol-target-bull-floor", type=float, default=0.50)
+    parser.add_argument("--vol-target-bull-floor-require-4h", action="store_true")
     parser.add_argument("--output-root", default="reports", help="artifact root directory")
     args = parser.parse_args()
 
@@ -90,6 +97,13 @@ def main() -> None:
             vol_target_window=args.vol_target_window,
             vol_target_long_cap=args.vol_target_long_cap,
             vol_target_short_cap=args.vol_target_short_cap,
+            vol_target_confidence_enabled=args.enable_vol_target_confidence,
+            vol_target_strong_trend_multiplier=args.vol_target_strong_mult,
+            vol_target_mixed_trend_multiplier=args.vol_target_mixed_mult,
+            vol_target_weak_trend_multiplier=args.vol_target_weak_mult,
+            vol_target_bull_floor_enabled=args.enable_vol_target_bull_floor,
+            vol_target_bull_floor=args.vol_target_bull_floor,
+            vol_target_bull_floor_require_4h=args.vol_target_bull_floor_require_4h,
         ),
     )
     funding = _load_funding_rates(args.funding_csv, signals.index)

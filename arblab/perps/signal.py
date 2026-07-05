@@ -58,6 +58,15 @@ class PureSignalConfig:
     vol_target_window: int = 336
     vol_target_long_cap: float = 2.0
     vol_target_short_cap: float = 1.0
+    vol_target_confidence_enabled: bool = False
+    vol_target_strong_trend_multiplier: float = 1.20
+    vol_target_mixed_trend_multiplier: float = 1.00
+    vol_target_weak_trend_multiplier: float = 0.70
+    vol_target_strong_trend_threshold: float = 0.99
+    vol_target_mixed_trend_threshold: float = 0.33
+    vol_target_bull_floor_enabled: bool = False
+    vol_target_bull_floor: float = 0.50
+    vol_target_bull_floor_require_4h: bool = False
     no_trade_zone: float = 0.15
 
 
@@ -138,6 +147,10 @@ def generate_btc_signal(
     output["vol_target_overlay_active"] = False
     output["vol_target_realized_vol"] = 0.0
     output["vol_target_multiplier"] = 1.0
+    output["vol_target_confidence"] = 0.0
+    output["vol_target_confidence_multiplier"] = 1.0
+    output["vol_target_effective_annual_vol"] = config.vol_target_annual_vol
+    output["vol_target_bull_floor_active"] = False
     if config.vol_target_overlay_enabled:
         output = _apply_vol_target_overlay(output, price_data, symbol, config)
     return output
@@ -343,9 +356,13 @@ def _apply_vol_target_overlay(
 ) -> pd.DataFrame:
     close = price_data[(symbol, "close")].astype(float)
     realized_vol = _annualized_realized_vol(close, config.vol_target_window)
-    multiplier = (
-        config.vol_target_annual_vol / realized_vol.where(realized_vol > 0.0)
-    ).replace([float("inf"), -float("inf")], pd.NA)
+    confidence = _directional_trend_confidence(output)
+    confidence_multiplier = _trend_confidence_multiplier(confidence, config)
+    effective_target_vol = config.vol_target_annual_vol * confidence_multiplier
+    multiplier = (effective_target_vol / realized_vol.where(realized_vol > 0.0)).replace(
+        [float("inf"), -float("inf")],
+        pd.NA,
+    )
     multiplier = multiplier.reindex(output.index).ffill().fillna(1.0).astype(float)
 
     target = output["target_exposure"].astype(float) * multiplier
@@ -353,12 +370,75 @@ def _apply_vol_target_overlay(
         lower=-config.vol_target_short_cap,
         upper=config.vol_target_long_cap,
     )
+    bull_floor_active = _bull_floor_active(output, config)
+    if config.vol_target_bull_floor_enabled:
+        floor = min(config.vol_target_bull_floor, config.vol_target_long_cap)
+        target.loc[bull_floor_active] = target.loc[bull_floor_active].clip(lower=floor)
+        target = target.clip(
+            lower=-config.vol_target_short_cap,
+            upper=config.vol_target_long_cap,
+        )
 
     output["target_exposure"] = target
     output["vol_target_overlay_active"] = output["signal"] != 0.0
     output["vol_target_realized_vol"] = realized_vol.reindex(output.index).fillna(0.0)
     output["vol_target_multiplier"] = multiplier
+    output["vol_target_confidence"] = confidence
+    output["vol_target_confidence_multiplier"] = confidence_multiplier
+    output["vol_target_effective_annual_vol"] = effective_target_vol
+    output["vol_target_bull_floor_active"] = bull_floor_active
     return output
+
+
+def _bull_floor_active(
+    output: pd.DataFrame,
+    config: PureSignalConfig,
+) -> pd.Series:
+    if not config.vol_target_bull_floor_enabled:
+        return pd.Series(False, index=output.index)
+    active = (
+        (output["signal"] > 0.0)
+        & (output.get("supertrend_1w", 0.0).astype(float) > 0.0)
+        & (output.get("supertrend_1d", 0.0).astype(float) > 0.0)
+    )
+    if config.vol_target_bull_floor_require_4h:
+        active = active & (output.get("supertrend_4h", 0.0).astype(float) > 0.0)
+    return active
+
+
+def _directional_trend_confidence(output: pd.DataFrame) -> pd.Series:
+    signal_direction = output["signal"].astype(float).map(_direction)
+    return output["supertrend_score"].astype(float) * signal_direction
+
+
+def _trend_confidence_multiplier(
+    confidence: pd.Series,
+    config: PureSignalConfig,
+) -> pd.Series:
+    multiplier = pd.Series(1.0, index=confidence.index)
+    if not config.vol_target_confidence_enabled:
+        return multiplier
+
+    multiplier.loc[confidence >= config.vol_target_strong_trend_threshold] = (
+        config.vol_target_strong_trend_multiplier
+    )
+    mixed = (
+        (confidence >= config.vol_target_mixed_trend_threshold)
+        & (confidence < config.vol_target_strong_trend_threshold)
+    )
+    multiplier.loc[mixed] = config.vol_target_mixed_trend_multiplier
+    multiplier.loc[confidence < config.vol_target_mixed_trend_threshold] = (
+        config.vol_target_weak_trend_multiplier
+    )
+    return multiplier
+
+
+def _direction(value: float) -> int:
+    if value > 0.0:
+        return 1
+    if value < 0.0:
+        return -1
+    return 0
 
 
 def _annualized_realized_vol(close: pd.Series, window: int) -> pd.Series:
