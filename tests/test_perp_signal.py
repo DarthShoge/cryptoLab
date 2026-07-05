@@ -211,6 +211,41 @@ def test_trend_overlay_raises_long_target_exposure_on_confirmed_breakout(monkeyp
     assert signals["target_exposure"].iloc[-1] == pytest.approx(3.0)
 
 
+def test_vol_flattening_overlay_adds_micro_long_leverage(monkeypatch):
+    history = _btc_history([100.0 + i for i in range(600)])
+
+    def fake_supertrend_vote(ohlcv, config, timeframe):
+        return pd.Series(1.0, index=ohlcv.index)
+
+    def fake_vol_flattening_setup(price_data, symbol, config):
+        return pd.Series(True, index=price_data.index), pd.Series(0.5, index=price_data.index)
+
+    monkeypatch.setattr("arblab.perps.signal._supertrend_vote", fake_supertrend_vote)
+    monkeypatch.setattr(
+        "arblab.perps.signal._volatility_flattening_setup",
+        fake_vol_flattening_setup,
+    )
+
+    signals = generate_btc_signal(
+        history,
+        PureSignalConfig(
+            timeframes=("1w", "1d", "4h"),
+            supertrend_weight=1.0,
+            ema_weight=0.0,
+            rsi_weight=0.0,
+            rsi_filter_enabled=False,
+            vol_flattening_overlay_enabled=True,
+            vol_flattening_overlay_leverage=1.05,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert signals["signal"].iloc[-1] == pytest.approx(1.0)
+    assert bool(signals["vol_flattening_overlay_active"].iloc[-1]) is True
+    assert signals["target_exposure"].iloc[-1] == pytest.approx(1.05)
+    assert signals["vol_percentile"].iloc[-1] == pytest.approx(0.5)
+
+
 def test_higher_timeframe_votes_use_only_closed_candles():
     history = _btc_history([100.0] * 8)
     base_config = PureSignalConfig(

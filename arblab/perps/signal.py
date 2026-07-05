@@ -45,6 +45,14 @@ class PureSignalConfig:
     trend_overlay_breakout_lookback: int = 50
     trend_overlay_ema_fast: int = 50
     trend_overlay_ema_slow: int = 200
+    vol_flattening_overlay_enabled: bool = False
+    vol_flattening_overlay_leverage: float = 1.05
+    vol_flattening_vol_window: int = 168
+    vol_flattening_percentile_lookback: int = 2160
+    vol_flattening_high_threshold: float = 0.80
+    vol_flattening_drop: float = 0.25
+    vol_flattening_recent_high_window: int = 336
+    vol_flattening_slope_window: int = 24
     no_trade_zone: float = 0.15
 
 
@@ -118,6 +126,10 @@ def generate_btc_signal(
     output["trend_overlay_reason"] = ""
     if config.trend_overlay_enabled:
         output = _apply_trend_overlay(output, price_data, symbol, config)
+    output["vol_flattening_overlay_active"] = False
+    output["vol_percentile"] = 0.0
+    if config.vol_flattening_overlay_enabled:
+        output = _apply_vol_flattening_overlay(output, price_data, symbol, config)
     return output
 
 
@@ -289,3 +301,52 @@ def _breakout_structure(
     )
     breakout = (close > prior_high) | ((close > fast) & (fast > slow))
     return _map_to_base(breakout.astype(float), price_data.index).astype(bool)
+
+
+def _apply_vol_flattening_overlay(
+    output: pd.DataFrame,
+    price_data: pd.DataFrame,
+    symbol: str,
+    config: PureSignalConfig,
+) -> pd.DataFrame:
+    setup, vol_pct = _volatility_flattening_setup(price_data, symbol, config)
+    weekly_green = output.get("supertrend_1w", 0.0).astype(float) > 0.0
+    daily_green = output.get("supertrend_1d", 0.0).astype(float) > 0.0
+    long_core = output["signal"] > 0.0
+    active = setup & weekly_green & daily_green & long_core
+
+    target = output["target_exposure"].copy()
+    target.loc[active] = target.loc[active].clip(
+        lower=config.vol_flattening_overlay_leverage
+    )
+    output["target_exposure"] = target.clip(-10.0, 10.0)
+    output["vol_flattening_overlay_active"] = active
+    output["vol_percentile"] = vol_pct.fillna(0.0)
+    return output
+
+
+def _volatility_flattening_setup(
+    price_data: pd.DataFrame,
+    symbol: str,
+    config: PureSignalConfig,
+) -> tuple[pd.Series, pd.Series]:
+    close = price_data[(symbol, "close")].astype(float)
+    returns = close.pct_change()
+    realized_vol = returns.rolling(
+        config.vol_flattening_vol_window,
+        min_periods=max(8, config.vol_flattening_vol_window // 4),
+    ).std()
+    vol_percentile = realized_vol.rolling(
+        config.vol_flattening_percentile_lookback,
+        min_periods=max(48, config.vol_flattening_percentile_lookback // 4),
+    ).rank(pct=True)
+    recent_high = vol_percentile.rolling(
+        config.vol_flattening_recent_high_window,
+        min_periods=1,
+    ).max()
+    flattening = (
+        (recent_high >= config.vol_flattening_high_threshold)
+        & (vol_percentile <= recent_high - config.vol_flattening_drop)
+        & (vol_percentile.diff(config.vol_flattening_slope_window) <= 0.0)
+    )
+    return flattening.fillna(False), vol_percentile

@@ -34,6 +34,13 @@ def main() -> None:
     parser.add_argument("--trend-breakout-exposure", type=float, default=3.0)
     parser.add_argument("--trend-max-long-exposure", type=float, default=5.0)
     parser.add_argument("--trend-breakout-lookback", type=int, default=50)
+    parser.add_argument("--enable-vol-flattening-overlay", action="store_true")
+    parser.add_argument("--vol-flattening-leverage", type=float, default=1.05)
+    parser.add_argument("--vol-flattening-window", type=int, default=168)
+    parser.add_argument("--vol-flattening-lookback", type=int, default=2160)
+    parser.add_argument("--vol-flattening-high-threshold", type=float, default=0.80)
+    parser.add_argument("--vol-flattening-drop", type=float, default=0.25)
+    parser.add_argument("--vol-flattening-recent-high-window", type=int, default=336)
     parser.add_argument("--output-root", default="reports", help="artifact root directory")
     args = parser.parse_args()
 
@@ -52,6 +59,13 @@ def main() -> None:
             trend_overlay_breakout_exposure=args.trend_breakout_exposure,
             trend_overlay_max_long_exposure=args.trend_max_long_exposure,
             trend_overlay_breakout_lookback=args.trend_breakout_lookback,
+            vol_flattening_overlay_enabled=args.enable_vol_flattening_overlay,
+            vol_flattening_overlay_leverage=args.vol_flattening_leverage,
+            vol_flattening_vol_window=args.vol_flattening_window,
+            vol_flattening_percentile_lookback=args.vol_flattening_lookback,
+            vol_flattening_high_threshold=args.vol_flattening_high_threshold,
+            vol_flattening_drop=args.vol_flattening_drop,
+            vol_flattening_recent_high_window=args.vol_flattening_recent_high_window,
         ),
     )
     signal_columns = ["signal"]
