@@ -113,6 +113,16 @@ class MarketParams:
                 protocol_take_rate_pct=0.15,
                 borrow_factor=1.0,
             ),
+            "BTC": AssetConfig(
+                symbol="BTC",
+                ltv=0.75,
+                liquidation_threshold=0.80,
+                min_liquidation_bonus_bps=200,
+                max_liquidation_bonus_bps=1000,
+                borrow_rate_apy=0.0,
+                protocol_take_rate_pct=0.15,
+                borrow_factor=1.0,
+            ),
         }
         return cls(assets=assets)
 

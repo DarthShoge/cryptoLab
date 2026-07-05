@@ -7,6 +7,10 @@ from typing import Dict, List
 
 import pandas as pd
 
+from arblab.backtest.asset_universe import (
+    curated_kamino_universe,
+    exchange_price_configs,
+)
 from arblab.backtest.data import OHLCVConfig
 from arblab.backtest.engine import BacktestEngine, EngineConfig
 from arblab.backtest.market import MarketParams
@@ -82,6 +86,7 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
     "fast_break_decay_floors": [0.75, 0.35],
     "enable_fast_break_partial_fill": False,
     "fast_break_partial_fill_requires_crisis": False,
+    "fast_break_partial_fill_max_green": None,
     "fast_break_partial_fill_min_hf": 2.50,
     "fast_break_partial_fill_budget_pct": 0.25,
     "enable_weekly_bearish_reserve": False,
@@ -98,6 +103,50 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
     "profit_lock_reserve_near_high_threshold": 0.10,
     "profit_lock_reserve_escalation_drawdown": 0.15,
     "profit_lock_reserve_rebuy_fraction": 0.50,
+    "profit_lock_reserve_episode_mode": False,
+    "profit_lock_reserve_rebuy_cooldown_bars": 0,
+    "profit_lock_reserve_new_high_reset_gap": 0.00,
+    "enable_cppi_exposure_cap": False,
+    "cppi_activation_gain": 1.50,
+    "cppi_protect_pct": 0.65,
+    "cppi_cushion_multiplier": 2.00,
+    "cppi_core_min_sol_collateral": 100.0,
+    "cppi_exposure_buffer_pct": 0.05,
+    "cppi_max_sell_fraction_per_bar": 0.10,
+    "cppi_rebuy_fraction": 0.50,
+    "cppi_rebuy_min_green": 4,
+    "enable_hedge_failure_circuit_breaker": False,
+    "hedge_failure_lookback_bars": 72,
+    "hedge_failure_underperformance_threshold": 0.10,
+    "hedge_failure_hold_bars": 168,
+    "hedge_failure_sell_fraction": 0.00,
+    "hedge_failure_min_sol_collateral": 100.0,
+    "enable_traffic_light_governor": False,
+    "traffic_light_hedge_floors": {4: 0.0, 3: 0.10, 2: 0.35, 1: 0.75, 0: 1.0},
+    "traffic_light_add_min_hf": None,
+    "traffic_light_min_reinvestment_green": 3,
+    "traffic_light_min_releverage_green": 4,
+    "enable_traffic_light_protected_book": False,
+    "traffic_light_protected_book_fractions": {
+        4: 0.0,
+        3: 0.10,
+        2: 0.25,
+        1: 0.50,
+        0: 1.0,
+    },
+    "traffic_light_protected_rebuy_min_green": 4,
+    "traffic_light_protected_rebuy_fraction": 0.25,
+    "traffic_light_protected_rebuy_max_pct_of_sol_collateral": 0.05,
+    "traffic_light_protected_rebuy_min_hf": 2.0,
+    "enable_traffic_light_exposure_reserve": False,
+    "traffic_light_exposure_sell_fractions": {2: 0.05, 1: 0.10, 0: 0.15},
+    "traffic_light_exposure_max_fraction": 0.30,
+    "traffic_light_exposure_min_sol_collateral": 100.0,
+    "traffic_light_exposure_rebuy_min_green": 4,
+    "traffic_light_exposure_rebuy_fraction": 0.25,
+    "traffic_light_exposure_rebuy_min_hf": 2.0,
+    "enable_protected_book": False,
+    "protected_book_realized_pnl_fraction": 0.25,
     "enable_froth_reserve": False,
     "froth_reserve_min_sol_collateral": 100.0,
     "froth_reserve_tiers": {1.0: 0.05, 3.0: 0.05},
@@ -113,10 +162,9 @@ SOL_SUPERTREND_BEST_IN_CLASS_DEFAULTS = {
 }
 
 EXCHANGE_SYMBOLS = {
-    "SOL": "SOL/USDT",
-    "JitoSOL": "JITOSOL/USDT",
-    "mSOL": "MSOL/USDT",
-    "ETH": "ETH/USDT",
+    symbol: entry.exchange_symbol
+    for symbol, entry in curated_kamino_universe().items()
+    if entry.exchange_symbol
 }
 
 
@@ -166,6 +214,7 @@ def visible_strategy_controls(strategy_name: str) -> List[str]:
             "Fast Break Add Min HF",
             "Fast Break Staged Decay",
             "Fast Break Partial Fill",
+            "Fast Break Partial Fill Max Green",
             "Fast Break Partial Fill Min HF",
             "Fast Break Partial Fill Budget",
             "Enable Weekly Bearish Reserve",
@@ -182,6 +231,26 @@ def visible_strategy_controls(strategy_name: str) -> List[str]:
             "Profit Lock Reserve Near High",
             "Profit Lock Reserve Escalation Drawdown",
             "Profit Lock Reserve Rebuy Fraction",
+            "Profit Lock Reserve Episode Mode",
+            "Profit Lock Reserve Rebuy Cooldown",
+            "Profit Lock Reserve New High Reset Gap",
+            "Enable CPPI Exposure Cap",
+            "CPPI Activation Gain",
+            "CPPI Protect Pct",
+            "CPPI Cushion Multiplier",
+            "CPPI Core Min SOL",
+            "CPPI Exposure Buffer",
+            "CPPI Max Sell Per Bar",
+            "CPPI Rebuy Fraction",
+            "CPPI Rebuy Min Green",
+            "Enable Hedge Failure Circuit Breaker",
+            "Hedge Failure Lookback Bars",
+            "Hedge Failure Underperformance",
+            "Hedge Failure Hold Bars",
+            "Hedge Failure Sell Fraction",
+            "Hedge Failure Min SOL",
+            "Enable Protected Book",
+            "Protected Book PnL Fraction",
             "Enable Froth Reserve",
             "Froth Reserve Min SOL",
             "Froth Reserve Rebuy Drawdown",
@@ -209,10 +278,13 @@ def build_price_configs(
 ) -> List[OHLCVConfig]:
     """Return exchange symbols required by the selected strategy."""
     if strategy_name == SOL_SUPERTREND_SHORT_STRATEGY:
-        return [
-            OHLCVConfig(symbol=EXCHANGE_SYMBOLS["SOL"], display_name="SOL"),
-            OHLCVConfig(symbol=EXCHANGE_SYMBOLS["ETH"], display_name="ETH"),
-        ]
+        universe = curated_kamino_universe()
+        return exchange_price_configs(
+            {
+                "SOL": universe["SOL"],
+                "ETH": universe["ETH"],
+            }
+        )
     return [
         OHLCVConfig(
             symbol=EXCHANGE_SYMBOLS.get(
@@ -543,6 +615,7 @@ def build_sol_supertrend_short_config(
     fast_break_decay_floors: list[float] | None = None,
     enable_fast_break_partial_fill: bool = False,
     fast_break_partial_fill_requires_crisis: bool = False,
+    fast_break_partial_fill_max_green: int | None = None,
     fast_break_partial_fill_min_hf: float = 2.50,
     fast_break_partial_fill_budget_pct: float = 0.25,
     enable_weekly_bearish_reserve: bool = False,
@@ -559,6 +632,44 @@ def build_sol_supertrend_short_config(
     profit_lock_reserve_near_high_threshold: float = 0.10,
     profit_lock_reserve_escalation_drawdown: float = 0.15,
     profit_lock_reserve_rebuy_fraction: float = 0.50,
+    profit_lock_reserve_episode_mode: bool = False,
+    profit_lock_reserve_rebuy_cooldown_bars: int = 0,
+    profit_lock_reserve_new_high_reset_gap: float = 0.00,
+    enable_cppi_exposure_cap: bool = False,
+    cppi_activation_gain: float = 1.50,
+    cppi_protect_pct: float = 0.65,
+    cppi_cushion_multiplier: float = 2.00,
+    cppi_core_min_sol_collateral: float = 100.0,
+    cppi_exposure_buffer_pct: float = 0.05,
+    cppi_max_sell_fraction_per_bar: float = 0.10,
+    cppi_rebuy_fraction: float = 0.50,
+    cppi_rebuy_min_green: int = 4,
+    enable_hedge_failure_circuit_breaker: bool = False,
+    hedge_failure_lookback_bars: int = 72,
+    hedge_failure_underperformance_threshold: float = 0.10,
+    hedge_failure_hold_bars: int = 168,
+    hedge_failure_sell_fraction: float = 0.00,
+    hedge_failure_min_sol_collateral: float = 100.0,
+    enable_traffic_light_governor: bool = False,
+    traffic_light_hedge_floors: dict[int, float] | None = None,
+    traffic_light_add_min_hf: float | None = None,
+    traffic_light_min_reinvestment_green: int = 3,
+    traffic_light_min_releverage_green: int = 4,
+    enable_traffic_light_protected_book: bool = False,
+    traffic_light_protected_book_fractions: dict[int, float] | None = None,
+    traffic_light_protected_rebuy_min_green: int = 4,
+    traffic_light_protected_rebuy_fraction: float = 0.25,
+    traffic_light_protected_rebuy_max_pct_of_sol_collateral: float = 0.05,
+    traffic_light_protected_rebuy_min_hf: float = 2.0,
+    enable_traffic_light_exposure_reserve: bool = False,
+    traffic_light_exposure_sell_fractions: dict[int, float] | None = None,
+    traffic_light_exposure_max_fraction: float = 0.30,
+    traffic_light_exposure_min_sol_collateral: float = 100.0,
+    traffic_light_exposure_rebuy_min_green: int = 4,
+    traffic_light_exposure_rebuy_fraction: float = 0.25,
+    traffic_light_exposure_rebuy_min_hf: float = 2.0,
+    enable_protected_book: bool = False,
+    protected_book_realized_pnl_fraction: float = 0.25,
     enable_froth_reserve: bool = False,
     froth_reserve_min_sol_collateral: float = 100.0,
     froth_reserve_tiers: dict[float, float] | None = None,
@@ -639,6 +750,7 @@ def build_sol_supertrend_short_config(
         "fast_break_partial_fill_requires_crisis": (
             fast_break_partial_fill_requires_crisis
         ),
+        "fast_break_partial_fill_max_green": fast_break_partial_fill_max_green,
         "fast_break_partial_fill_min_hf": fast_break_partial_fill_min_hf,
         "fast_break_partial_fill_budget_pct": fast_break_partial_fill_budget_pct,
         "enable_weekly_bearish_reserve": enable_weekly_bearish_reserve,
@@ -669,6 +781,64 @@ def build_sol_supertrend_short_config(
             profit_lock_reserve_escalation_drawdown
         ),
         "profit_lock_reserve_rebuy_fraction": profit_lock_reserve_rebuy_fraction,
+        "profit_lock_reserve_episode_mode": profit_lock_reserve_episode_mode,
+        "profit_lock_reserve_rebuy_cooldown_bars": (
+            profit_lock_reserve_rebuy_cooldown_bars
+        ),
+        "profit_lock_reserve_new_high_reset_gap": (
+            profit_lock_reserve_new_high_reset_gap
+        ),
+        "enable_cppi_exposure_cap": enable_cppi_exposure_cap,
+        "cppi_activation_gain": cppi_activation_gain,
+        "cppi_protect_pct": cppi_protect_pct,
+        "cppi_cushion_multiplier": cppi_cushion_multiplier,
+        "cppi_core_min_sol_collateral": cppi_core_min_sol_collateral,
+        "cppi_exposure_buffer_pct": cppi_exposure_buffer_pct,
+        "cppi_max_sell_fraction_per_bar": cppi_max_sell_fraction_per_bar,
+        "cppi_rebuy_fraction": cppi_rebuy_fraction,
+        "cppi_rebuy_min_green": cppi_rebuy_min_green,
+        "enable_hedge_failure_circuit_breaker": (
+            enable_hedge_failure_circuit_breaker
+        ),
+        "hedge_failure_lookback_bars": hedge_failure_lookback_bars,
+        "hedge_failure_underperformance_threshold": (
+            hedge_failure_underperformance_threshold
+        ),
+        "hedge_failure_hold_bars": hedge_failure_hold_bars,
+        "hedge_failure_sell_fraction": hedge_failure_sell_fraction,
+        "hedge_failure_min_sol_collateral": hedge_failure_min_sol_collateral,
+        "enable_traffic_light_governor": enable_traffic_light_governor,
+        "traffic_light_hedge_floors": traffic_light_hedge_floors
+        or {4: 0.0, 3: 0.10, 2: 0.35, 1: 0.75, 0: 1.0},
+        "traffic_light_add_min_hf": traffic_light_add_min_hf,
+        "traffic_light_min_reinvestment_green": traffic_light_min_reinvestment_green,
+        "traffic_light_min_releverage_green": traffic_light_min_releverage_green,
+        "enable_traffic_light_protected_book": enable_traffic_light_protected_book,
+        "traffic_light_protected_book_fractions": (
+            traffic_light_protected_book_fractions
+            or {4: 0.0, 3: 0.10, 2: 0.25, 1: 0.50, 0: 1.0}
+        ),
+        "traffic_light_protected_rebuy_min_green": (
+            traffic_light_protected_rebuy_min_green
+        ),
+        "traffic_light_protected_rebuy_fraction": traffic_light_protected_rebuy_fraction,
+        "traffic_light_protected_rebuy_max_pct_of_sol_collateral": (
+            traffic_light_protected_rebuy_max_pct_of_sol_collateral
+        ),
+        "traffic_light_protected_rebuy_min_hf": traffic_light_protected_rebuy_min_hf,
+        "enable_traffic_light_exposure_reserve": enable_traffic_light_exposure_reserve,
+        "traffic_light_exposure_sell_fractions": (
+            traffic_light_exposure_sell_fractions or {2: 0.05, 1: 0.10, 0: 0.15}
+        ),
+        "traffic_light_exposure_max_fraction": traffic_light_exposure_max_fraction,
+        "traffic_light_exposure_min_sol_collateral": (
+            traffic_light_exposure_min_sol_collateral
+        ),
+        "traffic_light_exposure_rebuy_min_green": traffic_light_exposure_rebuy_min_green,
+        "traffic_light_exposure_rebuy_fraction": traffic_light_exposure_rebuy_fraction,
+        "traffic_light_exposure_rebuy_min_hf": traffic_light_exposure_rebuy_min_hf,
+        "enable_protected_book": enable_protected_book,
+        "protected_book_realized_pnl_fraction": protected_book_realized_pnl_fraction,
         "enable_froth_reserve": enable_froth_reserve,
         "froth_reserve_min_sol_collateral": froth_reserve_min_sol_collateral,
         "froth_reserve_tiers": froth_reserve_tiers or {1.0: 0.05, 3.0: 0.05},

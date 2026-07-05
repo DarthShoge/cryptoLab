@@ -206,6 +206,147 @@ def test_drawdown_containment_rejects_unknown_block_action():
         strategy._drawdown_containment_blocks("unknown")
 
 
+def test_traffic_light_governor_applies_vote_based_hedge_floor_and_observability():
+    strategy, snapshot = _setup_strategy(
+        enable_traffic_light_governor=True,
+        traffic_light_hedge_floors={4: 0.0, 3: 0.10, 2: 0.75, 1: 1.0, 0: 1.25},
+        signal_by_bar={0: {"green": 2, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    assert actions == [
+        {"type": "borrow", "symbol": "ETH", "amount": pytest.approx(3.75)},
+        {"type": "deposit_collateral", "symbol": "USDC", "amount": pytest.approx(7_492.5)},
+    ]
+    assert strategy.event_log[-1]["reason"] == "traffic_light_hedge_up"
+    assert strategy.event_log[-1]["traffic_light_state"] == "yellow"
+    assert strategy.event_log[-1]["traffic_light_hedge_floor"] == pytest.approx(0.75)
+    assert strategy.history_fields()["in_traffic_light_governor"] is True
+    assert strategy.history_fields()["traffic_light_green_votes"] == 2
+    assert strategy.history_fields()["traffic_light_hedge_floor"] == pytest.approx(0.75)
+
+
+def test_traffic_light_hedge_add_uses_configured_projected_health_floor():
+    strategy, snapshot = _setup_strategy(
+        enable_traffic_light_governor=True,
+        traffic_light_hedge_floors={4: 0.0, 3: 0.10, 2: 0.75, 1: 1.0, 0: 1.25},
+        traffic_light_add_min_hf=3.0,
+        signal_by_bar={0: {"green": 2, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0))
+
+    assert actions[0]["type"] == "borrow"
+    assert actions[0]["symbol"] == "ETH"
+    assert actions[0]["amount"] < 3.75
+    assert strategy.event_log[-1]["reason"] == "traffic_light_hedge_up"
+
+
+def test_traffic_light_governor_blocks_surplus_reinvestment_until_recovery_light():
+    strategy, snapshot = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        enable_traffic_light_governor=True,
+        traffic_light_min_reinvestment_green=4,
+        realized_hedge_profit_gate_pct=0.10,
+        surplus_reinvestment_ladder={3: 0.25, 4: 0.50},
+        max_surplus_reinvestment_pct_of_sol_collateral=0.05,
+        surplus_reinvestment_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 3, "bearish_3d": False, "bearish_1w": False},
+            1: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+    strategy._lifetime_realized_hedge_pnl_usdc = 2_000.0
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 2_000.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 1_500.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    blocked_actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0, eth_price=1_500.0))
+    allowed_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    assert blocked_actions == []
+    assert allowed_actions[0]["type"] == "withdraw_collateral"
+    assert allowed_actions[1]["type"] == "deposit_collateral"
+    assert strategy.event_log[-1]["reason"] == "surplus_reinvestment"
+
+
+def test_traffic_light_exposure_reserve_sells_sol_when_lights_weaken():
+    strategy, snapshot = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_traffic_light_exposure_reserve=True,
+        traffic_light_exposure_sell_fractions={2: 0.10, 1: 0.20, 0: 0.30},
+        traffic_light_exposure_max_fraction=0.30,
+        traffic_light_exposure_min_sol_collateral=80.0,
+        signal_by_bar={0: {"green": 2, "bearish_3d": False, "bearish_1w": False}},
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0))
+
+    assert actions == [
+        {"type": "withdraw_collateral", "symbol": "SOL", "amount": pytest.approx(10.0)},
+        {"type": "deposit_collateral", "symbol": "USDC", "amount": pytest.approx(999.0)},
+    ]
+    assert strategy.history_fields()["traffic_light_exposure_reserve_usdc"] == pytest.approx(
+        999.0
+    )
+    assert strategy.event_log[-1]["reason"] == "traffic_light_exposure_reserve_sell"
+
+
+def test_traffic_light_exposure_reserve_rebuy_waits_for_green_recovery():
+    strategy, _ = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=False,
+        enable_traffic_light_exposure_reserve=True,
+        traffic_light_exposure_rebuy_min_green=4,
+        traffic_light_exposure_rebuy_fraction=0.25,
+        traffic_light_exposure_rebuy_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 3, "bearish_3d": False, "bearish_1w": False},
+            1: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+    strategy.traffic_light_exposure_reserve_state.reserve_usdc = 1_000.0
+    strategy.traffic_light_exposure_reserve_state.sold_sol = 10.0
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 90.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 1_000.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 1_500.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    blocked_actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0, eth_price=1_500.0))
+    allowed_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    assert blocked_actions == []
+    assert allowed_actions == [
+        {"type": "withdraw_collateral", "symbol": "USDC", "amount": pytest.approx(250.0)},
+        {"type": "deposit_collateral", "symbol": "SOL", "amount": pytest.approx(2.4975)},
+    ]
+    assert strategy.history_fields()["traffic_light_exposure_reserve_usdc"] == pytest.approx(
+        750.0
+    )
+    assert strategy.event_log[-1]["reason"] == "traffic_light_exposure_reserve_rebuy"
+
+
 def test_setup_starts_with_unlevered_sol_and_zero_debt_positions():
     strategy, snapshot = _setup_strategy()
 
@@ -332,6 +473,160 @@ def test_profitable_hedge_unwind_reinvests_surplus_usdc_into_sol_without_usdc_re
     assert strategy.hedge_accounting_state()["spendable_hedge_profit_usdc"] == pytest.approx(
         expected_realized_pnl - 500.0
     )
+    assert strategy.event_log[-1]["reason"] == "surplus_reinvestment"
+
+
+def test_protected_book_allocates_realized_hedge_profit_before_reinvestment():
+    strategy, snapshot = _setup_strategy(
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        enable_protected_book=True,
+        protected_book_realized_pnl_fraction=0.50,
+        realized_hedge_profit_gate_pct=0.10,
+        surplus_reinvestment_ladder={3: 0.25, 4: 0.50},
+        max_surplus_reinvestment_pct_of_sol_collateral=0.05,
+        surplus_reinvestment_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 0, "bearish_3d": True, "bearish_1w": True},
+            1: {"green": 4, "bearish_3d": True, "bearish_1w": True},
+            2: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+
+    from arblab.kamino_risk import apply_actions
+
+    open_actions = strategy.on_bar(snapshot, _bar(0, eth_price=2_000.0))
+    snapshot = apply_actions(snapshot, open_actions)
+    close_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+    snapshot = apply_actions(snapshot, close_actions)
+    accounting = strategy.hedge_accounting_state()
+    expected_realized_pnl = 7.5 * (1_998.0 - 1_501.5)
+    assert accounting["protected_book_usdc"] == pytest.approx(expected_realized_pnl * 0.50)
+    assert accounting["spendable_hedge_profit_usdc"] == pytest.approx(
+        expected_realized_pnl * 0.50
+    )
+
+    reinvest_actions = strategy.on_bar(snapshot, _bar(2, sol_price=100.0, eth_price=1_500.0))
+
+    assert reinvest_actions[0]["amount"] == pytest.approx(500.0)
+    assert strategy.hedge_accounting_state()["protected_book_usdc"] == pytest.approx(
+        expected_realized_pnl * 0.50
+    )
+
+
+def test_traffic_light_protected_book_allocates_realized_profit_by_light():
+    strategy, snapshot = _setup_strategy(
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        enable_traffic_light_protected_book=True,
+        traffic_light_protected_book_fractions={
+            4: 0.0,
+            3: 0.10,
+            2: 0.25,
+            1: 0.50,
+            0: 1.00,
+        },
+        signal_by_bar={
+            0: {"green": 0, "bearish_3d": True, "bearish_1w": True},
+            1: {"green": 2, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+
+    from arblab.kamino_risk import apply_actions
+
+    open_actions = strategy.on_bar(snapshot, _bar(0, eth_price=2_000.0))
+    snapshot = apply_actions(snapshot, open_actions)
+    close_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    eth_repay = next(a for a in close_actions if a["type"] == "repay" and a["symbol"] == "ETH")
+    expected_realized_pnl = eth_repay["amount"] * (1_998.0 - 1_501.5)
+
+    assert strategy.hedge_accounting_state()["protected_book_usdc"] == pytest.approx(
+        expected_realized_pnl * 0.25
+    )
+    assert strategy.event_log[-1]["protected_book_usdc"] == pytest.approx(
+        expected_realized_pnl * 0.25
+    )
+
+
+def test_traffic_light_protected_book_rebuy_waits_for_recovery_light():
+    strategy, _ = _setup_strategy(
+        hedge_ladder={4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0},
+        enable_full_short_mode=False,
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=False,
+        enable_traffic_light_protected_book=True,
+        traffic_light_protected_rebuy_min_green=4,
+        traffic_light_protected_rebuy_fraction=0.25,
+        traffic_light_protected_rebuy_max_pct_of_sol_collateral=0.05,
+        traffic_light_protected_rebuy_min_hf=2.0,
+        signal_by_bar={
+            0: {"green": 3, "bearish_3d": False, "bearish_1w": False},
+            1: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+    strategy._protected_book_usdc = 1_000.0
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 100.0, 0.75, 0.80),
+            CollateralPosition("USDC", 1_000.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 1_500.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    blocked_actions = strategy.on_bar(snapshot, _bar(0, sol_price=100.0, eth_price=1_500.0))
+    allowed_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+
+    assert blocked_actions == []
+    assert allowed_actions == [
+        {"type": "withdraw_collateral", "symbol": "USDC", "amount": pytest.approx(250.0)},
+        {"type": "deposit_collateral", "symbol": "SOL", "amount": pytest.approx(2.4975)},
+    ]
+    assert strategy.hedge_accounting_state()["protected_book_usdc"] == pytest.approx(750.0)
+    assert strategy.event_log[-1]["reason"] == "traffic_light_protected_rebuy"
+
+
+def test_surplus_reinvestment_does_not_spend_cppi_protected_usdc():
+    strategy, snapshot = _setup_strategy(
+        enable_usdc_releverage=False,
+        enable_surplus_usdc_reinvestment=True,
+        realized_hedge_profit_gate_pct=0.10,
+        surplus_reinvestment_ladder={3: 0.25, 4: 0.50},
+        max_surplus_reinvestment_pct_of_sol_collateral=0.05,
+        surplus_reinvestment_min_hf=2.0,
+        enable_cppi_exposure_cap=True,
+        signal_by_bar={
+            0: {"green": 0, "bearish_3d": True, "bearish_1w": True},
+            1: {"green": 4, "bearish_3d": True, "bearish_1w": True},
+            2: {"green": 4, "bearish_3d": False, "bearish_1w": False},
+        },
+    )
+
+    from arblab.kamino_risk import apply_actions
+
+    open_actions = strategy.on_bar(snapshot, _bar(0, eth_price=2_000.0))
+    snapshot = apply_actions(snapshot, open_actions)
+    close_actions = strategy.on_bar(snapshot, _bar(1, sol_price=100.0, eth_price=1_500.0))
+    snapshot = apply_actions(snapshot, close_actions)
+    usdc_amount = next(p.amount for p in snapshot.collateral if p.symbol == "USDC")
+    strategy.cppi_exposure_cap_state.protected_usdc = usdc_amount - 250.0
+    strategy.cppi_exposure_cap_state.active = True
+
+    reinvest_actions = strategy.on_bar(snapshot, _bar(2, sol_price=100.0, eth_price=1_500.0))
+
+    assert reinvest_actions[0] == {
+        "type": "withdraw_collateral",
+        "symbol": "USDC",
+        "amount": pytest.approx(250.0),
+    }
+    assert reinvest_actions[1] == {
+        "type": "deposit_collateral",
+        "symbol": "SOL",
+        "amount": pytest.approx(2.4975),
+    }
     assert strategy.event_log[-1]["reason"] == "surplus_reinvestment"
 
 
@@ -696,6 +991,51 @@ def test_crisis_gated_fast_break_partial_fill_still_fills_when_crisis_is_active(
     assert strategy.event_log[-1]["in_crisis_mode"] is True
 
 
+def test_fast_break_partial_fill_max_green_blocks_unconfirmed_crash_fill():
+    strategy, _ = _setup_strategy(
+        enable_crisis_mode=True,
+        crisis_sol_drawdown_threshold=0.05,
+        crisis_sol_drawdown_lookback_bars=720,
+        crisis_portfolio_drawdown_lookback_bars=720,
+        crisis_sol_equivalent_drawdown_lookback_bars=720,
+        crisis_partial_fill_budget_pct=0.0,
+        min_rebalance_hf=2.0,
+        enable_fast_break_overlay=True,
+        fast_break_return_threshold=-0.08,
+        fast_break_vol_multiplier=1.5,
+        fast_break_hedge_floor=1.0,
+        enable_fast_break_partial_fill=True,
+        fast_break_partial_fill_requires_crisis=True,
+        fast_break_partial_fill_max_green=1,
+        fast_break_partial_fill_min_hf=2.5,
+        fast_break_partial_fill_budget_pct=0.25,
+        signal_by_bar={
+            800: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": True,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 90.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _fast_break_bar(index=800))
+
+    assert actions == []
+    assert strategy.event_log[-1]["reason"] == "crisis_enter"
+    assert strategy.fast_break_state.partial_fill_added_usd == 0.0
+
+
 def test_weekly_bearish_reserve_sells_sol_into_usdc_collateral():
     strategy, snapshot = _setup_strategy(
         initial_sol_collateral=200.0,
@@ -954,6 +1294,446 @@ def test_profit_lock_reserve_rebuys_only_after_weekly_recovery():
         },
     ]
     assert strategy.event_log[-1]["reason"] == "profit_lock_reserve_rebuy"
+
+
+def test_stateful_profit_lock_reserve_escalates_once_per_episode():
+    from arblab.kamino_risk import apply_actions
+
+    strategy, _ = _setup_strategy(
+        initial_sol_collateral=200.0,
+        initial_sol_price=50.0,
+        enable_profit_lock=True,
+        profit_lock_min_gain_pct=1.00,
+        profit_lock_near_high_threshold=0.10,
+        profit_lock_drawdown_threshold=0.50,
+        profit_lock_max_green=3,
+        enable_profit_lock_reserve=True,
+        profit_lock_reserve_episode_mode=True,
+        profit_lock_reserve_sell_fraction=0.10,
+        profit_lock_reserve_escalation_sell_fraction=0.10,
+        profit_lock_reserve_max_fraction=0.30,
+        profit_lock_reserve_min_sol_collateral=100.0,
+        signal_by_bar={
+            800: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+            801: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": True,
+                "bearish_1w": False,
+            },
+            802: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": True,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 200.0, 200.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    first_actions = strategy.on_bar(snapshot, _bar(index=800, sol_price=200.0))
+    snapshot = apply_actions(snapshot, first_actions)
+    second_actions = strategy.on_bar(snapshot, _bar(index=801, sol_price=200.0))
+    snapshot = apply_actions(snapshot, second_actions)
+    strategy.on_bar(snapshot, _bar(index=802, sol_price=200.0))
+
+    assert second_actions
+    assert strategy.profit_lock_reserve_state.escalation_slice_sold is True
+    assert sum(
+        1
+        for event in strategy.event_log
+        if event["reason"] == "profit_lock_reserve_escalate"
+    ) == 1
+
+
+def test_stateful_profit_lock_reserve_enforces_rebuy_cooldown():
+    from arblab.kamino_risk import apply_actions
+
+    strategy, _ = _setup_strategy(
+        initial_sol_collateral=200.0,
+        initial_sol_price=50.0,
+        enable_profit_lock=True,
+        profit_lock_min_gain_pct=1.00,
+        profit_lock_near_high_threshold=0.10,
+        profit_lock_drawdown_threshold=0.50,
+        profit_lock_max_green=3,
+        enable_profit_lock_reserve=True,
+        profit_lock_reserve_episode_mode=True,
+        profit_lock_reserve_sell_fraction=0.10,
+        profit_lock_reserve_max_fraction=0.30,
+        profit_lock_reserve_min_sol_collateral=100.0,
+        profit_lock_reserve_rebuy_fraction=0.50,
+        profit_lock_reserve_rebuy_cooldown_bars=24,
+        signal_by_bar={
+            800: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+            801: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+            825: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 200.0, 200.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    sell_actions = strategy.on_bar(snapshot, _bar(index=800, sol_price=200.0))
+    snapshot = apply_actions(snapshot, sell_actions)
+    early_rebuy = strategy.on_bar(snapshot, _bar(index=801, sol_price=200.0))
+    mature_rebuy = strategy.on_bar(snapshot, _bar(index=825, sol_price=200.0))
+
+    assert early_rebuy == []
+    assert mature_rebuy
+    assert strategy.event_log[-1]["reason"] == "profit_lock_reserve_rebuy"
+
+
+def test_stateful_profit_lock_reserve_requires_new_high_after_completed_episode():
+    from arblab.kamino_risk import apply_actions
+
+    strategy, _ = _setup_strategy(
+        initial_sol_collateral=200.0,
+        initial_sol_price=50.0,
+        enable_profit_lock=True,
+        profit_lock_min_gain_pct=1.00,
+        profit_lock_near_high_threshold=0.10,
+        profit_lock_drawdown_threshold=0.50,
+        profit_lock_max_green=3,
+        enable_profit_lock_reserve=True,
+        profit_lock_reserve_episode_mode=True,
+        profit_lock_reserve_sell_fraction=0.10,
+        profit_lock_reserve_max_fraction=0.30,
+        profit_lock_reserve_min_sol_collateral=100.0,
+        profit_lock_reserve_rebuy_fraction=1.00,
+        profit_lock_reserve_new_high_reset_gap=0.02,
+        signal_by_bar={
+            800: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+            801: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+            802: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+            803: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 200.0, 200.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    sell_actions = strategy.on_bar(snapshot, _bar(index=800, sol_price=200.0))
+    snapshot = apply_actions(snapshot, sell_actions)
+    rebuy_actions = strategy.on_bar(snapshot, _bar(index=801, sol_price=200.0))
+    snapshot = apply_actions(snapshot, rebuy_actions)
+    sell_events_before_repeat = sum(
+        1
+        for event in strategy.event_log
+        if event["reason"] == "profit_lock_reserve_sell"
+    )
+    strategy.on_bar(snapshot, _bar(index=802, sol_price=200.0))
+    sell_events_after_repeat = sum(
+        1
+        for event in strategy.event_log
+        if event["reason"] == "profit_lock_reserve_sell"
+    )
+    new_high_snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 199.96002, 210.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+    strategy.on_bar(new_high_snapshot, _bar(index=803, sol_price=210.0))
+    sell_events_after_new_high = sum(
+        1
+        for event in strategy.event_log
+        if event["reason"] == "profit_lock_reserve_sell"
+    )
+
+    assert sell_events_after_repeat == sell_events_before_repeat
+    assert sell_events_after_new_high == sell_events_before_repeat + 1
+
+
+def test_cppi_exposure_cap_does_not_sell_before_activation_gain():
+    strategy, _ = _setup_strategy(
+        initial_sol_collateral=100.0,
+        initial_sol_price=100.0,
+        enable_cppi_exposure_cap=True,
+        cppi_activation_gain=5.0,
+        signal_by_bar={
+            800: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 200.0, 200.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(index=800, sol_price=200.0))
+
+    assert actions == []
+    assert strategy.history_fields()["in_cppi_exposure_cap"] is False
+
+
+def test_cppi_exposure_cap_sells_sol_above_cushion_budget():
+    strategy, _ = _setup_strategy(
+        initial_sol_collateral=100.0,
+        initial_sol_price=100.0,
+        enable_cppi_exposure_cap=True,
+        cppi_activation_gain=1.5,
+        cppi_protect_pct=0.65,
+        cppi_cushion_multiplier=1.0,
+        cppi_core_min_sol_collateral=100.0,
+        cppi_max_sell_fraction_per_bar=1.0,
+        signal_by_bar={
+            800: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 200.0, 200.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _bar(index=800, sol_price=200.0))
+
+    assert actions == [
+        {
+            "type": "withdraw_collateral",
+            "symbol": "SOL",
+            "amount": pytest.approx(100.0),
+        },
+        {
+            "type": "deposit_collateral",
+            "symbol": "USDC",
+            "amount": pytest.approx(19_980.0),
+        },
+    ]
+    assert strategy.event_log[-1]["reason"] == "cppi_exposure_cap_sell"
+    assert strategy.history_fields()["cppi_protected_usdc"] == pytest.approx(19_980.0)
+    assert strategy.history_fields()["cppi_exposure_cap_usd"] == pytest.approx(14_000.0)
+    assert strategy.history_fields()["cppi_protected_floor_usd"] == pytest.approx(
+        26_000.0
+    )
+
+
+def test_cppi_exposure_cap_rebuys_when_cushion_expands_with_green_trend():
+    strategy, _ = _setup_strategy(
+        initial_sol_collateral=100.0,
+        initial_sol_price=100.0,
+        enable_cppi_exposure_cap=True,
+        cppi_activation_gain=1.5,
+        cppi_protect_pct=0.55,
+        cppi_cushion_multiplier=3.0,
+        cppi_core_min_sol_collateral=100.0,
+        cppi_max_sell_fraction_per_bar=1.0,
+        cppi_rebuy_fraction=0.50,
+        cppi_rebuy_min_green=4,
+        signal_by_bar={
+            800: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+            801: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+        },
+    )
+    strategy.cppi_exposure_cap_state.active = True
+    strategy.cppi_exposure_cap_state.protected_usdc = 19_980.0
+    strategy.cppi_exposure_cap_state.sold_sol = 100.0
+    strategy._portfolio_high_watermark_value = 40_000.0
+    recovery_snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 100.0, 300.0, 0.75, 0.80),
+            CollateralPosition("USDC", 19_980.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    rebuy_actions = strategy.on_bar(recovery_snapshot, _bar(index=801, sol_price=300.0))
+
+    assert rebuy_actions == [
+        {
+            "type": "withdraw_collateral",
+            "symbol": "USDC",
+            "amount": pytest.approx(17_986.5),
+        },
+        {
+            "type": "deposit_collateral",
+            "symbol": "SOL",
+            "amount": pytest.approx(59.895045),
+        },
+    ]
+    assert strategy.event_log[-1]["reason"] == "cppi_exposure_cap_rebuy"
+    assert strategy.history_fields()["cppi_protected_usdc"] == pytest.approx(1_993.5)
+
+
+def test_hedge_failure_circuit_breaker_requires_defensive_overlay():
+    strategy, _ = _setup_strategy(
+        enable_hedge_failure_circuit_breaker=True,
+        hedge_failure_lookback_bars=24,
+        hedge_failure_underperformance_threshold=0.05,
+        hedge_failure_sell_fraction=0.10,
+        signal_by_bar={
+            800: {
+                "green": 4,
+                "bearish_1d": False,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 200.0, 90.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _fast_break_bar(index=800))
+
+    assert actions == []
+    assert strategy.history_fields()["in_hedge_failure_circuit_breaker"] is False
+
+
+def test_hedge_failure_circuit_breaker_sells_sol_when_sol_underperforms_eth():
+    strategy, _ = _setup_strategy(
+        enable_fast_break_overlay=True,
+        fast_break_return_threshold=-0.08,
+        fast_break_vol_multiplier=1.5,
+        fast_break_hedge_floor=0.0,
+        enable_hedge_failure_circuit_breaker=True,
+        hedge_failure_lookback_bars=24,
+        hedge_failure_underperformance_threshold=0.05,
+        hedge_failure_sell_fraction=0.10,
+        hedge_failure_min_sol_collateral=100.0,
+        signal_by_bar={
+            800: {
+                "green": 3,
+                "bearish_1d": True,
+                "bearish_3d": False,
+                "bearish_1w": False,
+            },
+        },
+    )
+    snapshot = AccountSnapshot(
+        collateral=[
+            CollateralPosition("SOL", 200.0, 90.0, 0.75, 0.80),
+            CollateralPosition("USDC", 0.0, 1.0, 0.90, 0.93),
+        ],
+        debt=[
+            DebtPosition("ETH", 0.0, 2_000.0, 1.0),
+            DebtPosition("USDC", 0.0, 1.0, 1.053),
+        ],
+    )
+
+    actions = strategy.on_bar(snapshot, _fast_break_bar(index=800))
+
+    assert actions == [
+        {"type": "withdraw_collateral", "symbol": "SOL", "amount": pytest.approx(20.0)},
+        {
+            "type": "deposit_collateral",
+            "symbol": "USDC",
+            "amount": pytest.approx(1_798.2),
+        },
+    ]
+    assert strategy.event_log[-1]["reason"] == "hedge_failure_circuit_breaker_sell"
+    assert strategy.history_fields()["in_hedge_failure_circuit_breaker"] is True
+    assert strategy.history_fields()["hedge_failure_protected_usdc"] == pytest.approx(
+        1_798.2
+    )
 
 
 def test_crisis_mode_raises_target_to_floor_before_full_short_confirmation():
