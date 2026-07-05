@@ -349,6 +349,150 @@ def test_vol_target_overlay_respects_short_cap(monkeypatch):
     assert signals["target_exposure"].iloc[-1] == pytest.approx(-0.75)
 
 
+def test_vol_target_confidence_raises_target_vol_when_trends_fully_agree(monkeypatch):
+    history = _btc_history([100.0] * 600)
+
+    def fake_supertrend_vote(ohlcv, config, timeframe):
+        return pd.Series(1.0, index=ohlcv.index)
+
+    monkeypatch.setattr("arblab.perps.signal._supertrend_vote", fake_supertrend_vote)
+    monkeypatch.setattr(
+        "arblab.perps.signal._annualized_realized_vol",
+        lambda close, window: pd.Series(0.50, index=close.index),
+    )
+
+    signals = generate_btc_signal(
+        history,
+        PureSignalConfig(
+            timeframes=("1h", "2h", "4h"),
+            supertrend_weight=1.0,
+            ema_weight=0.0,
+            rsi_weight=0.0,
+            rsi_filter_enabled=False,
+            vol_target_overlay_enabled=True,
+            vol_target_confidence_enabled=True,
+            vol_target_annual_vol=0.50,
+            vol_target_strong_trend_multiplier=1.20,
+            vol_target_long_cap=2.0,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert signals["vol_target_confidence"].iloc[-1] == pytest.approx(1.0)
+    assert signals["vol_target_confidence_multiplier"].iloc[-1] == pytest.approx(1.20)
+    assert signals["vol_target_effective_annual_vol"].iloc[-1] == pytest.approx(0.60)
+    assert signals["vol_target_multiplier"].iloc[-1] == pytest.approx(1.20)
+    assert signals["target_exposure"].iloc[-1] == pytest.approx(1.20)
+
+
+def test_vol_target_confidence_reduces_target_vol_when_trends_are_mixed(monkeypatch):
+    history = _btc_history([100.0] * 600)
+
+    def fake_supertrend_vote(ohlcv, config, timeframe):
+        direction = 1.0 if timeframe in {"1h", "2h"} else -1.0
+        return pd.Series(direction, index=ohlcv.index)
+
+    monkeypatch.setattr("arblab.perps.signal._supertrend_vote", fake_supertrend_vote)
+    monkeypatch.setattr(
+        "arblab.perps.signal._annualized_realized_vol",
+        lambda close, window: pd.Series(0.50, index=close.index),
+    )
+
+    signals = generate_btc_signal(
+        history,
+        PureSignalConfig(
+            timeframes=("1h", "2h", "4h"),
+            supertrend_weight=1.0,
+            ema_weight=0.0,
+            rsi_weight=0.0,
+            rsi_filter_enabled=False,
+            vol_target_overlay_enabled=True,
+            vol_target_confidence_enabled=True,
+            vol_target_annual_vol=0.50,
+            vol_target_mixed_trend_multiplier=0.80,
+            vol_target_long_cap=2.0,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert signals["signal"].iloc[-1] == pytest.approx(1 / 3)
+    assert signals["vol_target_confidence"].iloc[-1] == pytest.approx(1 / 3)
+    assert signals["vol_target_confidence_multiplier"].iloc[-1] == pytest.approx(0.80)
+    assert signals["vol_target_effective_annual_vol"].iloc[-1] == pytest.approx(0.40)
+    assert signals["vol_target_multiplier"].iloc[-1] == pytest.approx(0.80)
+    assert signals["target_exposure"].iloc[-1] == pytest.approx((1 / 3) * 0.80)
+
+
+def test_vol_target_bull_floor_raises_exposure_when_weekly_and_daily_are_bullish(monkeypatch):
+    history = _btc_history([100.0] * 1000)
+
+    def fake_supertrend_vote(ohlcv, config, timeframe):
+        return pd.Series(1.0, index=ohlcv.index)
+
+    monkeypatch.setattr("arblab.perps.signal._supertrend_vote", fake_supertrend_vote)
+    monkeypatch.setattr(
+        "arblab.perps.signal._annualized_realized_vol",
+        lambda close, window: pd.Series(1.00, index=close.index),
+    )
+
+    signals = generate_btc_signal(
+        history,
+        PureSignalConfig(
+            timeframes=("1w", "1d", "4h"),
+            supertrend_weight=1.0,
+            ema_weight=0.0,
+            rsi_weight=0.0,
+            rsi_filter_enabled=False,
+            vol_target_overlay_enabled=True,
+            vol_target_annual_vol=0.30,
+            vol_target_long_cap=1.5,
+            vol_target_bull_floor_enabled=True,
+            vol_target_bull_floor=0.50,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert bool(signals["vol_target_bull_floor_active"].iloc[-1]) is True
+    assert signals["vol_target_multiplier"].iloc[-1] == pytest.approx(0.30)
+    assert signals["target_exposure"].iloc[-1] == pytest.approx(0.50)
+
+
+def test_vol_target_bull_floor_can_require_four_hour_confirmation(monkeypatch):
+    history = _btc_history([100.0] * 1000)
+
+    def fake_supertrend_vote(ohlcv, config, timeframe):
+        direction = -1.0 if timeframe == "4h" else 1.0
+        return pd.Series(direction, index=ohlcv.index)
+
+    monkeypatch.setattr("arblab.perps.signal._supertrend_vote", fake_supertrend_vote)
+    monkeypatch.setattr(
+        "arblab.perps.signal._annualized_realized_vol",
+        lambda close, window: pd.Series(1.00, index=close.index),
+    )
+
+    signals = generate_btc_signal(
+        history,
+        PureSignalConfig(
+            timeframes=("1w", "1d", "4h"),
+            supertrend_weight=1.0,
+            ema_weight=0.0,
+            rsi_weight=0.0,
+            rsi_filter_enabled=False,
+            vol_target_overlay_enabled=True,
+            vol_target_annual_vol=0.30,
+            vol_target_long_cap=1.5,
+            vol_target_bull_floor_enabled=True,
+            vol_target_bull_floor=0.50,
+            vol_target_bull_floor_require_4h=True,
+            no_trade_zone=0.0,
+        ),
+    )
+
+    assert signals["signal"].iloc[-1] == pytest.approx(1 / 3)
+    assert bool(signals["vol_target_bull_floor_active"].iloc[-1]) is False
+    assert signals["target_exposure"].iloc[-1] == pytest.approx(0.10)
+
+
 def test_higher_timeframe_votes_use_only_closed_candles():
     history = _btc_history([100.0] * 8)
     base_config = PureSignalConfig(
