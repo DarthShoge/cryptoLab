@@ -53,6 +53,11 @@ class PureSignalConfig:
     vol_flattening_drop: float = 0.25
     vol_flattening_recent_high_window: int = 336
     vol_flattening_slope_window: int = 24
+    vol_target_overlay_enabled: bool = False
+    vol_target_annual_vol: float = 0.50
+    vol_target_window: int = 336
+    vol_target_long_cap: float = 2.0
+    vol_target_short_cap: float = 1.0
     no_trade_zone: float = 0.15
 
 
@@ -130,6 +135,11 @@ def generate_btc_signal(
     output["vol_percentile"] = 0.0
     if config.vol_flattening_overlay_enabled:
         output = _apply_vol_flattening_overlay(output, price_data, symbol, config)
+    output["vol_target_overlay_active"] = False
+    output["vol_target_realized_vol"] = 0.0
+    output["vol_target_multiplier"] = 1.0
+    if config.vol_target_overlay_enabled:
+        output = _apply_vol_target_overlay(output, price_data, symbol, config)
     return output
 
 
@@ -323,6 +333,38 @@ def _apply_vol_flattening_overlay(
     output["vol_flattening_overlay_active"] = active
     output["vol_percentile"] = vol_pct.fillna(0.0)
     return output
+
+
+def _apply_vol_target_overlay(
+    output: pd.DataFrame,
+    price_data: pd.DataFrame,
+    symbol: str,
+    config: PureSignalConfig,
+) -> pd.DataFrame:
+    close = price_data[(symbol, "close")].astype(float)
+    realized_vol = _annualized_realized_vol(close, config.vol_target_window)
+    multiplier = (
+        config.vol_target_annual_vol / realized_vol.where(realized_vol > 0.0)
+    ).replace([float("inf"), -float("inf")], pd.NA)
+    multiplier = multiplier.reindex(output.index).ffill().fillna(1.0).astype(float)
+
+    target = output["target_exposure"].astype(float) * multiplier
+    target = target.clip(
+        lower=-config.vol_target_short_cap,
+        upper=config.vol_target_long_cap,
+    )
+
+    output["target_exposure"] = target
+    output["vol_target_overlay_active"] = output["signal"] != 0.0
+    output["vol_target_realized_vol"] = realized_vol.reindex(output.index).fillna(0.0)
+    output["vol_target_multiplier"] = multiplier
+    return output
+
+
+def _annualized_realized_vol(close: pd.Series, window: int) -> pd.Series:
+    returns = close.astype(float).pct_change()
+    min_periods = max(8, window // 4)
+    return returns.rolling(window, min_periods=min_periods).std() * (24 * 365) ** 0.5
 
 
 def _volatility_flattening_setup(

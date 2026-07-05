@@ -35,6 +35,11 @@ def summarize_perp_history(
 
     btc_start = float(history["btc_close"].iloc[0])
     btc_end = float(history["btc_close"].iloc[-1])
+    liquidation_fee = history.get("liquidation_fee", pd.Series(0.0, index=history.index))
+    maintenance_margin = history.get(
+        "maintenance_margin",
+        pd.Series(0.0, index=history.index),
+    )
 
     return {
         "starting_equity": float(starting_equity),
@@ -50,6 +55,9 @@ def summarize_perp_history(
         "average_abs_exposure": float(exposure.abs().mean()),
         "fee_drag": float(history["fees"].sum()),
         "funding_drag": float(history["funding"].sum()),
+        "liquidation_count": int((history["exit_reason"] == "liquidation").sum()),
+        "liquidation_fee_drag": float(liquidation_fee.sum()),
+        "max_maintenance_margin": float(maintenance_margin.max()),
         "stop_count": int((history["exit_reason"] == "stop_loss").sum()),
         "take_profit_count": int((history["exit_reason"] == "take_profit").sum()),
         "percent_time_long": long_count / total_count if total_count else 0.0,
@@ -139,6 +147,9 @@ def _markdown_report(summary: dict[str, Any]) -> str:
             f"- Average absolute exposure: {summary['average_abs_exposure']:.2f}x",
             f"- Fees: ${summary['fee_drag']:,.2f}",
             f"- Funding: ${summary['funding_drag']:,.2f}",
+            f"- Liquidations: {summary['liquidation_count']}",
+            f"- Liquidation fees: ${summary['liquidation_fee_drag']:,.2f}",
+            f"- Max maintenance margin: ${summary['max_maintenance_margin']:,.2f}",
             f"- Stop losses: {summary['stop_count']}",
             f"- Take profits: {summary['take_profit_count']}",
             "",

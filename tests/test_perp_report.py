@@ -19,6 +19,8 @@ def _history() -> pd.DataFrame:
             "traded_notional": [10_000.0, 0.0, 10_500.0, 10_000.0],
             "fees": [6.0, 0.0, 6.3, 6.0],
             "funding": [0.0, 1.0, 0.0, 1.0],
+            "liquidation_fee": [0.0, 0.0, 25.0, 0.0],
+            "maintenance_margin": [50.0, 52.5, 0.0, 50.0],
             "exit_reason": ["", "", "take_profit", ""],
         },
         index=index,
@@ -52,6 +54,9 @@ def test_summarize_perp_history_includes_required_metrics():
         "average_abs_exposure",
         "fee_drag",
         "funding_drag",
+        "liquidation_count",
+        "liquidation_fee_drag",
+        "max_maintenance_margin",
         "stop_count",
         "take_profit_count",
         "percent_time_long",
@@ -61,6 +66,8 @@ def test_summarize_perp_history_includes_required_metrics():
     }.issubset(summary)
     assert summary["total_return"] == pytest.approx(0.08)
     assert summary["take_profit_count"] == 1
+    assert summary["liquidation_fee_drag"] == pytest.approx(25.0)
+    assert summary["max_maintenance_margin"] == pytest.approx(52.5)
     assert summary["trade_count"] == 3
     assert summary["max_abs_exposure"] == pytest.approx(1.0)
     assert summary["average_abs_exposure"] == pytest.approx(0.731475)
