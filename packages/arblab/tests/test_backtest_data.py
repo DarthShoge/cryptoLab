@@ -57,6 +57,27 @@ def test_default_cache_dir_is_stable_after_chdir(monkeypatch, tmp_path):
     assert DEFAULT_CACHE_DIR == price_cache_dir()
 
 
+def test_omitted_cache_dir_resolves_at_call_time(monkeypatch, tmp_path):
+    import arblab.backtest.data as data_mod
+
+    runtime_root = tmp_path / "runtime-root"
+    monkeypatch.setenv("CRYPTOLAB_ROOT", str(runtime_root))
+    created_paths = []
+    monkeypatch.setattr(Path, "mkdir", lambda self, **kwargs: created_paths.append(self))
+
+    mock_ex = MagicMock()
+    mock_ex.fetch_ohlcv.return_value = make_mock_candles(1)
+    with patch.dict("sys.modules", {"ccxt": _patch_ccxt(mock_ex)}):
+        data_mod.fetch_ohlcv(
+            symbols=[OHLCVConfig("SOL/USDT", "SOL")],
+            start="2024-01-01",
+            use_cache=False,
+            rate_limit_sleep=0,
+        )
+
+    assert created_paths == [runtime_root / ".price_cache"]
+
+
 class TestOHLCVConfig:
     def test_construction(self):
         cfg = OHLCVConfig(symbol="SOL/USDT", display_name="SOL")

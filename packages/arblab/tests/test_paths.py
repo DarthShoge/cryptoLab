@@ -17,6 +17,7 @@ def test_paths_are_absolute_and_independent_of_cwd(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
 
     assert repo_root() == expected_root
+    assert (repo_root() / "pyproject.toml").is_file()
     assert fixture_path("prices/sample.csv") == expected_root / "data/fixtures/prices/sample.csv"
     assert reports_dir() == expected_root / "reports"
     assert price_cache_dir() == expected_root / ".price_cache"

@@ -1,4 +1,4 @@
-"""Stable paths to repository resources."""
+"""Compose trusted repository-relative resource names into stable paths."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ def _default_repo_root() -> Path:
 
 
 def repo_root() -> Path:
-    """Return the configured repository root as an absolute path."""
+    """Return the root; relative ``CRYPTOLAB_ROOT`` values resolve against cwd."""
     configured_root = os.environ.get("CRYPTOLAB_ROOT")
     if configured_root is not None:
         return Path(configured_root).resolve()
@@ -19,12 +19,15 @@ def repo_root() -> Path:
 
 
 def fixture_path(name: str) -> Path:
+    """Compose a trusted repo-relative fixture name into an absolute path."""
     return (repo_root() / "data" / "fixtures" / name).resolve()
 
 
 def reports_dir() -> Path:
+    """Return the absolute directory for repository reports."""
     return (repo_root() / "reports").resolve()
 
 
 def price_cache_dir() -> Path:
+    """Return the absolute directory for the repository price cache."""
     return (repo_root() / ".price_cache").resolve()

@@ -83,7 +83,7 @@ def fetch_ohlcv(
     start: str | datetime = "2024-01-01",
     end: Optional[str | datetime] = None,
     exchange_id: str = "binance",
-    cache_dir: Path = DEFAULT_CACHE_DIR,
+    cache_dir: Path | None = None,
     rate_limit_sleep: float = 0.5,
     use_cache: bool = True,
 ) -> pd.DataFrame:
@@ -105,7 +105,7 @@ def fetch_ohlcv(
             end = datetime.fromisoformat(end).replace(tzinfo=timezone.utc)
         until_ms = int(end.timestamp() * 1000)
 
-    cache_dir = Path(cache_dir)
+    cache_dir = price_cache_dir() if cache_dir is None else Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     exchange = getattr(_ccxt, exchange_id)({"enableRateLimit": True})
