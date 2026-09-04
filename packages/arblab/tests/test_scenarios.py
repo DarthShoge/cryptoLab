@@ -6,7 +6,7 @@ Each test is marked with @pytest.mark.scenario.
 import pytest
 from pytest import approx
 
-from tests.conftest import make_collateral, make_debt, make_snapshot
+from .conftest import make_collateral, make_debt, make_snapshot
 from arblab.kamino_risk import apply_actions, AccountSnapshot, liquidation_price_for_collateral
 from arblab.kamino_recovery import (
     auto_loop_deposit,

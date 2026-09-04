@@ -11,7 +11,7 @@ from arblab.kamino_risk import (
     liquidation_prices,
     scenario_report,
 )
-from tests.conftest import make_collateral, make_debt, make_snapshot
+from .conftest import make_collateral, make_debt, make_snapshot
 
 
 # ---------------------------------------------------------------------------

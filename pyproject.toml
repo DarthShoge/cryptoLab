@@ -27,7 +27,7 @@ testpaths = [
   "apps/report-explorer/tests",
   "tests/integration",
 ]
-addopts = "-p no:anchorpy"
+addopts = "-p no:anchorpy -m 'not functional and not onchain and not market_data'"
 markers = [
   "scenario: multi-step DeFi scenario tests",
   "functional: browser-based functional tests",

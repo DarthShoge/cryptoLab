@@ -12,7 +12,7 @@ from arblab.kamino_recovery import (
     recovery_swap_withdraw,
 )
 from arblab.kamino_risk import apply_actions, AccountSnapshot
-from tests.conftest import make_collateral, make_debt, make_snapshot
+from .conftest import make_collateral, make_debt, make_snapshot
 
 
 # ---------------------------------------------------------------------------

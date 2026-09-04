@@ -6,7 +6,7 @@ cascading liquidation, close factor capping, and priority rules.
 
 import pytest
 
-from tests.conftest import make_collateral, make_debt, make_snapshot
+from .conftest import make_collateral, make_debt, make_snapshot
 
 from arblab.backtest.market import (
     AssetConfig,
