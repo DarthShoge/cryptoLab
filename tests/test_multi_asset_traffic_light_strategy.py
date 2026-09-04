@@ -997,3 +997,390 @@ def test_protective_hedge_covers_stale_non_selected_short_debt():
     final = apply_actions(snapshot, actions)
     eth_debt = next(position for position in final.debt if position.symbol == "ETH")
     assert eth_debt.value() == 0.0
+
+
+def test_rebalance_cooldown_suppresses_non_forced_rebalance():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 4,
+        "max_short_green": -1,
+        "target_long_fraction": 1.20,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "rebalance_cooldown_bars": 4,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    underexposed_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=80.0 if position.symbol == "SOL" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in first_snapshot.collateral
+        ],
+        debt=first_snapshot.debt,
+    )
+    second_actions = strategy.on_bar(underexposed_snapshot, _bar(history, 1))
+
+    assert first_actions
+    assert second_actions == []
+    assert strategy.history_fields()["rebalance_cooldown_active"] is True
+
+
+def test_rebalance_cooldown_allows_forced_rotation():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {
+            "SOL": [4, 1, 1, 1, 1, 1, 1, 1],
+            "ETH": [1, 4, 4, 4, 4, 4, 4, 4],
+        },
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 4,
+        "max_short_green": -1,
+        "target_long_fraction": 1.20,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "rebalance_cooldown_bars": 4,
+        "cooldown_force_rotation": True,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    second_actions = strategy.on_bar(first_snapshot, _bar(history, 1))
+
+    assert first_actions
+    assert any(
+        action["type"] == "deposit_collateral" and action["symbol"] == "ETH"
+        for action in second_actions
+    )
+    assert strategy.history_fields()["rebalance_cooldown_active"] is False
+
+
+def test_rebalance_cooldown_still_covers_same_asset_debt_conflict():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 4,
+        "max_short_green": -1,
+        "target_long_fraction": 1.00,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "rebalance_cooldown_bars": 4,
+        "enable_protective_short_hedge": True,
+        "protective_short_symbols": ["SOL", "ETH"],
+        "protective_hedge_floors": {4: 0.10},
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    conflict_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=2_100.0 if position.symbol == "USDC" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in first_snapshot.collateral
+        ],
+        debt=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=10.0 if position.symbol == "SOL" else position.amount,
+                price=position.price,
+                borrow_factor=position.borrow_factor,
+            )
+            for position in first_snapshot.debt
+        ],
+    )
+
+    second_actions = strategy.on_bar(conflict_snapshot, _bar(history, 1))
+
+    assert any(
+        action["type"] == "repay" and action["symbol"] == "SOL"
+        for action in second_actions
+    )
+    assert strategy.history_fields()["rebalance_cooldown_active"] is True
+
+
+def test_rebalance_cooldown_can_be_scoped_to_specific_traffic_states():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {
+            "SOL": [4, 1, 1, 1, 1, 1, 1, 1],
+            "ETH": [1, 0, 0, 0, 0, 0, 0, 0],
+        },
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 1,
+        "max_short_green": -1,
+        "target_long_fraction": 1.20,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "rebalance_cooldown_bars": 4,
+        "rebalance_cooldown_states": ["green"],
+        "enable_traffic_light_state_machine": True,
+        "state_machine_green_min_green": 4,
+        "state_machine_red_max_green": 1,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    underexposed_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=80.0 if position.symbol == "SOL" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in first_snapshot.collateral
+        ],
+        debt=first_snapshot.debt,
+    )
+    second_actions = strategy.on_bar(underexposed_snapshot, _bar(history, 1))
+
+    assert first_actions
+    assert second_actions
+    assert strategy.history_fields()["traffic_light_state"] == "orange"
+    assert strategy.history_fields()["rebalance_cooldown_active"] is False
+
+
+def test_target_change_hysteresis_suppresses_same_signal_drift_rebalance():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 4,
+        "max_short_green": -1,
+        "target_long_fraction": 1.20,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "target_change_rebalance_threshold": 0.05,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    underexposed_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=80.0 if position.symbol == "SOL" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in first_snapshot.collateral
+        ],
+        debt=first_snapshot.debt,
+    )
+    second_actions = strategy.on_bar(underexposed_snapshot, _bar(history, 1))
+
+    assert first_actions
+    assert second_actions == []
+    assert strategy.history_fields()["target_rebalance_hold_active"] is True
+
+
+def test_target_change_hysteresis_allows_selected_long_rotation():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {
+            "SOL": [4, 1, 1, 1, 1, 1, 1, 1],
+            "ETH": [1, 4, 4, 4, 4, 4, 4, 4],
+        },
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 4,
+        "max_short_green": -1,
+        "target_long_fraction": 1.20,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "target_change_rebalance_threshold": 0.05,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    second_actions = strategy.on_bar(first_snapshot, _bar(history, 1))
+
+    assert first_actions
+    assert any(
+        action["type"] == "deposit_collateral" and action["symbol"] == "ETH"
+        for action in second_actions
+    )
+    assert strategy.history_fields()["target_rebalance_hold_active"] is False
+
+
+def test_rebalance_threshold_can_be_overridden_by_traffic_state():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 4,
+        "max_short_green": -1,
+        "target_long_fraction": 1.20,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "rebalance_threshold_by_state": {"green": 0.05},
+        "enable_traffic_light_state_machine": True,
+        "state_machine_green_min_green": 4,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    underexposed_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=116.0 if position.symbol == "SOL" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in first_snapshot.collateral
+        ],
+        debt=first_snapshot.debt,
+    )
+
+    second_actions = strategy.on_bar(underexposed_snapshot, _bar(history, 1))
+
+    assert first_actions
+    assert second_actions == []
+    assert strategy.history_fields()["traffic_light_state"] == "green"
+    assert strategy.history_fields()["rebalance_threshold_pct"] == 5.0
+
+
+def test_min_rebalance_notional_usd_suppresses_small_rebalance_groups():
+    strategy = MultiAssetTrafficLightStrategy()
+    history = _history(
+        sol=[100.0] * 8,
+        eth=[2_000.0] * 8,
+    )
+    green_scores = pd.DataFrame(
+        {"SOL": [4] * len(history), "ETH": [1] * len(history)},
+        index=history.index,
+    )
+    config = {
+        "initial_collateral_symbol": "SOL",
+        "initial_collateral_amount": 100.0,
+        "directional_symbols": ["SOL", "ETH"],
+        "initial_prices": {"SOL": 100.0, "ETH": 2_000.0},
+        "green_scores": green_scores,
+        "min_long_green": 4,
+        "max_short_green": -1,
+        "target_long_fraction": 1.20,
+        "target_short_fraction": 0.00,
+        "rebalance_threshold": 0.01,
+        "min_rebalance_notional_usd": 750.0,
+    }
+    snapshot = strategy.setup(AccountSnapshot(collateral=[], debt=[]), config)
+    first_actions = strategy.on_bar(snapshot, _bar(history, 0))
+    first_snapshot = apply_actions(snapshot, first_actions)
+    underexposed_snapshot = AccountSnapshot(
+        collateral=[
+            position.__class__(
+                symbol=position.symbol,
+                amount=116.0 if position.symbol == "SOL" else position.amount,
+                price=position.price,
+                ltv=position.ltv,
+                liquidation_threshold=position.liquidation_threshold,
+            )
+            for position in first_snapshot.collateral
+        ],
+        debt=first_snapshot.debt,
+    )
+
+    second_actions = strategy.on_bar(underexposed_snapshot, _bar(history, 1))
+
+    assert first_actions
+    assert second_actions == []
+    assert strategy.history_fields()["rebalance_threshold_usd"] == 750.0

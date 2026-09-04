@@ -16,13 +16,17 @@ from arblab.backtest.report_explorer import (
     build_timeline_frame,
     chart_debt_values_negative,
     default_report_index,
+    default_strategy_selection,
     discover_report_dirs,
     final_composition_table,
+    history_risk_stats,
     history_label_options,
     history_selection_for_summary,
     load_price_cache,
     load_report_bundle,
+    portfolio_overview_table,
     regime_date_bounds,
+    max_drawdown_series,
     slice_regime,
 )
 
@@ -80,12 +84,376 @@ def _summary_table(summary: pd.DataFrame) -> pd.DataFrame:
         "sortino_ratio",
         "min_health_factor",
         "bars_below_hf_1_5",
+        "directional_overlap_count",
         "avg_target_long_fraction",
         "avg_target_short_fraction",
         "total_interest_paid",
     ]
     existing = [column for column in columns if column in summary.columns]
     return summary[existing].copy()
+
+
+def _format_overview_table(table: pd.DataFrame) -> pd.DataFrame:
+    formatted = table.copy()
+    money_columns = [
+        "final_portfolio_value_usd",
+        "total_interest_paid",
+        "strategy_vs_buy_hold_usd",
+        "strategy_vs_eth_buy_hold_usd",
+        "sol_buy_hold_final_usd",
+        "eth_buy_hold_final_usd",
+    ]
+    pct_columns = [
+        "max_drawdown_pct",
+        "post_2024_drawdown_pct",
+        "buy_hold_max_drawdown_pct",
+        "eth_buy_hold_max_drawdown_pct",
+    ]
+    number_columns = [
+        "final_sol_equiv",
+        "sortino_ratio",
+        "sharpe_ratio_check",
+        "information_ratio_vs_sol",
+        "min_health_factor",
+        "estimated_annualized_turnover_multiple",
+    ]
+    for column in money_columns:
+        if column in formatted:
+            formatted[column] = formatted[column].map(lambda value: "" if pd.isna(value) else _format_money(value))
+    for column in pct_columns:
+        if column in formatted:
+            formatted[column] = formatted[column].map(lambda value: "" if pd.isna(value) else f"{float(value):,.3f}%")
+    for column in number_columns:
+        if column in formatted:
+            formatted[column] = formatted[column].map(lambda value: "" if pd.isna(value) else _format_number(value))
+    for column in ["total_actions", "bars_below_hf_1_5", "total_liquidations", "directional_overlap_count"]:
+        if column in formatted:
+            formatted[column] = formatted[column].map(lambda value: "" if pd.isna(value) else f"{int(float(value)):,}")
+    if "action_turnover_per_year" in formatted:
+        formatted["action_turnover_per_year"] = formatted["action_turnover_per_year"].map(
+            lambda value: "" if pd.isna(value) else f"{float(value):,.1f}"
+        )
+    if "estimated_annualized_turnover_multiple" in formatted:
+        formatted["estimated_annualized_turnover_multiple"] = formatted[
+            "estimated_annualized_turnover_multiple"
+        ].map(lambda value: "" if pd.isna(value) else f"{float(value):,.2f}x")
+    return formatted
+
+
+def _annualized_volatility_pct(history: pd.DataFrame) -> float:
+    if history.empty or "portfolio_value" not in history:
+        return 0.0
+    returns = history["portfolio_value"].astype(float).pct_change().dropna()
+    if returns.empty:
+        return 0.0
+    return float(returns.std()) * (24.0 * 365.25) ** 0.5 * 100.0
+
+
+def _value_or_fallback(value: object, fallback: float) -> object:
+    if value is None:
+        return fallback
+    try:
+        if pd.isna(value):
+            return fallback
+    except TypeError:
+        return value
+    return value
+
+
+def _core_stats_table(
+    summary: pd.DataFrame,
+    selected_names: list[str],
+    selected_history_names: list[str],
+    histories: dict[str, pd.DataFrame],
+    prices: dict[str, pd.Series],
+) -> pd.DataFrame:
+    if summary.empty or "name" not in summary:
+        return pd.DataFrame()
+    history_by_summary = dict(zip(selected_names, selected_history_names))
+    rows = []
+    keyed = summary.assign(name=summary["name"].astype(str)).set_index("name", drop=False)
+    for name in selected_names:
+        if name not in keyed.index:
+            continue
+        row = keyed.loc[name]
+        history = histories.get(history_by_summary.get(name, ""))
+        fallback_stats = history_risk_stats(history, prices) if history is not None else {}
+        rows.append(
+            {
+                "strategy": name,
+                "final_sol": row.get("final_sol_equiv"),
+                "max_dd_pct": row.get("max_drawdown_pct"),
+                "sortino": row.get("sortino_ratio"),
+                "sharpe": _value_or_fallback(
+                    row.get("sharpe_ratio_check"),
+                    fallback_stats.get("sharpe_ratio_check", 0.0),
+                ),
+                "ir_vs_sol": _value_or_fallback(
+                    row.get("information_ratio_vs_sol"),
+                    fallback_stats.get("information_ratio_vs_sol", 0.0),
+                ),
+                "volatility_pct": fallback_stats.get(
+                    "annualized_volatility_pct",
+                    _annualized_volatility_pct(history) if history is not None else 0.0,
+                ),
+                "turnover_x": row.get("estimated_annualized_turnover_multiple"),
+                "actions": row.get("total_actions"),
+                "actions_per_year": row.get("action_turnover_per_year"),
+                "min_hf": row.get("min_health_factor"),
+                "bars_hf_lt_1_5": row.get("bars_below_hf_1_5"),
+                "liquidations": row.get("total_liquidations"),
+                "overlap_bars": row.get("directional_overlap_count"),
+                "interest_paid": row.get("total_interest_paid"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _format_core_stats_table(table: pd.DataFrame) -> pd.DataFrame:
+    formatted = table.copy()
+    for column in ["final_sol", "sortino", "sharpe", "ir_vs_sol", "min_hf"]:
+        if column in formatted:
+            formatted[column] = formatted[column].map(
+                lambda value: "" if pd.isna(value) else f"{float(value):,.3f}"
+            )
+    for column in ["max_dd_pct", "volatility_pct"]:
+        if column in formatted:
+            formatted[column] = formatted[column].map(
+                lambda value: "" if pd.isna(value) else f"{float(value):,.2f}%"
+            )
+    if "turnover_x" in formatted:
+        formatted["turnover_x"] = formatted["turnover_x"].map(
+            lambda value: "" if pd.isna(value) else f"{float(value):,.2f}x"
+        )
+    if "actions_per_year" in formatted:
+        formatted["actions_per_year"] = formatted["actions_per_year"].map(
+            lambda value: "" if pd.isna(value) else f"{float(value):,.1f}"
+        )
+    for column in ["actions", "bars_hf_lt_1_5", "liquidations", "overlap_bars"]:
+        if column in formatted:
+            formatted[column] = formatted[column].map(
+                lambda value: "" if pd.isna(value) else f"{int(float(value)):,}"
+            )
+    if "interest_paid" in formatted:
+        formatted["interest_paid"] = formatted["interest_paid"].map(
+            lambda value: "" if pd.isna(value) else _format_money(value)
+        )
+    return formatted
+
+
+def _history_regime_overview(history: pd.DataFrame) -> pd.DataFrame:
+    regimes = {
+        "full": (None, None),
+        "2021_bull": ("2021-01-01", "2021-12-31 23:59:59+00:00"),
+        "2022_crash": ("2022-01-01", "2022-12-31 23:59:59+00:00"),
+        "2023_recovery": ("2023-01-01", "2023-12-31 23:59:59+00:00"),
+        "2024_2026": ("2024-01-01", None),
+        "2026_ytd": ("2026-01-01", None),
+    }
+    rows: list[dict[str, object]] = []
+    for regime, (start, end) in regimes.items():
+        window = slice_regime(history, start, end)
+        if len(window) < 2 or "portfolio_value" not in window:
+            continue
+        start_value = float(window["portfolio_value"].iloc[0])
+        end_value = float(window["portfolio_value"].iloc[-1])
+        action_count = float(window.get("action_count", pd.Series(0.0, index=window.index)).sum())
+        cooldown = window.get(
+            "rebalance_cooldown_active",
+            pd.Series(False, index=window.index),
+        )
+        rows.append(
+            {
+                "regime": regime,
+                "start": window.index[0],
+                "end": window.index[-1],
+                "return_pct": (end_value / start_value - 1.0) * 100.0 if start_value > 0 else 0.0,
+                "max_drawdown_pct": float(max_drawdown_series(window["portfolio_value"]).max()),
+                "end_value_usd": end_value,
+                "actions": int(action_count),
+                "avg_target_long": float(window.get("target_long_fraction", pd.Series(0.0, index=window.index)).mean()),
+                "avg_target_short": float(window.get("target_short_fraction", pd.Series(0.0, index=window.index)).mean()),
+                "cooldown_share": float(cooldown.astype(bool).mean()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _history_traffic_state_overview(history: pd.DataFrame) -> pd.DataFrame:
+    if history.empty or "traffic_light_state" not in history:
+        return pd.DataFrame()
+    rows: list[dict[str, object]] = []
+    for state, frame in history.groupby("traffic_light_state", dropna=False):
+        cooldown = frame.get(
+            "rebalance_cooldown_active",
+            pd.Series(False, index=frame.index),
+        )
+        threshold = frame.get(
+            "rebalance_threshold_pct",
+            pd.Series(0.0, index=frame.index),
+        )
+        rows.append(
+            {
+                "state": state,
+                "share": len(frame) / len(history),
+                "avg_target_long": float(frame.get("target_long_fraction", pd.Series(0.0, index=frame.index)).mean()),
+                "avg_target_short": float(frame.get("target_short_fraction", pd.Series(0.0, index=frame.index)).mean()),
+                "avg_threshold_pct": float(threshold.mean()),
+                "actions": int(frame.get("action_count", pd.Series(0.0, index=frame.index)).sum()),
+                "cooldown_share": float(cooldown.astype(bool).mean()),
+            }
+        )
+    return pd.DataFrame(rows).sort_values("share", ascending=False).reset_index(drop=True)
+
+
+def _format_regime_table(table: pd.DataFrame) -> pd.DataFrame:
+    formatted = table.copy()
+    for column in ["start", "end"]:
+        if column in formatted:
+            formatted[column] = pd.to_datetime(formatted[column]).dt.strftime("%Y-%m-%d")
+    for column in ["return_pct", "max_drawdown_pct", "cooldown_share"]:
+        if column in formatted:
+            multiplier = 100.0 if column == "cooldown_share" else 1.0
+            formatted[column] = formatted[column].map(
+                lambda value: "" if pd.isna(value) else f"{float(value) * multiplier:,.2f}%"
+            )
+    if "end_value_usd" in formatted:
+        formatted["end_value_usd"] = formatted["end_value_usd"].map(
+            lambda value: "" if pd.isna(value) else _format_money(value)
+        )
+    for column in ["avg_target_long", "avg_target_short"]:
+        if column in formatted:
+            formatted[column] = formatted[column].map(
+                lambda value: "" if pd.isna(value) else _format_number(value)
+            )
+    return formatted
+
+
+def _format_state_table(table: pd.DataFrame) -> pd.DataFrame:
+    formatted = table.copy()
+    for column in ["share", "cooldown_share"]:
+        if column in formatted:
+            formatted[column] = formatted[column].map(
+                lambda value: "" if pd.isna(value) else f"{float(value) * 100.0:,.2f}%"
+            )
+    for column in ["avg_target_long", "avg_target_short", "avg_threshold_pct"]:
+        if column in formatted:
+            suffix = "%" if column == "avg_threshold_pct" else ""
+            formatted[column] = formatted[column].map(
+                lambda value: "" if pd.isna(value) else f"{float(value):,.3f}{suffix}"
+            )
+    return formatted
+
+
+def _render_portfolio_overview(
+    bundle,
+    summary: pd.DataFrame,
+    selected_names: list[str],
+    selected_history_names: list[str],
+) -> None:
+    if summary.empty:
+        st.info("No summary data is available for this overview.")
+        return
+
+    histories = {
+        name: bundle.histories[name]
+        for name in selected_history_names
+        if name in bundle.histories
+    }
+    prices = _load_prices()
+    core_stats = _core_stats_table(summary, selected_names, selected_history_names, histories, prices)
+    if not core_stats.empty:
+        st.subheader("Core Risk / Turnover Stats")
+        st.dataframe(
+            _format_core_stats_table(core_stats),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    overview = portfolio_overview_table(summary, selected_names)
+    if overview.empty:
+        st.info("No selected strategy summary rows are available.")
+    else:
+        st.subheader("Portfolio Accounting")
+        st.dataframe(_format_overview_table(overview), use_container_width=True, hide_index=True)
+
+    benchmark_columns = [
+        "name",
+        "buy_hold_final_usd",
+        "buy_hold_max_drawdown_pct",
+        "strategy_vs_buy_hold_usd",
+        "strategy_vs_buy_hold_sol",
+        "eth_buy_hold_final_usd",
+        "eth_buy_hold_max_drawdown_pct",
+        "strategy_vs_eth_buy_hold_usd",
+        "strategy_vs_eth_buy_hold_pct",
+    ]
+    existing_benchmark_columns = [column for column in benchmark_columns if column in summary.columns]
+    if len(existing_benchmark_columns) > 1:
+        benchmark = summary[summary["name"].astype(str).isin(selected_names)][existing_benchmark_columns]
+        if not benchmark.empty:
+            st.subheader("Benchmark Comparison")
+            st.dataframe(_format_overview_table(benchmark), use_container_width=True, hide_index=True)
+
+    if histories:
+        st.subheader("Selected Strategy Final Composition")
+        composition_tabs = st.tabs(list(histories))
+        for tab, (name, history) in zip(composition_tabs, histories.items()):
+            with tab:
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    st.caption("Collateral")
+                    st.dataframe(
+                        final_composition_table(history, "collateral"),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                with col_b:
+                    st.caption("Debt")
+                    st.dataframe(
+                        final_composition_table(history, "debt"),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+        st.subheader("Selected Strategy Regime Stats")
+        regime_tabs = st.tabs(list(histories))
+        for tab, (name, history) in zip(regime_tabs, histories.items()):
+            with tab:
+                st.dataframe(
+                    _format_regime_table(_history_regime_overview(history)),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+        st.subheader("Selected Strategy Traffic-State Profile")
+        state_tabs = st.tabs(list(histories))
+        for tab, (name, history) in zip(state_tabs, histories.items()):
+            with tab:
+                state_table = _history_traffic_state_overview(history)
+                if state_table.empty:
+                    st.info("No traffic-light state history is available for this strategy.")
+                else:
+                    st.dataframe(
+                        _format_state_table(state_table),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+    elif bundle.extra_tables:
+        final_composition = bundle.extra_tables.get("final_composition")
+        if final_composition is not None and not final_composition.empty:
+            st.subheader("Report Final Composition")
+            st.dataframe(final_composition, use_container_width=True, hide_index=True)
+
+        traffic_states = bundle.extra_tables.get("traffic_states")
+        if traffic_states is not None and not traffic_states.empty:
+            st.subheader("Traffic-State Profile")
+            st.dataframe(traffic_states, use_container_width=True, hide_index=True)
+
+        if not bundle.regimes.empty:
+            st.subheader("Regime Stats")
+            st.dataframe(bundle.regimes, use_container_width=True, hide_index=True)
 
 
 def _aligned_sol_price(index: pd.Index, prices: dict[str, pd.Series]) -> pd.Series:
@@ -207,28 +575,56 @@ def _temperature_chart(
     )
 
 
-def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
+def _timeline_chart(timeline: pd.DataFrame, y_mode: str = "sol_price") -> alt.Chart:
     chart_frame = _downsample(timeline, max_points=1200).copy()
-    price_data = chart_frame[["timestamp", "sol_price"]].drop_duplicates("timestamp")
+    primary_field = "strategy_pnl_usd" if y_mode == "strategy_pnl_usd" else "sol_price"
+    primary_title = "Strategy PnL (USD)" if primary_field == "strategy_pnl_usd" else "SOL price (USD)"
+    primary_columns = list(
+        dict.fromkeys(["timestamp", primary_field, "strategy_pnl_usd", "sol_price"])
+    )
+    primary_data = chart_frame[
+        [column for column in primary_columns if column in chart_frame.columns]
+    ].drop_duplicates("timestamp")
     zoom = alt.selection_interval(bind="scales", encodings=["x"])
-    price_line = (
-        alt.Chart(price_data)
-        .mark_line(color="#111827", strokeWidth=2)
+    primary_line = (
+        alt.Chart(primary_data)
+        .mark_line(color="#111827" if primary_field == "sol_price" else "#2563eb", strokeWidth=2)
         .encode(
             x=alt.X("timestamp:T", title=None),
-            y=alt.Y("sol_price:Q", title="SOL price (USD)"),
+            y=alt.Y(f"{primary_field}:Q", title=primary_title),
             tooltip=[
                 alt.Tooltip("timestamp:T", title="Time"),
+                alt.Tooltip("strategy_pnl_usd:Q", title="Strategy PnL", format=",.2f"),
                 alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
             ],
         )
     )
+    layers: list[alt.Chart] = [primary_line]
+    if primary_field == "strategy_pnl_usd":
+        sol_line = (
+            alt.Chart(primary_data)
+            .mark_line(color="#111827", strokeWidth=2, opacity=0.72)
+            .encode(
+                x=alt.X("timestamp:T", title=None),
+                y=alt.Y(
+                    "sol_price:Q",
+                    title="SOL price (USD)",
+                    axis=alt.Axis(orient="right"),
+                ),
+                tooltip=[
+                    alt.Tooltip("timestamp:T", title="Time"),
+                    alt.Tooltip("strategy_pnl_usd:Q", title="Strategy PnL", format=",.2f"),
+                    alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
+                ],
+            )
+        )
+        layers.append(sol_line)
     markers = (
         alt.Chart(chart_frame)
         .mark_point(filled=True, size=88, opacity=0.88)
         .encode(
             x=alt.X("timestamp:T", title=None),
-            y=alt.Y("sol_price:Q", title="SOL price (USD)"),
+            y=alt.Y(f"{primary_field}:Q", title=primary_title),
             color=alt.Color("event_family:N", title="Event"),
             shape=alt.Shape("event_family:N", title="Event"),
             tooltip=[
@@ -240,6 +636,8 @@ def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
                 alt.Tooltip("target_short_fraction:Q", title="Short target", format=",.3f"),
                 alt.Tooltip("health_factor:Q", title="HF", format=",.3f"),
                 alt.Tooltip("drawdown_pct:Q", title="Drawdown", format=",.2f"),
+                alt.Tooltip("portfolio_value:Q", title="Portfolio value", format=",.2f"),
+                alt.Tooltip("strategy_pnl_usd:Q", title="Strategy PnL", format=",.2f"),
                 alt.Tooltip("sol_price:Q", title="SOL price", format=",.2f"),
                 alt.Tooltip("snapshot_portfolio:N", title="Portfolio"),
                 alt.Tooltip("snapshot_collateral_SOL:N", title="Collateral SOL"),
@@ -253,7 +651,13 @@ def _timeline_chart(timeline: pd.DataFrame) -> alt.Chart:
             ],
         )
     )
-    return alt.layer(price_line, markers).add_params(zoom).properties(height=360)
+    layers.append(markers)
+    return (
+        alt.layer(*layers)
+        .resolve_scale(y="independent" if primary_field == "strategy_pnl_usd" else "shared")
+        .add_params(zoom)
+        .properties(height=360)
+    )
 
 
 def _render_kpis(summary: pd.DataFrame, names: list[str]) -> None:
@@ -332,7 +736,7 @@ strategy_names = summary["name"].astype(str).tolist() if "name" in summary else 
 history_options = history_label_options(summary, bundle.histories)
 
 st.sidebar.header("Strategies")
-default_selection = strategy_names[:2]
+default_selection = default_strategy_selection(strategy_names, history_options)
 selected_names = st.sidebar.multiselect(
     "Compare",
     strategy_names,
@@ -361,9 +765,12 @@ if custom_range and bundle.histories:
 st.caption(str(bundle.path))
 _render_kpis(summary, selected_names)
 
-tabs = st.tabs(["Dynamics", "Composition", "Timeline", "Regimes", "Report", "Raw Tables"])
+tabs = st.tabs(["Overview", "Dynamics", "Composition", "Timeline", "Regimes", "Report", "Raw Tables"])
 
 with tabs[0]:
+    _render_portfolio_overview(bundle, summary, selected_names, selected_history_names)
+
+with tabs[1]:
     if not bundle.histories or not selected_history_names:
         st.info("No local history CSVs are available for dynamic charts.")
     else:
@@ -451,7 +858,7 @@ with tabs[0]:
                 if visible_columns:
                     st.dataframe(history[visible_columns].tail(250), use_container_width=True)
 
-with tabs[1]:
+with tabs[2]:
     if not bundle.histories or not selected_history_names:
         st.info("No local history CSVs are available for composition charts.")
     else:
@@ -492,7 +899,7 @@ with tabs[1]:
                         use_container_width=True,
                     )
 
-with tabs[2]:
+with tabs[3]:
     if not bundle.histories or not selected_history_names:
         st.info("No local history CSVs are available for timeline charts.")
     else:
@@ -501,6 +908,12 @@ with tabs[2]:
             st.info("No selected strategies have matching local history CSVs.")
             st.stop()
         prices = _load_prices()
+        plot_against_pnl = st.toggle(
+            "Plot events against strategy PnL",
+            value=False,
+            help="When enabled, event markers use strategy PnL on the left axis and SOL price is overlaid on the right axis.",
+        )
+        timeline_y_mode = "strategy_pnl_usd" if plot_against_pnl else "sol_price"
         for name, history in histories.items():
             st.header(name)
             timeline = build_timeline_frame(history, prices)
@@ -517,7 +930,10 @@ with tabs[2]:
             if view.empty:
                 st.info("No events match the selected family filter.")
                 continue
-            st.altair_chart(_timeline_chart(view), use_container_width=True)
+            st.altair_chart(
+                _timeline_chart(view, y_mode=timeline_y_mode),
+                use_container_width=True,
+            )
             st.dataframe(
                 view[
                     [
@@ -529,6 +945,8 @@ with tabs[2]:
                         "target_short_fraction",
                         "health_factor",
                         "drawdown_pct",
+                        "portfolio_value",
+                        "strategy_pnl_usd",
                         "sol_price",
                         "portfolio_snapshot",
                     ]
@@ -537,7 +955,7 @@ with tabs[2]:
                 hide_index=True,
             )
 
-with tabs[3]:
+with tabs[4]:
     if bundle.regimes.empty:
         st.info("No regime_summary.csv is available for this report.")
     else:
@@ -546,13 +964,13 @@ with tabs[3]:
             regime_view = regime_view[regime_view["name"].astype(str).isin(selected_names)]
         st.dataframe(regime_view, use_container_width=True)
 
-with tabs[4]:
+with tabs[5]:
     if bundle.markdown:
         st.markdown(bundle.markdown)
     else:
         st.info("No report.md is available for this report.")
 
-with tabs[5]:
+with tabs[6]:
     st.subheader("Summary")
     st.dataframe(_summary_table(summary), use_container_width=True)
     if bundle.histories:

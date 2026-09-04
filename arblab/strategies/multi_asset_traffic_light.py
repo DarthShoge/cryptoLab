@@ -38,9 +38,19 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "traffic_light_state": "base",
             "realized_vol_pct": 0.0,
             "recovery_boost_active": False,
+            "rebalance_cooldown_active": False,
+            "target_rebalance_hold_active": False,
+            "rebalance_threshold_pct": 0.0,
+            "rebalance_threshold_usd": 0.0,
         }
         self._peak_equity = 0.0
         self._previous_equity_drawdown: float | None = None
+        self._last_rebalance_bar: int | None = None
+        self._last_rebalance_selected_long = ""
+        self._last_rebalance_selected_short = ""
+        self._last_rebalance_state = "base"
+        self._last_rebalance_target_long_fraction = 0.0
+        self._last_rebalance_target_short_fraction = 0.0
         market_params = MarketParams.kamino_defaults()
         universe = curated_kamino_universe()
         symbols = list(
@@ -150,7 +160,6 @@ class MultiAssetTrafficLightStrategy(Strategy):
         if equity <= 0.0:
             return []
 
-        threshold = float(config.get("rebalance_threshold", 0.05))
         target_long_fraction, equity_drawdown = self._target_long_fraction(
             equity=equity,
             base_target=float(config.get("target_long_fraction", 0.50)),
@@ -198,6 +207,28 @@ class MultiAssetTrafficLightStrategy(Strategy):
             protective_short_symbol=protective_short,
         )
         fee = float(config.get("swap_fee_bps", bar.market_params.swap_fee_bps)) / 10_000.0
+        threshold = self._rebalance_threshold(
+            config=config,
+            traffic_light_state=traffic_light_state,
+        )
+        threshold_usd = max(
+            equity * threshold,
+            float(config.get("min_rebalance_notional_usd", 0.0)),
+        )
+        rebalance_cooldown_active = self._rebalance_cooldown_active(
+            config=config,
+            bar_index=bar.bar_index,
+            selected_long=selected_long,
+            traffic_light_state=traffic_light_state,
+        )
+        target_rebalance_hold_active = self._target_rebalance_hold_active(
+            config=config,
+            selected_long=selected_long,
+            selected_short=selected_short,
+            traffic_light_state=traffic_light_state,
+            target_long_fraction=target_long_fraction,
+            target_short_fraction=target_short_fraction,
+        )
 
         self._history_fields = {
             "selected_long": selected_long,
@@ -211,6 +242,10 @@ class MultiAssetTrafficLightStrategy(Strategy):
             "traffic_light_state": traffic_light_state,
             "realized_vol_pct": realized_vol * 100.0,
             "recovery_boost_active": recovery_boost_active,
+            "rebalance_cooldown_active": rebalance_cooldown_active,
+            "target_rebalance_hold_active": target_rebalance_hold_active,
+            "rebalance_threshold_pct": threshold * 100.0,
+            "rebalance_threshold_usd": threshold_usd,
         }
         self._previous_equity_drawdown = equity_drawdown
 
@@ -234,12 +269,32 @@ class MultiAssetTrafficLightStrategy(Strategy):
             protective_short_symbol=protective_short,
             symbols=symbols,
             target_short_fraction=target_short_fraction,
-            threshold_usd=equity * threshold,
+            threshold_usd=threshold_usd,
             fee=fee,
         )
         if excess_short_actions:
             actions.extend(excess_short_actions)
             planning_snapshot = apply_actions(planning_snapshot, excess_short_actions)
+
+        if rebalance_cooldown_active or target_rebalance_hold_active:
+            if actions:
+                self._record_rebalance(
+                    bar=bar,
+                    selected_long=selected_long,
+                    selected_short=selected_short,
+                    green_counts=ranking.green_counts,
+                    target_long_fraction=target_long_fraction,
+                    target_short_fraction=target_short_fraction,
+                    equity_drawdown=equity_drawdown,
+                    hedge_gate_active=hedge_gate_active,
+                    traffic_light_state=traffic_light_state,
+                    realized_vol=realized_vol,
+                    recovery_boost_active=recovery_boost_active,
+                    rebalance_cooldown_active=rebalance_cooldown_active,
+                    target_rebalance_hold_active=target_rebalance_hold_active,
+                    action_count=len(actions),
+                )
+            return actions
 
         debt_actions = self._rebalance_debt(
             snapshot=planning_snapshot,
@@ -252,7 +307,7 @@ class MultiAssetTrafficLightStrategy(Strategy):
                 if bool(config.get("enable_protective_short_hedge", False))
                 else equity * target_short_fraction if selected_short else 0.0
             ),
-            threshold_usd=equity * threshold,
+            threshold_usd=threshold_usd,
             fee=fee,
         )
         if debt_actions:
@@ -264,33 +319,75 @@ class MultiAssetTrafficLightStrategy(Strategy):
             selected_long=selected_long,
             symbols=symbols,
             target_long_usd=equity * target_long_fraction if selected_long else 0.0,
-            threshold_usd=equity * threshold,
+            threshold_usd=threshold_usd,
             fee=fee,
         )
         if collateral_actions:
             actions.extend(collateral_actions)
 
         if actions:
-            self.event_log.append(
-                {
-                    "timestamp": bar.timestamp,
-                    "selected_long": selected_long,
-                    "selected_short": selected_short,
-                    "green_counts": ranking.green_counts,
-                    "target_long_fraction": target_long_fraction,
-                    "target_short_fraction": target_short_fraction,
-                    "equity_drawdown_pct": equity_drawdown * 100.0,
-                    "hedge_gate_active": hedge_gate_active,
-                    "traffic_light_state": traffic_light_state,
-                    "realized_vol_pct": realized_vol * 100.0,
-                    "recovery_boost_active": recovery_boost_active,
-                    "action_count": len(actions),
-                }
+            self._record_rebalance(
+                bar=bar,
+                selected_long=selected_long,
+                selected_short=selected_short,
+                green_counts=ranking.green_counts,
+                target_long_fraction=target_long_fraction,
+                target_short_fraction=target_short_fraction,
+                equity_drawdown=equity_drawdown,
+                hedge_gate_active=hedge_gate_active,
+                traffic_light_state=traffic_light_state,
+                realized_vol=realized_vol,
+                recovery_boost_active=recovery_boost_active,
+                rebalance_cooldown_active=rebalance_cooldown_active,
+                target_rebalance_hold_active=target_rebalance_hold_active,
+                action_count=len(actions),
             )
         return actions
 
     def history_fields(self) -> dict[str, Any]:
         return dict(self._history_fields)
+
+    def _record_rebalance(
+        self,
+        bar: BarData,
+        selected_long: str,
+        selected_short: str,
+        green_counts: dict[str, int],
+        target_long_fraction: float,
+        target_short_fraction: float,
+        equity_drawdown: float,
+        hedge_gate_active: bool,
+        traffic_light_state: str,
+        realized_vol: float,
+        recovery_boost_active: bool,
+        rebalance_cooldown_active: bool,
+        target_rebalance_hold_active: bool,
+        action_count: int,
+    ) -> None:
+        self._last_rebalance_bar = bar.bar_index
+        self._last_rebalance_selected_long = selected_long
+        self._last_rebalance_selected_short = selected_short
+        self._last_rebalance_state = traffic_light_state
+        self._last_rebalance_target_long_fraction = target_long_fraction
+        self._last_rebalance_target_short_fraction = target_short_fraction
+        self.event_log.append(
+            {
+                "timestamp": bar.timestamp,
+                "selected_long": selected_long,
+                "selected_short": selected_short,
+                "green_counts": green_counts,
+                "target_long_fraction": target_long_fraction,
+                "target_short_fraction": target_short_fraction,
+                "equity_drawdown_pct": equity_drawdown * 100.0,
+                "hedge_gate_active": hedge_gate_active,
+                "traffic_light_state": traffic_light_state,
+                "realized_vol_pct": realized_vol * 100.0,
+                "recovery_boost_active": recovery_boost_active,
+                "rebalance_cooldown_active": rebalance_cooldown_active,
+                "target_rebalance_hold_active": target_rebalance_hold_active,
+                "action_count": action_count,
+            }
+        )
 
     def _scores_for_bar(
         self,
@@ -312,6 +409,68 @@ class MultiAssetTrafficLightStrategy(Strategy):
             multiplier=float(config.get("supertrend_multiplier", 3.0)),
             timeframes=tuple(config.get("timeframes", ("1h", "4h", "8h", "1d"))),
         )
+
+    def _rebalance_cooldown_active(
+        self,
+        config: dict[str, Any],
+        bar_index: int,
+        selected_long: str,
+        traffic_light_state: str,
+    ) -> bool:
+        cooldown_bars = int(config.get("rebalance_cooldown_bars", 0))
+        if cooldown_bars <= 0 or self._last_rebalance_bar is None:
+            return False
+
+        cooldown_states = config.get("rebalance_cooldown_states")
+        if cooldown_states is not None:
+            allowed_states = {str(state) for state in cooldown_states}
+            if traffic_light_state not in allowed_states:
+                return False
+
+        if bool(config.get("cooldown_force_rotation", False)):
+            if selected_long != self._last_rebalance_selected_long:
+                return False
+        if bool(config.get("cooldown_force_state_change", False)):
+            if traffic_light_state != self._last_rebalance_state:
+                return False
+
+        return (bar_index - self._last_rebalance_bar) < cooldown_bars
+
+    def _rebalance_threshold(
+        self,
+        config: dict[str, Any],
+        traffic_light_state: str,
+    ) -> float:
+        threshold = float(config.get("rebalance_threshold", 0.05))
+        by_state = dict(config.get("rebalance_threshold_by_state", {}))
+        if traffic_light_state in by_state:
+            return float(by_state[traffic_light_state])
+        return threshold
+
+    def _target_rebalance_hold_active(
+        self,
+        config: dict[str, Any],
+        selected_long: str,
+        selected_short: str,
+        traffic_light_state: str,
+        target_long_fraction: float,
+        target_short_fraction: float,
+    ) -> bool:
+        threshold = float(config.get("target_change_rebalance_threshold", 0.0))
+        if threshold <= 0.0 or self._last_rebalance_bar is None:
+            return False
+        if selected_long != self._last_rebalance_selected_long:
+            return False
+        if selected_short != self._last_rebalance_selected_short:
+            return False
+        if traffic_light_state != self._last_rebalance_state:
+            return False
+
+        target_change = max(
+            abs(target_long_fraction - self._last_rebalance_target_long_fraction),
+            abs(target_short_fraction - self._last_rebalance_target_short_fraction),
+        )
+        return target_change < threshold
 
     def _target_long_fraction(
         self,

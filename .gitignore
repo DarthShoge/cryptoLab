@@ -71,6 +71,7 @@ fabric.properties
 __pycache__/
 *.py[cod]
 *$py.class
+*.tsbuildinfo
 
 # C extensions
 *.so
@@ -171,8 +172,6 @@ venv.bak/
 
 # Node / Playwright MCP
 node_modules/
-package.json
-package-lock.json
 .playwright-mcp/
 
 # Screenshots (test artifacts)
@@ -193,11 +192,18 @@ package-lock.json
 
 # Local agent/process artifacts
 docs/superpowers/
+.superpowers/
 temp/
 
 # Generated backtest sweep artifacts. Keep human-readable report.md files
 # versionable, but do not show raw traces and generated tables by default.
 reports/sol_supertrend_3y/**/*.csv
 reports/sol_supertrend_3y/**/*.json
+reports/**/*_history.csv
+reports/**/history.csv
+reports/**/*_events.json
+reports/**/events.json
+reports/**/green_scores.csv
+reports/**/selected_history.csv
 
 .worktrees/

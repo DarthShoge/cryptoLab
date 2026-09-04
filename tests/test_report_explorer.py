@@ -14,13 +14,16 @@ from arblab.backtest.report_explorer import (
     build_timeline_frame,
     chart_debt_values_negative,
     default_report_index,
+    default_strategy_selection,
     build_metric_frame,
     discover_report_dirs,
+    history_risk_stats,
     history_label_options,
     history_selection_for_summary,
     load_price_cache,
     load_report_bundle,
     max_drawdown_series,
+    portfolio_overview_table,
     slice_regime,
 )
 
@@ -70,6 +73,31 @@ def test_load_report_bundle_reads_summary_regimes_markdown_and_histories(tmp_pat
     assert bundle.markdown == "# Report\n"
     assert list(bundle.histories) == ["A"]
     assert bundle.histories["A"].index.tz is not None
+
+
+def test_load_report_bundle_reads_full_overview_artifacts(tmp_path: Path):
+    report = tmp_path / "full_portfolio_overview_20260627_033803"
+    report.mkdir()
+    (report / "summary.json").write_text(
+        '{"name":"barbell_deep70_rec1.85_dd12_gy_cd12_thr5",'
+        '"final_portfolio_value_usd":95988.04,'
+        '"final_sol_equiv":1158.856}'
+    )
+    (report / "regimes.csv").write_text("regime,return_pct\nfull,62065.0\n")
+    (report / "final_composition.csv").write_text(
+        "side,symbol,amount,value_usd\ncollateral,USDC,95988.04,95988.04\n"
+    )
+    (report / "traffic_states.csv").write_text("state,share\ngreen,0.25\n")
+    _history([100.0, 120.0]).to_csv(report / "history.csv")
+
+    bundle = load_report_bundle(report)
+
+    assert bundle.summary.iloc[0]["name"] == "barbell_deep70_rec1.85_dd12_gy_cd12_thr5"
+    assert float(bundle.summary.iloc[0]["final_sol_equiv"]) == 1158.856
+    assert list(bundle.regimes["regime"]) == ["full"]
+    assert list(bundle.extra_tables) == ["final_composition", "traffic_states"]
+    assert bundle.extra_tables["final_composition"].iloc[0]["symbol"] == "USDC"
+    assert list(bundle.histories) == ["history"]
 
 
 def test_max_drawdown_series_returns_positive_percent_drawdown():
@@ -166,6 +194,22 @@ def test_build_buy_hold_frame_uses_common_initial_portfolio_value():
 
     assert frame["Buy & Hold SOL"].tolist() == [100.0, 200.0, 150.0]
     assert frame["Buy & Hold ETH"].tolist() == [100.0, 50.0, 200.0]
+
+
+def test_history_risk_stats_computes_sharpe_volatility_and_ir_vs_sol():
+    history = _history([100.0, 105.0, 103.0, 112.0, 118.0])
+    prices = {
+        "SOL": pd.Series(
+            [10.0, 10.2, 10.1, 10.5, 10.7],
+            index=history.index,
+        )
+    }
+
+    stats = history_risk_stats(history, prices)
+
+    assert stats["sharpe_ratio_check"] > 0.0
+    assert stats["annualized_volatility_pct"] > 0.0
+    assert stats["information_ratio_vs_sol"] > 0.0
 
 
 def test_build_composition_frame_extracts_collateral_and_debt_values():
@@ -282,6 +326,8 @@ def test_build_timeline_frame_includes_structured_snapshot_fields():
     assert row["snapshot_portfolio"] == "$120.00"
     assert row["snapshot_collateral_SOL"] == "$120.00"
     assert row["snapshot_debt_USDC"] == "$12.00"
+    assert row["portfolio_value"] == 120.0
+    assert row["strategy_pnl_usd"] == 20.0
 
 
 def test_chart_debt_values_negative_flips_only_debt_value_columns():
@@ -304,11 +350,62 @@ def test_chart_debt_values_negative_flips_only_debt_value_columns():
     assert adjusted.iloc[0]["target_short_fraction"] == 0.5
 
 
-def test_default_report_index_prefers_latest_through_june_comparison():
+def test_default_report_index_prefers_latest_comparison_not_single_overview():
     paths = [
+        "reports/full_portfolio_overview_20260627_033803",
+        "reports/latest_strategy_presets_20260627_120000",
         "reports/usd_first_multi_asset_governor_20260625_022251",
+        "reports/no_short_tier_target_refinement_20260626_155930",
         "reports/strategy_comparison_20260625_180556",
         "reports/strategy_comparison_through_20260601_20260626_150122",
     ]
 
-    assert default_report_index(paths) == 2
+    assert default_report_index(paths) == 1
+
+
+def test_default_strategy_selection_prefers_new_valid_candidates():
+    strategy_names = [
+        "barbell_deep70_rec1.85_dd12_gy_cd12_thr5",
+        "barbell_rec1.80_dd12",
+        "barbell_deep70_rec1.85_dd12",
+        "soft_mid_rec1.85_dd12",
+        "valid_current_short_checkpoint",
+    ]
+    history_options = {
+        "barbell_deep70_rec1.85_dd12_gy_cd12_thr5": "barbell_deep70_rec1.85_dd12_gy_cd12_thr5",
+        "barbell_deep70_rec1.85_dd12": "barbell_deep70_rec1.85_dd12",
+        "soft_mid_rec1.85_dd12": "soft_mid_rec1.85_dd12",
+        "valid_current_short_checkpoint": "valid_current_short_checkpoint",
+    }
+
+    assert default_strategy_selection(strategy_names, history_options) == [
+        "barbell_deep70_rec1.85_dd12_gy_cd12_thr5",
+        "barbell_deep70_rec1.85_dd12",
+    ]
+
+
+def test_portfolio_overview_table_filters_selected_strategy_rows():
+    summary = pd.DataFrame(
+        {
+            "name": ["candidate_a", "candidate_b", "candidate_c"],
+            "final_portfolio_value_usd": [100.0, 120.0, 90.0],
+            "final_sol_equiv": [10.0, 12.0, 9.0],
+            "max_drawdown_pct": [50.0, 55.0, 60.0],
+            "sortino_ratio": [1.0, 1.2, 0.8],
+            "total_actions": [100, 120, 90],
+            "directional_overlap_count": [0, 0, 2],
+        }
+    )
+
+    table = portfolio_overview_table(summary, ["candidate_b", "candidate_a"])
+
+    assert table["name"].tolist() == ["candidate_b", "candidate_a"]
+    assert list(table.columns) == [
+        "name",
+        "final_portfolio_value_usd",
+        "final_sol_equiv",
+        "max_drawdown_pct",
+        "sortino_ratio",
+        "directional_overlap_count",
+        "total_actions",
+    ]

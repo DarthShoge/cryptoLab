@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -17,6 +19,7 @@ class ReportBundle:
     regimes: pd.DataFrame
     markdown: str
     histories: dict[str, pd.DataFrame]
+    extra_tables: dict[str, pd.DataFrame]
 
 
 def discover_report_dirs(root: Path = Path("reports")) -> list[Path]:
@@ -35,6 +38,9 @@ def discover_report_dirs(root: Path = Path("reports")) -> list[Path]:
 def default_report_index(report_paths: list[str]) -> int:
     """Return the preferred default report index for the explorer app."""
     preferred_markers = [
+        "latest_strategy_presets",
+        "no_short_tier_target_refinement",
+        "no_short_valid_microsearch",
         "strategy_comparison_through_20260601",
         "strategy_comparison",
     ]
@@ -47,16 +53,20 @@ def default_report_index(report_paths: list[str]) -> int:
 
 def load_report_bundle(path: Path) -> ReportBundle:
     """Load summary, regime, markdown, and local history CSVs for a report."""
-    summary = _read_csv_if_exists(path / "summary.csv")
+    summary = _read_summary(path)
     regimes = _read_csv_if_exists(path / "regime_summary.csv")
+    if regimes.empty:
+        regimes = _read_csv_if_exists(path / "regimes.csv")
     markdown = (path / "report.md").read_text() if (path / "report.md").exists() else ""
     histories = _load_histories(path)
+    extra_tables = _load_extra_tables(path)
     return ReportBundle(
         path=path,
         summary=summary,
         regimes=regimes,
         markdown=markdown,
         histories=histories,
+        extra_tables=extra_tables,
     )
 
 
@@ -169,6 +179,57 @@ def build_buy_hold_frame(
     return pd.DataFrame(data, index=index)
 
 
+def history_risk_stats(
+    history: pd.DataFrame,
+    prices: dict[str, pd.Series] | None = None,
+) -> dict[str, float]:
+    """Compute hourly annualized risk stats from a portfolio history."""
+    empty = {
+        "sharpe_ratio_check": 0.0,
+        "information_ratio_vs_sol": 0.0,
+        "annualized_volatility_pct": 0.0,
+    }
+    if history.empty or "portfolio_value" not in history:
+        return empty
+
+    portfolio_value = history["portfolio_value"].astype(float).dropna()
+    returns = portfolio_value.pct_change().dropna()
+    if returns.empty:
+        return empty
+
+    annualization = math.sqrt(24.0 * 365.25)
+    volatility = float(returns.std())
+    sharpe = 0.0 if volatility <= 0.0 or math.isnan(volatility) else float(returns.mean()) / volatility * annualization
+    stats = {
+        "sharpe_ratio_check": sharpe,
+        "information_ratio_vs_sol": 0.0,
+        "annualized_volatility_pct": volatility * annualization * 100.0,
+    }
+
+    sol_price = (prices or {}).get("SOL")
+    if sol_price is None or sol_price.empty:
+        return stats
+
+    aligned_sol = sol_price.reindex(portfolio_value.index, method="ffill").astype(float).dropna()
+    if aligned_sol.empty or aligned_sol.iloc[0] <= 0.0:
+        return stats
+
+    aligned_portfolio = portfolio_value.reindex(aligned_sol.index).dropna()
+    aligned_sol = aligned_sol.reindex(aligned_portfolio.index).dropna()
+    aligned_portfolio = aligned_portfolio.reindex(aligned_sol.index).dropna()
+    if len(aligned_portfolio) < 2 or len(aligned_sol) < 2:
+        return stats
+
+    initial_value = float(aligned_portfolio.iloc[0])
+    buy_hold_sol = aligned_sol * (initial_value / float(aligned_sol.iloc[0]))
+    active_returns = aligned_portfolio.pct_change().dropna() - buy_hold_sol.pct_change().dropna()
+    active_returns = active_returns.dropna()
+    tracking_error = float(active_returns.std()) if not active_returns.empty else 0.0
+    if tracking_error > 0.0 and not math.isnan(tracking_error):
+        stats["information_ratio_vs_sol"] = float(active_returns.mean()) / tracking_error * annualization
+    return stats
+
+
 def build_temperature_frame(
     history: pd.DataFrame,
     prices: dict[str, pd.Series],
@@ -202,6 +263,8 @@ def build_timeline_frame(
         "event_family",
         "event",
         "selected_long",
+        "portfolio_value",
+        "strategy_pnl_usd",
         "target_long_fraction",
         "target_short_fraction",
         "health_factor",
@@ -221,6 +284,11 @@ def build_timeline_frame(
         return pd.DataFrame(columns=columns)
 
     sol_price = prices["SOL"].reindex(history.index, method="ffill").astype(float)
+    initial_portfolio_value = (
+        float(history["portfolio_value"].iloc[0])
+        if "portfolio_value" in history and not history.empty
+        else 0.0
+    )
     rows: list[dict[str, object]] = []
     previous: pd.Series | None = None
     previous_liquidations = 0.0
@@ -234,6 +302,7 @@ def build_timeline_frame(
         short = float(row.get("target_short_fraction", 0.0))
         health_factor = float(row.get("health_factor", 0.0))
         drawdown = float(row.get("equity_drawdown_pct", 0.0))
+        portfolio_value = float(row.get("portfolio_value", 0.0))
         selected_long = str(row.get("selected_long", ""))
         liquidations = float(row.get("liquidation_count", row.get("total_liquidations", 0.0)))
 
@@ -241,6 +310,8 @@ def build_timeline_frame(
             "timestamp": timestamp,
             "sol_price": float(sol_price.loc[timestamp]),
             "selected_long": selected_long,
+            "portfolio_value": portfolio_value,
+            "strategy_pnl_usd": portfolio_value - initial_portfolio_value,
             "target_long_fraction": long,
             "target_short_fraction": short,
             "health_factor": health_factor,
@@ -420,6 +491,77 @@ def history_selection_for_summary(
     return selected
 
 
+def default_strategy_selection(
+    strategy_names: list[str],
+    history_options: dict[str, str],
+) -> list[str]:
+    """Return the preferred default summary strategies for comparison."""
+    preferred = [
+        "barbell_deep70_rec1.85_dd12_gy_cd12_thr5",
+        "barbell_deep70_rec1.85_dd12",
+        "soft_mid_rec1.85_dd12",
+        "barbell_rec1.85_dd12",
+        "valid_current_short_checkpoint",
+        "no_short_anchor",
+        "high_sortino",
+        "highest_return",
+    ]
+    selected: list[str] = []
+    for name in preferred:
+        if name in strategy_names and name in history_options:
+            selected.append(name)
+        if len(selected) >= 2:
+            return selected
+
+    for name in strategy_names:
+        if name in history_options:
+            selected.append(name)
+        if len(selected) >= 2:
+            return selected
+    return strategy_names[:2]
+
+
+def portfolio_overview_table(
+    summary: pd.DataFrame,
+    selected_names: list[str],
+) -> pd.DataFrame:
+    """Return comparison-oriented portfolio stats for selected strategies."""
+    columns = [
+        "name",
+        "final_portfolio_value_usd",
+        "final_sol_equiv",
+        "max_drawdown_pct",
+        "post_2024_drawdown_pct",
+        "sortino_ratio",
+        "sharpe_ratio_check",
+        "information_ratio_vs_sol",
+        "min_health_factor",
+        "bars_below_hf_1_5",
+        "total_liquidations",
+        "directional_overlap_count",
+        "total_actions",
+        "action_turnover_per_year",
+        "estimated_annualized_turnover_multiple",
+        "total_interest_paid",
+    ]
+    if summary.empty:
+        return pd.DataFrame(columns=[column for column in columns if column == "name"])
+
+    existing = [column for column in columns if column in summary.columns]
+    if "name" not in summary.columns:
+        return summary[existing].copy()
+
+    selected = [name for name in selected_names if name in set(summary["name"].astype(str))]
+    if not selected:
+        selected = summary["name"].dropna().astype(str).tolist()
+
+    keyed = summary.assign(name=summary["name"].astype(str)).set_index("name", drop=False)
+    rows = [keyed.loc[name] for name in selected if name in keyed.index]
+    if not rows:
+        return pd.DataFrame(columns=existing)
+    return pd.DataFrame(rows)[existing].reset_index(drop=True)
+
+
 def regime_date_bounds(regimes: pd.DataFrame) -> dict[str, tuple[str | None, str | None]]:
     """Return known date bounds for common regime labels."""
     known = {
@@ -441,6 +583,30 @@ def _read_csv_if_exists(path: Path) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
     return pd.read_csv(path)
+
+
+def _read_summary(path: Path) -> pd.DataFrame:
+    csv_path = path / "summary.csv"
+    if csv_path.exists():
+        return pd.read_csv(csv_path)
+    json_path = path / "summary.json"
+    if not json_path.exists():
+        return pd.DataFrame()
+    data = json.loads(json_path.read_text())
+    if isinstance(data, dict):
+        return pd.DataFrame([data])
+    if isinstance(data, list):
+        return pd.DataFrame(data)
+    return pd.DataFrame()
+
+
+def _load_extra_tables(path: Path) -> dict[str, pd.DataFrame]:
+    tables: dict[str, pd.DataFrame] = {}
+    for name in ("final_composition", "traffic_states"):
+        table = _read_csv_if_exists(path / f"{name}.csv")
+        if not table.empty:
+            tables[name] = table
+    return tables
 
 
 def _compatible_timestamp(value: str | pd.Timestamp, index: pd.Index) -> pd.Timestamp:
