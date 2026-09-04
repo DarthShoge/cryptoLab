@@ -25,7 +25,7 @@ testpaths = [
   "apps/kamino-simulator/tests",
   "apps/strategy-backtester/tests",
   "apps/report-explorer/tests",
-  "tests/integration",
+  "tests",
 ]
 addopts = "-p no:anchorpy -m 'not functional and not onchain and not market_data'"
 markers = [
