@@ -5,8 +5,8 @@ The simulator is fully working end-to-end against live Kamino on-chain data.
 
 ### What was done
 1. **Program ID discovered**: `KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD` (Kamino Lending mainnet)
-2. **IDL obtained**: Downloaded from `Kamino-Finance/klend-sdk` repo (`src/idl/klend.json`) → saved as `kamino_idl.json`
-3. **Code updated** (`arblab/kamino_onchain.py`):
+2. **IDL obtained**: Downloaded from `Kamino-Finance/klend-sdk` repo (`src/idl/klend.json`) → saved as `data/fixtures/kamino_idl.json`
+3. **Code updated** (`packages/arblab/src/arblab/kamino_onchain.py`):
    - Fixed anchorpy API: `Idl.from_json()` takes a string, `AccountsCoder.decode()` takes only bytes
    - Account names are PascalCase (`Obligation`, `Reserve`) in Anchor IDL
    - anchorpy decodes fields to snake_case attributes (not dicts)
@@ -33,12 +33,12 @@ The simulator is fully working end-to-end against live Kamino on-chain data.
 
 ```bash
 # Run against a specific obligation (program-id defaults to mainnet KLend):
-python kamino_sim.py \
+uv run python -m kamino_simulator.cli \
   --obligation J3cQ7pkaR7xLXCPEV1xgyGFvryhMXJU4fy8ZSCHxaZSU \
-  --idl kamino_idl.json
+  --idl data/fixtures/kamino_idl.json
 
 # Or with JSON input:
-python kamino_sim.py --input positions.json
+uv run python -m kamino_simulator.cli --input positions.json
 ```
 
 ## Possible future improvements
@@ -48,8 +48,8 @@ python kamino_sim.py --input positions.json
 - Support for elevation groups and e-mode LTV overrides
 
 ## Files
-- `arblab/kamino_onchain.py` - On-chain data loading via Solana RPC + anchorpy
-- `arblab/kamino_risk.py` - Core risk models and liquidation calculations
-- `kamino_sim.py` - CLI entry point
-- `kamino_idl.json` - Kamino Lending Anchor IDL (from klend-sdk)
+- `packages/arblab/src/arblab/kamino_onchain.py` - On-chain data loading via Solana RPC + anchorpy
+- `packages/arblab/src/arblab/kamino_risk.py` - Core risk models and liquidation calculations
+- `apps/kamino-simulator/src/kamino_simulator/cli.py` - CLI entry point
+- `data/fixtures/kamino_idl.json` - Kamino Lending Anchor IDL (from klend-sdk)
 - `requirements.txt` - Python dependencies

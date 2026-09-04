@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
@@ -14,6 +15,7 @@ from arblab.kamino_risk import (
     scenario_report,
 )
 from arblab.kamino_onchain import load_onchain_snapshot
+from arblab.paths import fixture_path
 
 
 def _parse_snapshot(payload: Dict[str, Any]) -> AccountSnapshot:
@@ -73,8 +75,13 @@ def run_simulation(payload: Dict[str, Any]) -> str:
 def main() -> None:
     load_dotenv()
 
-    parser = argparse.ArgumentParser(description="Kamino liquidation risk simulator.")
-    parser.add_argument("--input", help="Path to JSON file with collateral/debt data.")
+    parser = argparse.ArgumentParser(
+        description="Kamino liquidation risk simulator (defaults to the bundled offline sample)."
+    )
+    parser.add_argument(
+        "--input",
+        help="Path to JSON collateral/debt data (default: bundled offline sample).",
+    )
     parser.add_argument("--obligation", help="Kamino obligation account address.")
     parser.add_argument(
         "--program-id",
@@ -121,8 +128,12 @@ def main() -> None:
             ],
             "actions": [],
         }
-    else:
+    elif args.obligation:
         parser.error("Provide --input or all of --obligation, --program-id, and --idl.")
+    else:
+        sample_path: Path = fixture_path("kamino_sample.json")
+        with sample_path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
 
     print(run_simulation(payload))
 
