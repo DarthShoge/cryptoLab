@@ -1,9 +1,9 @@
 install:
-    uv sync --all-packages --all-groups
-    pnpm install
+    uv sync --locked --all-packages --all-groups
+    pnpm install --frozen-lockfile
 
 test:
-    uv run pytest -m "not functional and not onchain and not market_data" -q
+    uv run pytest -q
 
 typecheck:
     pnpm --filter @cryptolab/strategy-system-card typecheck
@@ -26,6 +26,9 @@ dev-system-card:
 generate-system-card-data:
     uv run --group tools python tools/generate_strategy_system_card_data.py
 
+install-browser:
+    uv run playwright install chromium
+
 test-browser:
-    uv run python -c 'from playwright.sync_api import sync_playwright; p = sync_playwright().start(); browser = p.chromium.launch(); browser.close(); p.stop()'
+    uv run python tools/check_playwright.py
     uv run pytest -m functional -q

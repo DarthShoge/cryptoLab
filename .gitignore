@@ -211,4 +211,4 @@ reports/**/green_scores.csv
 reports/**/selected_history.csv
 
 # Local Git worktrees; stable data/fixtures and apps/*/src/data stay tracked.
-.worktrees/
+/.worktrees/
