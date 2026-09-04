@@ -1,5 +1,7 @@
 # Kamino Liquidation Risk Simulator - Status
 
+> **Archived historical handoff (2026-02-07).** This document records a point-in-time development status. Its balances, health factors, addresses, and live-operation claims are stale and must not be used operationally. See the repository [README](../../README.md) for canonical setup, commands, and current project structure.
+
 ## Completed
 The simulator is fully working end-to-end against live Kamino on-chain data.
 
@@ -18,23 +20,16 @@ The simulator is fully working end-to-end against live Kamino on-chain data.
 4. **CLI defaults**: program-id now defaults to mainnet KLend address
 
 
-### User's wallet & obligations
-- Wallet: `F8ir9FxMgi17DpnLDbkM6mxy5GmS1o8ynmtP73HuHzQL`
-- Obligation 1: `J3cQ7pkaR7xLXCPEV1xgyGFvryhMXJU4fy8ZSCHxaZSU`
-  - Collateral: USDG + SOL (~$5,123)
-  - Debt: USDC (~$3,669)
-  - Health factor: ~1.07
-- Obligation 2: `3HUVJerBFwycMVkrSSdBKs2z5LYzKkmxHBvayga5nq1j`
-  - Collateral: PENGU (~$247)
-  - Debt: USDC (~$95)
-  - Health factor: ~1.30
+### Point-in-time live-account details
+
+The wallet, obligation addresses, balances, and health factors originally recorded here were intentionally removed because they are not durable project documentation. The prior values remain available in Git history.
 
 ## Usage
 
 ```bash
 # Run against a specific obligation (program-id defaults to mainnet KLend):
 uv run python -m kamino_simulator.cli \
-  --obligation J3cQ7pkaR7xLXCPEV1xgyGFvryhMXJU4fy8ZSCHxaZSU \
+  --obligation <obligation-address> \
   --idl data/fixtures/kamino_idl.json
 
 # No arguments runs the bundled offline sample:
