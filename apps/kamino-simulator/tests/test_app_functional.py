@@ -8,13 +8,14 @@ Run with:  pytest apps/kamino-simulator/tests/test_app_functional.py -m function
 
 import subprocess
 import sys
-import time
+import tempfile
 from pathlib import Path
 
 import pytest
 
 playwright = pytest.importorskip("playwright")
 from playwright.sync_api import sync_playwright
+from kamino_simulator.server_helpers import ephemeral_local_port, stop_process, wait_for_server
 
 
 APP_PATH = Path(__file__).resolve().parents[1] / "src" / "kamino_simulator" / "app.py"
@@ -26,20 +27,27 @@ APP_PATH = Path(__file__).resolve().parents[1] / "src" / "kamino_simulator" / "a
 
 @pytest.fixture(scope="module")
 def app_url():
-    """Start the Streamlit app on port 8502 for testing."""
-    proc = subprocess.Popen(
-        [
-            sys.executable, "-m", "streamlit", "run", str(APP_PATH),
-            "--server.port", "8502",
-            "--server.headless", "true",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    time.sleep(5)  # Wait for the server to be ready
-    yield "http://localhost:8502"
-    proc.terminate()
-    proc.wait()
+    """Start the Streamlit app on an available local port for testing."""
+    port = ephemeral_local_port()
+    url = f"http://127.0.0.1:{port}"
+    with tempfile.TemporaryDirectory() as temp_dir:
+        log_path = Path(temp_dir) / "streamlit.log"
+        with log_path.open("wb") as log:
+            proc = subprocess.Popen(
+                [
+                    sys.executable, "-m", "streamlit", "run", str(APP_PATH),
+                    "--server.address", "127.0.0.1",
+                    "--server.port", str(port),
+                    "--server.headless", "true",
+                ],
+                stdout=log,
+                stderr=subprocess.STDOUT,
+            )
+            try:
+                wait_for_server(proc, url, log_path)
+                yield url
+            finally:
+                stop_process(proc)
 
 
 @pytest.fixture(scope="module")

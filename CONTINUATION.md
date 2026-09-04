@@ -37,8 +37,11 @@ uv run python -m kamino_simulator.cli \
   --obligation J3cQ7pkaR7xLXCPEV1xgyGFvryhMXJU4fy8ZSCHxaZSU \
   --idl data/fixtures/kamino_idl.json
 
-# Or with JSON input:
-uv run python -m kamino_simulator.cli --input positions.json
+# No arguments runs the bundled offline sample:
+uv run python -m kamino_simulator.cli
+
+# Or select that input explicitly:
+uv run python -m kamino_simulator.cli --input data/fixtures/kamino_sample.json
 ```
 
 ## Possible future improvements

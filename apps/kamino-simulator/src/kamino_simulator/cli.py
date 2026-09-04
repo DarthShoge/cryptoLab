@@ -78,34 +78,52 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Kamino liquidation risk simulator (defaults to the bundled offline sample)."
     )
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--input",
         help="Path to JSON collateral/debt data (default: bundled offline sample).",
     )
-    parser.add_argument("--obligation", help="Kamino obligation account address.")
+    mode.add_argument("--obligation", help="Kamino obligation account address.")
     parser.add_argument(
         "--program-id",
-        default=os.getenv("KAMINO_PROGRAM_ID", "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"),
+        default=None,
         help="Kamino lending program id (default: mainnet KLend).",
     )
-    parser.add_argument("--rpc-url", default=os.getenv("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"))
+    parser.add_argument("--rpc-url", default=None)
     parser.add_argument("--idl", help="Path to Kamino Anchor IDL JSON for decoding accounts.")
-    parser.add_argument("--obligation-account-name", default="Obligation")
-    parser.add_argument("--reserve-account-name", default="Reserve")
+    parser.add_argument("--obligation-account-name", default=None)
+    parser.add_argument("--reserve-account-name", default=None)
     args = parser.parse_args()
 
+    online_options = (
+        args.program_id,
+        args.rpc_url,
+        args.idl,
+        args.obligation_account_name,
+        args.reserve_account_name,
+    )
     payload: Optional[Dict[str, Any]] = None
     if args.input:
+        if any(value is not None for value in online_options):
+            parser.error("Online-only options cannot be used with --input.")
         with open(args.input, "r", encoding="utf-8") as handle:
             payload = json.load(handle)
-    elif args.obligation and args.program_id and args.idl:
+    elif args.obligation:
+        if args.idl is None:
+            parser.error("--idl is required with --obligation.")
+        program_id = args.program_id or os.getenv(
+            "KAMINO_PROGRAM_ID", "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"
+        )
+        rpc_url = args.rpc_url or os.getenv(
+            "SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"
+        )
         snapshot = load_onchain_snapshot(
             obligation_address=args.obligation,
-            program_id=args.program_id,
-            rpc_url=args.rpc_url,
+            program_id=program_id,
+            rpc_url=rpc_url,
             idl_path=args.idl,
-            obligation_account_name=args.obligation_account_name,
-            reserve_account_name=args.reserve_account_name,
+            obligation_account_name=args.obligation_account_name or "Obligation",
+            reserve_account_name=args.reserve_account_name or "Reserve",
         )
         payload = {
             "collateral": [
@@ -128,9 +146,9 @@ def main() -> None:
             ],
             "actions": [],
         }
-    elif args.obligation:
-        parser.error("Provide --input or all of --obligation, --program-id, and --idl.")
     else:
+        if any(value is not None for value in online_options):
+            parser.error("Online-only options require --obligation.")
         sample_path: Path = fixture_path("kamino_sample.json")
         with sample_path.open(encoding="utf-8") as handle:
             payload = json.load(handle)

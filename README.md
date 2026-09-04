@@ -28,6 +28,12 @@ Load any Kamino lending obligation by wallet or obligation address. The simulato
 
 ```bash
 uv run streamlit run apps/kamino-simulator/src/kamino_simulator/app.py
+
+# CLI: no arguments runs the bundled offline sample
+uv run python -m kamino_simulator.cli
+
+# Or select an explicit input file
+uv run python -m kamino_simulator.cli --input data/fixtures/kamino_sample.json
 ```
 
 ## Strategy Backtester
