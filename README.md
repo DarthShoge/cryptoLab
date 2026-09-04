@@ -58,14 +58,14 @@ With no arguments, the CLI runs the bundled offline sample:
 uv run --package kamino-simulator python -m kamino_simulator.cli
 ```
 
-Use an explicit snapshot file, or load an obligation from RPC with the bundled Kamino IDL:
+Use an explicit snapshot file, or replace `YOUR_OBLIGATION_ADDRESS` with an obligation address to load it from RPC using the bundled Kamino IDL:
 
 ```bash
 uv run --package kamino-simulator python -m kamino_simulator.cli \
   --input data/fixtures/kamino_sample.json
 
 uv run --package kamino-simulator python -m kamino_simulator.cli \
-  --obligation J3cQ7pkaR7xLXCPEV1xgyGFvryhMXJU4fy8ZSCHxaZSU \
+  --obligation YOUR_OBLIGATION_ADDRESS \
   --idl data/fixtures/kamino_idl.json
 ```
 
