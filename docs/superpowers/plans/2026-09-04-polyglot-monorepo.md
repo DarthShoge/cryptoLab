@@ -23,7 +23,7 @@
 - Create `.env.example`: documented, non-secret runtime configuration.
 - Modify `.gitignore`: workspace build/cache ignores without changing unrelated existing rules.
 - Modify `README.md`: new structure, setup, commands, and direct-tool alternatives.
-- Modify `pytest.ini`: remove after equivalent configuration is verified in root `pyproject.toml`.
+- Remove `pytest.ini` in Task 4 after the tests move and the equivalent root `pyproject.toml` configuration is verified against the new workspace paths.
 - Remove `requirements.txt`, `setup.py`, `package-lock.json`, and root TypeScript/Vite configuration only after their replacements pass.
 
 ### Shared Python package
@@ -156,7 +156,7 @@ git commit -m "docs: record monorepo migration baseline"
 - Create: `apps/report-explorer/pyproject.toml`
 - Create: `apps/report-explorer/src/report_explorer/__init__.py`
 - Generate: `uv.lock`
-- Modify later: `requirements.txt`, `setup.py`, `pytest.ini`
+- Keep for now: `requirements.txt`, `setup.py`, `pytest.ini` (`pytest.ini` is removed in Task 4 only after the moved-test configuration is verified)
 
 - [ ] **Step 1: Add the root uv workspace**
 
@@ -214,7 +214,7 @@ uv lock
 uv sync --all-packages --all-groups
 ```
 
-Expected: both exit 0 and `uv.lock` contains all workspace members. Keep `requirements.txt` and `setup.py` for now.
+Expected: both exit 0 and `uv.lock` contains all workspace members. Keep `requirements.txt`, `setup.py`, and `pytest.ini` for now.
 
 - [ ] **Step 5: Commit**
 
@@ -276,6 +276,7 @@ git commit -m "refactor: install arblab from workspace package"
 **Files:**
 - Move: `tests/conftest.py`, `tests/__init__.py` → `packages/arblab/tests/`
 - Move: `tests/test_backtest_*.py`, `tests/test_kamino_*.py`, `tests/test_scenarios.py`, `tests/test_sol_supertrend_short_strategy.py`, `tests/test_multi_asset_traffic_light_strategy.py` → `packages/arblab/tests/`
+- Remove: `pytest.ini` after the tests move, then verify the root `pyproject.toml` configuration against the moved tests
 - Keep for later: `tests/test_app_functional.py`
 - Already relocated with helper: `tests/test_backtest_app_helpers.py`
 
@@ -283,7 +284,19 @@ git commit -m "refactor: install arblab from workspace package"
 
 Use `git mv` for every listed test. Keep `packages/arblab/tests/__init__.py` and change explicit `from tests.conftest import ...` imports to `from .conftest import ...`.
 
-- [ ] **Step 2: Run the focused package suite**
+- [ ] **Step 2: Remove the legacy pytest configuration and verify discovery**
+
+After moving the tests, remove the legacy configuration and inspect pytest's active configuration before running either suite:
+
+```bash
+git rm pytest.ini
+uv run pytest --trace-config --collect-only
+uv run pytest --markers
+```
+
+Expected: both pytest commands exit 0, collection reports `pyproject.toml` as its config file and uses the configured workspace test paths, and the marker listing includes all five configured markers (`scenario`, `functional`, `backtest`, `onchain`, and `market_data`). If collection shows that pytest is not using the root `pyproject.toml`, restore `pytest.ini` and correct the root configuration before continuing.
+
+- [ ] **Step 3: Run the focused package suite**
 
 Run:
 
@@ -293,7 +306,7 @@ uv run pytest packages/arblab/tests -q
 
 Expected: results match the recorded baseline for these tests, with no collection or import errors.
 
-- [ ] **Step 3: Run the root suite**
+- [ ] **Step 4: Run the root suite**
 
 Run:
 
@@ -303,10 +316,10 @@ uv run pytest -q
 
 Expected: results match the complete Python baseline. If root `testpaths` references not-yet-created directories, create empty directories only where needed with `.gitkeep`, or narrow configuration until the corresponding task creates them.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add packages/arblab/tests tests pyproject.toml apps/strategy-backtester/tests
+git add packages/arblab/tests tests pyproject.toml apps/strategy-backtester/tests pytest.ini
 git commit -m "test: colocate Python tests with their owners"
 ```
 
@@ -668,8 +681,8 @@ git commit -m "build: add root workspace commands"
 - Modify: `README.md`
 - Remove: `requirements.txt`
 - Remove: `setup.py`
-- Remove: `pytest.ini`
 - Remove: `package-lock.json`
+- Previously removed: `pytest.ini` in Task 4 after workspace test discovery was verified
 - Confirm absent from root: `src/`, `index.html`, `vite.config.ts`, `tsconfig*.json`, active `*_app.py`
 
 - [ ] **Step 1: Rewrite setup and structure documentation**
@@ -688,7 +701,7 @@ Expected: no unintended active-code or current-documentation matches. Historical
 
 - [ ] **Step 3: Remove old dependency metadata**
 
-Only after `uv sync`, `pnpm install`, Python tests, typecheck, and build have succeeded, use `git rm` for `requirements.txt`, `setup.py`, `pytest.ini`, and `package-lock.json`.
+Only after `uv sync`, `pnpm install`, Python tests, typecheck, and build have succeeded, use `git rm` for `requirements.txt`, `setup.py`, and `package-lock.json`. `pytest.ini` was already removed in Task 4 after verifying pytest's root `pyproject.toml` configuration.
 
 - [ ] **Step 4: Verify clean reproducibility**
 
@@ -706,7 +719,7 @@ Expected: both installs exit 0 and neither lockfile changes. Do not delete or re
 
 ```bash
 git add README.md
-git rm requirements.txt setup.py pytest.ini package-lock.json
+git rm requirements.txt setup.py package-lock.json
 git commit -m "docs: make workspace commands canonical"
 ```
 
