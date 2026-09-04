@@ -7,13 +7,13 @@ import streamlit as st
 load_dotenv()
 
 from arblab.kamino_onchain import (
-    _fetch_jupiter_symbols,
     find_wallet_obligations,
     get_obligation_market,
     load_market_reserves,
     load_onchain_snapshot,
     ReserveConfig,
 )
+from arblab.paths import fixture_path
 from arblab.kamino_risk import (
     AccountSnapshot,
     CollateralPosition,
@@ -34,13 +34,9 @@ from arblab.kamino_recovery import (
 PROGRAM_ID = os.getenv("KAMINO_PROGRAM_ID", "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD")
 RPC_URL = os.getenv("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com")
 DEFAULT_WALLET = os.getenv("DEFAULT_WALLET", "")
-IDL_PATH = os.path.join(os.path.dirname(__file__), "kamino_idl.json")
+IDL_PATH = fixture_path("kamino_idl.json")
 
 st.set_page_config(page_title="Kamino Risk Simulator", layout="wide")
-
-# Pre-warm the Jupiter token symbol cache so reserve names are resolved quickly.
-_fetch_jupiter_symbols()
-
 
 # ---------------------------------------------------------------------------
 # Helpers

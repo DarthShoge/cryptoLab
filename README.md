@@ -27,7 +27,7 @@ Load any Kamino lending obligation by wallet or obligation address. The simulato
 ### Usage
 
 ```bash
-streamlit run kamino_app.py
+uv run streamlit run apps/kamino-simulator/src/kamino_simulator/app.py
 ```
 
 ## Strategy Backtester
@@ -120,7 +120,7 @@ arblab/
     strategies/
         leverage_loop.py    # SOL/JitoSOL leverage loop strategy
 
-kamino_app.py               # Streamlit UI: liquidation risk simulator
+apps/kamino-simulator/      # Kamino simulator Streamlit UI and CLI
 backtest_app.py             # Streamlit UI: strategy backtester
 ```
 

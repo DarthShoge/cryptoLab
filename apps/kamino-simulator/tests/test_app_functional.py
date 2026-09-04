@@ -3,16 +3,21 @@
 These tests verify that the app starts and renders its initial UI correctly.
 They do NOT require any RPC calls -- they only check the unloaded state.
 
-Run with:  pytest tests/test_app_functional.py -m functional
+Run with:  pytest apps/kamino-simulator/tests/test_app_functional.py -m functional
 """
 
 import subprocess
+import sys
 import time
+from pathlib import Path
 
 import pytest
 
 playwright = pytest.importorskip("playwright")
 from playwright.sync_api import sync_playwright
+
+
+APP_PATH = Path(__file__).resolve().parents[1] / "src" / "kamino_simulator" / "app.py"
 
 
 # ---------------------------------------------------------------------------
@@ -24,7 +29,7 @@ def app_url():
     """Start the Streamlit app on port 8502 for testing."""
     proc = subprocess.Popen(
         [
-            "streamlit", "run", "kamino_app.py",
+            sys.executable, "-m", "streamlit", "run", str(APP_PATH),
             "--server.port", "8502",
             "--server.headless", "true",
         ],
