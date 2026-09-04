@@ -125,6 +125,7 @@ Required artifacts:
 - `summary.json`: total return, annualized return, max drawdown, Sharpe, Sortino, turnover, fee drag, funding drag, stop count, take-profit count, percent time long, percent time short, percent time flat
 - `report.md`: plain-English report comparing strategy performance against BTC buy-and-hold and calling out suspicious behavior
 
+
 ## Testing Requirements
 
 Tests should cover:

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "report-explorer"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "arblab",
+  "altair",
+  "pandas",
+  "streamlit",
+]
+
+[tool.uv.sources]
+arblab = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/report_explorer"]

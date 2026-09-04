@@ -1,0 +1,4997 @@
+[
+  {
+    "asset": "BTC",
+    "title": "BTC Profile vs Buy-and-Hold",
+    "subtitle": "Macro-trend profile with short governor and pullback floor",
+    "totalReturnPct": 211.16,
+    "buyHoldPct": 25.55,
+    "maxDrawdownPct": 32.84,
+    "worstRelativeDate": "2025-10-01",
+    "worstRelativePct": -9.01,
+    "maxDrawdownDate": "2022-11-07",
+    "points": [
+      {
+        "timestamp": "2022-01-01",
+        "strategy": 100.7019,
+        "buyHold": 102.2859,
+        "relativePct": -1.5486,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2022-01-08",
+        "strategy": 95.9649,
+        "buyHold": 89.3339,
+        "relativePct": 7.4228,
+        "drawdownPct": -4.7039
+      },
+      {
+        "timestamp": "2022-01-15",
+        "strategy": 97.4421,
+        "buyHold": 92.3443,
+        "relativePct": 5.5204,
+        "drawdownPct": -3.2371
+      },
+      {
+        "timestamp": "2022-01-22",
+        "strategy": 88.2382,
+        "buyHold": 75.17,
+        "relativePct": 17.3848,
+        "drawdownPct": -12.3769
+      },
+      {
+        "timestamp": "2022-01-29",
+        "strategy": 91.7937,
+        "buyHold": 81.8046,
+        "relativePct": 12.211,
+        "drawdownPct": -8.8461
+      },
+      {
+        "timestamp": "2022-02-05",
+        "strategy": 95.8867,
+        "buyHold": 88.697,
+        "relativePct": 8.1059,
+        "drawdownPct": -4.7817
+      },
+      {
+        "timestamp": "2022-02-12",
+        "strategy": 97.1521,
+        "buyHold": 90.4873,
+        "relativePct": 7.3654,
+        "drawdownPct": -3.5251
+      },
+      {
+        "timestamp": "2022-02-19",
+        "strategy": 94.1859,
+        "buyHold": 85.9033,
+        "relativePct": 9.6418,
+        "drawdownPct": -6.4705
+      },
+      {
+        "timestamp": "2022-02-26",
+        "strategy": 93.0662,
+        "buyHold": 83.8405,
+        "relativePct": 11.0039,
+        "drawdownPct": -7.5825
+      },
+      {
+        "timestamp": "2022-03-05",
+        "strategy": 93.0838,
+        "buyHold": 84.4433,
+        "relativePct": 10.2323,
+        "drawdownPct": -7.565
+      },
+      {
+        "timestamp": "2022-03-12",
+        "strategy": 91.8325,
+        "buyHold": 83.1774,
+        "relativePct": 10.4055,
+        "drawdownPct": -8.8076
+      },
+      {
+        "timestamp": "2022-03-19",
+        "strategy": 96.0727,
+        "buyHold": 90.4514,
+        "relativePct": 6.2147,
+        "drawdownPct": -4.5969
+      },
+      {
+        "timestamp": "2022-03-26",
+        "strategy": 99.4067,
+        "buyHold": 95.4028,
+        "relativePct": 4.1968,
+        "drawdownPct": -1.2861
+      },
+      {
+        "timestamp": "2022-04-02",
+        "strategy": 100.8908,
+        "buyHold": 98.1886,
+        "relativePct": 2.752,
+        "drawdownPct": -2.6395
+      },
+      {
+        "timestamp": "2022-04-09",
+        "strategy": 97.4807,
+        "buyHold": 91.6363,
+        "relativePct": 6.3778,
+        "drawdownPct": -5.9302
+      },
+      {
+        "timestamp": "2022-04-16",
+        "strategy": 94.1795,
+        "buyHold": 86.5453,
+        "relativePct": 8.821,
+        "drawdownPct": -9.1159
+      },
+      {
+        "timestamp": "2022-04-23",
+        "strategy": 93.2792,
+        "buyHold": 84.5368,
+        "relativePct": 10.3415,
+        "drawdownPct": -9.9847
+      },
+      {
+        "timestamp": "2022-04-30",
+        "strategy": 92.6359,
+        "buyHold": 80.6556,
+        "relativePct": 14.8536,
+        "drawdownPct": -10.6055
+      },
+      {
+        "timestamp": "2022-05-07",
+        "strategy": 90.663,
+        "buyHold": 76.0294,
+        "relativePct": 19.2472,
+        "drawdownPct": -12.5094
+      },
+      {
+        "timestamp": "2022-05-14",
+        "strategy": 88.6726,
+        "buyHold": 64.4861,
+        "relativePct": 37.5065,
+        "drawdownPct": -14.4301
+      },
+      {
+        "timestamp": "2022-05-21",
+        "strategy": 88.4355,
+        "buyHold": 63.1108,
+        "relativePct": 40.1273,
+        "drawdownPct": -14.6589
+      },
+      {
+        "timestamp": "2022-05-28",
+        "strategy": 88.2826,
+        "buyHold": 62.224,
+        "relativePct": 41.8786,
+        "drawdownPct": -14.8065
+      },
+      {
+        "timestamp": "2022-06-04",
+        "strategy": 88.5903,
+        "buyHold": 64.0088,
+        "relativePct": 38.4033,
+        "drawdownPct": -14.5095
+      },
+      {
+        "timestamp": "2022-06-11",
+        "strategy": 88.0584,
+        "buyHold": 60.9238,
+        "relativePct": 44.5385,
+        "drawdownPct": -15.0228
+      },
+      {
+        "timestamp": "2022-06-18",
+        "strategy": 84.5645,
+        "buyHold": 40.6609,
+        "relativePct": 107.9752,
+        "drawdownPct": -18.3944
+      },
+      {
+        "timestamp": "2022-06-25",
+        "strategy": 85.496,
+        "buyHold": 46.063,
+        "relativePct": 85.6069,
+        "drawdownPct": -17.4956
+      },
+      {
+        "timestamp": "2022-07-02",
+        "strategy": 86.9606,
+        "buyHold": 41.2653,
+        "relativePct": 110.7352,
+        "drawdownPct": -16.0822
+      },
+      {
+        "timestamp": "2022-07-09",
+        "strategy": 85.0035,
+        "buyHold": 46.2787,
+        "relativePct": 83.6776,
+        "drawdownPct": -17.9708
+      },
+      {
+        "timestamp": "2022-07-16",
+        "strategy": 85.483,
+        "buyHold": 45.4294,
+        "relativePct": 88.1667,
+        "drawdownPct": -17.5081
+      },
+      {
+        "timestamp": "2022-07-23",
+        "strategy": 85.8421,
+        "buyHold": 48.1203,
+        "relativePct": 78.3906,
+        "drawdownPct": -17.1616
+      },
+      {
+        "timestamp": "2022-07-30",
+        "strategy": 82.2895,
+        "buyHold": 50.6761,
+        "relativePct": 62.3833,
+        "drawdownPct": -20.5898
+      },
+      {
+        "timestamp": "2022-08-06",
+        "strategy": 82.7576,
+        "buyHold": 49.1987,
+        "relativePct": 68.211,
+        "drawdownPct": -20.1381
+      },
+      {
+        "timestamp": "2022-08-13",
+        "strategy": 82.2907,
+        "buyHold": 52.3862,
+        "relativePct": 57.0846,
+        "drawdownPct": -20.5888
+      },
+      {
+        "timestamp": "2022-08-20",
+        "strategy": 83.3806,
+        "buyHold": 45.3104,
+        "relativePct": 84.0211,
+        "drawdownPct": -19.5369
+      },
+      {
+        "timestamp": "2022-08-27",
+        "strategy": 84.8837,
+        "buyHold": 42.9474,
+        "relativePct": 97.6456,
+        "drawdownPct": -18.0865
+      },
+      {
+        "timestamp": "2022-09-03",
+        "strategy": 85.5842,
+        "buyHold": 42.5065,
+        "relativePct": 101.3438,
+        "drawdownPct": -17.4104
+      },
+      {
+        "timestamp": "2022-09-10",
+        "strategy": 80.3851,
+        "buyHold": 46.3998,
+        "relativePct": 73.2446,
+        "drawdownPct": -22.4276
+      },
+      {
+        "timestamp": "2022-09-17",
+        "strategy": 77.716,
+        "buyHold": 43.1103,
+        "relativePct": 80.2723,
+        "drawdownPct": -25.0033
+      },
+      {
+        "timestamp": "2022-09-24",
+        "strategy": 77.7283,
+        "buyHold": 40.5531,
+        "relativePct": 91.6704,
+        "drawdownPct": -24.9915
+      },
+      {
+        "timestamp": "2022-10-01",
+        "strategy": 74.6655,
+        "buyHold": 41.39,
+        "relativePct": 80.3953,
+        "drawdownPct": -27.9471
+      },
+      {
+        "timestamp": "2022-10-08",
+        "strategy": 74.5624,
+        "buyHold": 41.6193,
+        "relativePct": 79.1535,
+        "drawdownPct": -28.0465
+      },
+      {
+        "timestamp": "2022-10-15",
+        "strategy": 73.1969,
+        "buyHold": 40.8722,
+        "relativePct": 79.0873,
+        "drawdownPct": -29.3643
+      },
+      {
+        "timestamp": "2022-10-22",
+        "strategy": 73.0676,
+        "buyHold": 41.1615,
+        "relativePct": 77.5146,
+        "drawdownPct": -29.4891
+      },
+      {
+        "timestamp": "2022-10-29",
+        "strategy": 71.5292,
+        "buyHold": 44.6022,
+        "relativePct": 60.3713,
+        "drawdownPct": -30.9737
+      },
+      {
+        "timestamp": "2022-11-05",
+        "strategy": 71.0599,
+        "buyHold": 45.6518,
+        "relativePct": 55.6562,
+        "drawdownPct": -31.4266
+      },
+      {
+        "timestamp": "2022-11-12",
+        "strategy": 78.3397,
+        "buyHold": 36.034,
+        "relativePct": 117.4049,
+        "drawdownPct": -24.4014
+      },
+      {
+        "timestamp": "2022-11-19",
+        "strategy": 78.7314,
+        "buyHold": 35.7953,
+        "relativePct": 119.9494,
+        "drawdownPct": -24.0234
+      },
+      {
+        "timestamp": "2022-11-26",
+        "strategy": 79.5827,
+        "buyHold": 35.2763,
+        "relativePct": 125.5981,
+        "drawdownPct": -23.2019
+      },
+      {
+        "timestamp": "2022-12-03",
+        "strategy": 78.0721,
+        "buyHold": 36.1907,
+        "relativePct": 115.724,
+        "drawdownPct": -24.6597
+      },
+      {
+        "timestamp": "2022-12-10",
+        "strategy": 77.7923,
+        "buyHold": 36.7101,
+        "relativePct": 111.9101,
+        "drawdownPct": -24.9297
+      },
+      {
+        "timestamp": "2022-12-17",
+        "strategy": 77.5146,
+        "buyHold": 35.9578,
+        "relativePct": 115.571,
+        "drawdownPct": -25.1977
+      },
+      {
+        "timestamp": "2022-12-24",
+        "strategy": 77.2932,
+        "buyHold": 36.0855,
+        "relativePct": 114.1943,
+        "drawdownPct": -25.4114
+      },
+      {
+        "timestamp": "2022-12-31",
+        "strategy": 78.5755,
+        "buyHold": 35.456,
+        "relativePct": 121.6141,
+        "drawdownPct": -24.1739
+      },
+      {
+        "timestamp": "2023-01-07",
+        "strategy": 76.9613,
+        "buyHold": 36.3158,
+        "relativePct": 111.922,
+        "drawdownPct": -25.7316
+      },
+      {
+        "timestamp": "2023-01-14",
+        "strategy": 79.5484,
+        "buyHold": 44.9135,
+        "relativePct": 77.1145,
+        "drawdownPct": -23.2351
+      },
+      {
+        "timestamp": "2023-01-21",
+        "strategy": 82.5814,
+        "buyHold": 48.8329,
+        "relativePct": 69.11,
+        "drawdownPct": -20.3082
+      },
+      {
+        "timestamp": "2023-01-28",
+        "strategy": 83.1436,
+        "buyHold": 49.3453,
+        "relativePct": 68.4935,
+        "drawdownPct": -19.7657
+      },
+      {
+        "timestamp": "2023-02-04",
+        "strategy": 84.5101,
+        "buyHold": 49.9974,
+        "relativePct": 69.0291,
+        "drawdownPct": -18.4469
+      },
+      {
+        "timestamp": "2023-02-11",
+        "strategy": 80.6574,
+        "buyHold": 46.8589,
+        "relativePct": 72.1283,
+        "drawdownPct": -22.1648
+      },
+      {
+        "timestamp": "2023-02-18",
+        "strategy": 88.939,
+        "buyHold": 52.7947,
+        "relativePct": 68.4621,
+        "drawdownPct": -14.173
+      },
+      {
+        "timestamp": "2023-02-25",
+        "strategy": 84.7542,
+        "buyHold": 49.6335,
+        "relativePct": 70.7601,
+        "drawdownPct": -18.2114
+      },
+      {
+        "timestamp": "2023-03-04",
+        "strategy": 83.2858,
+        "buyHold": 47.8963,
+        "relativePct": 73.8877,
+        "drawdownPct": -19.6284
+      },
+      {
+        "timestamp": "2023-03-11",
+        "strategy": 79.4358,
+        "buyHold": 43.8436,
+        "relativePct": 81.18,
+        "drawdownPct": -23.3437
+      },
+      {
+        "timestamp": "2023-03-18",
+        "strategy": 90.6061,
+        "buyHold": 57.6719,
+        "relativePct": 57.1061,
+        "drawdownPct": -12.5643
+      },
+      {
+        "timestamp": "2023-03-25",
+        "strategy": 92.3374,
+        "buyHold": 58.8625,
+        "relativePct": 56.8698,
+        "drawdownPct": -10.8935
+      },
+      {
+        "timestamp": "2023-04-01",
+        "strategy": 94.0062,
+        "buyHold": 60.9839,
+        "relativePct": 54.1493,
+        "drawdownPct": -9.2831
+      },
+      {
+        "timestamp": "2023-04-08",
+        "strategy": 93.139,
+        "buyHold": 59.8815,
+        "relativePct": 55.5389,
+        "drawdownPct": -10.12
+      },
+      {
+        "timestamp": "2023-04-15",
+        "strategy": 98.0439,
+        "buyHold": 64.9327,
+        "relativePct": 50.9931,
+        "drawdownPct": -5.3867
+      },
+      {
+        "timestamp": "2023-04-22",
+        "strategy": 93.3369,
+        "buyHold": 59.621,
+        "relativePct": 56.5503,
+        "drawdownPct": -9.9291
+      },
+      {
+        "timestamp": "2023-04-29",
+        "strategy": 94.6844,
+        "buyHold": 62.6508,
+        "relativePct": 51.1303,
+        "drawdownPct": -8.6287
+      },
+      {
+        "timestamp": "2023-05-06",
+        "strategy": 92.2541,
+        "buyHold": 61.8315,
+        "relativePct": 49.2024,
+        "drawdownPct": -10.9739
+      },
+      {
+        "timestamp": "2023-05-13",
+        "strategy": 87.3335,
+        "buyHold": 57.3886,
+        "relativePct": 52.1792,
+        "drawdownPct": -15.7224
+      },
+      {
+        "timestamp": "2023-05-20",
+        "strategy": 87.4932,
+        "buyHold": 58.0898,
+        "relativePct": 50.6173,
+        "drawdownPct": -15.5682
+      },
+      {
+        "timestamp": "2023-05-27",
+        "strategy": 87.372,
+        "buyHold": 57.5579,
+        "relativePct": 51.7986,
+        "drawdownPct": -15.6852
+      },
+      {
+        "timestamp": "2023-06-03",
+        "strategy": 87.1885,
+        "buyHold": 58.0186,
+        "relativePct": 50.2768,
+        "drawdownPct": -15.8623
+      },
+      {
+        "timestamp": "2023-06-10",
+        "strategy": 85.3751,
+        "buyHold": 55.3865,
+        "relativePct": 54.1441,
+        "drawdownPct": -17.6123
+      },
+      {
+        "timestamp": "2023-06-17",
+        "strategy": 85.7856,
+        "buyHold": 56.835,
+        "relativePct": 50.938,
+        "drawdownPct": -17.2161
+      },
+      {
+        "timestamp": "2023-06-24",
+        "strategy": 91.963,
+        "buyHold": 65.4307,
+        "relativePct": 40.5503,
+        "drawdownPct": -11.2548
+      },
+      {
+        "timestamp": "2023-07-01",
+        "strategy": 92.1816,
+        "buyHold": 65.556,
+        "relativePct": 40.6151,
+        "drawdownPct": -11.0439
+      },
+      {
+        "timestamp": "2023-07-08",
+        "strategy": 90.4954,
+        "buyHold": 64.9103,
+        "relativePct": 39.4161,
+        "drawdownPct": -12.6711
+      },
+      {
+        "timestamp": "2023-07-15",
+        "strategy": 89.5129,
+        "buyHold": 64.9208,
+        "relativePct": 37.8803,
+        "drawdownPct": -13.6192
+      },
+      {
+        "timestamp": "2023-07-22",
+        "strategy": 87.737,
+        "buyHold": 63.8587,
+        "relativePct": 37.3923,
+        "drawdownPct": -15.333
+      },
+      {
+        "timestamp": "2023-07-29",
+        "strategy": 87.087,
+        "buyHold": 62.9133,
+        "relativePct": 38.424,
+        "drawdownPct": -15.9602
+      },
+      {
+        "timestamp": "2023-08-05",
+        "strategy": 84.6315,
+        "buyHold": 62.3115,
+        "relativePct": 35.8201,
+        "drawdownPct": -18.3298
+      },
+      {
+        "timestamp": "2023-08-12",
+        "strategy": 86.2005,
+        "buyHold": 63.0789,
+        "relativePct": 36.6551,
+        "drawdownPct": -16.8157
+      },
+      {
+        "timestamp": "2023-08-19",
+        "strategy": 80.6554,
+        "buyHold": 55.9412,
+        "relativePct": 44.1789,
+        "drawdownPct": -22.1668
+      },
+      {
+        "timestamp": "2023-08-26",
+        "strategy": 79.9973,
+        "buyHold": 55.7641,
+        "relativePct": 43.4566,
+        "drawdownPct": -22.8019
+      },
+      {
+        "timestamp": "2023-09-02",
+        "strategy": 79.9183,
+        "buyHold": 55.4472,
+        "relativePct": 44.1341,
+        "drawdownPct": -22.8781
+      },
+      {
+        "timestamp": "2023-09-09",
+        "strategy": 79.9331,
+        "buyHold": 55.516,
+        "relativePct": 43.9822,
+        "drawdownPct": -22.8638
+      },
+      {
+        "timestamp": "2023-09-16",
+        "strategy": 80.5901,
+        "buyHold": 56.9264,
+        "relativePct": 41.5689,
+        "drawdownPct": -22.2298
+      },
+      {
+        "timestamp": "2023-09-23",
+        "strategy": 80.6109,
+        "buyHold": 56.9613,
+        "relativePct": 41.5186,
+        "drawdownPct": -22.2097
+      },
+      {
+        "timestamp": "2023-09-30",
+        "strategy": 80.6716,
+        "buyHold": 57.79,
+        "relativePct": 39.5945,
+        "drawdownPct": -22.1511
+      },
+      {
+        "timestamp": "2023-10-07",
+        "strategy": 81.8546,
+        "buyHold": 59.9207,
+        "relativePct": 36.605,
+        "drawdownPct": -21.0095
+      },
+      {
+        "timestamp": "2023-10-14",
+        "strategy": 80.9636,
+        "buyHold": 57.554,
+        "relativePct": 40.6741,
+        "drawdownPct": -21.8694
+      },
+      {
+        "timestamp": "2023-10-21",
+        "strategy": 89.4285,
+        "buyHold": 64.1069,
+        "relativePct": 39.499,
+        "drawdownPct": -13.7006
+      },
+      {
+        "timestamp": "2023-10-28",
+        "strategy": 106.5981,
+        "buyHold": 73.0472,
+        "relativePct": 45.9304,
+        "drawdownPct": -1.4626
+      },
+      {
+        "timestamp": "2023-11-04",
+        "strategy": 110.3382,
+        "buyHold": 75.15,
+        "relativePct": 46.824,
+        "drawdownPct": -1.2264
+      },
+      {
+        "timestamp": "2023-11-11",
+        "strategy": 117.9222,
+        "buyHold": 79.5823,
+        "relativePct": 48.1765,
+        "drawdownPct": -0.4989
+      },
+      {
+        "timestamp": "2023-11-18",
+        "strategy": 113.5576,
+        "buyHold": 78.3779,
+        "relativePct": 44.8848,
+        "drawdownPct": -4.1816
+      },
+      {
+        "timestamp": "2023-11-25",
+        "strategy": 113.4234,
+        "buyHold": 80.9769,
+        "relativePct": 40.0689,
+        "drawdownPct": -4.2948
+      },
+      {
+        "timestamp": "2023-12-02",
+        "strategy": 117.7653,
+        "buyHold": 84.5556,
+        "relativePct": 39.2757,
+        "drawdownPct": -0.6312
+      },
+      {
+        "timestamp": "2023-12-09",
+        "strategy": 131.6829,
+        "buyHold": 93.6932,
+        "relativePct": 40.547,
+        "drawdownPct": -1.1795
+      },
+      {
+        "timestamp": "2023-12-16",
+        "strategy": 126.4797,
+        "buyHold": 90.6162,
+        "relativePct": 39.5773,
+        "drawdownPct": -5.0842
+      },
+      {
+        "timestamp": "2023-12-23",
+        "strategy": 128.5874,
+        "buyHold": 93.6686,
+        "relativePct": 37.2791,
+        "drawdownPct": -3.5025
+      },
+      {
+        "timestamp": "2023-12-30",
+        "strategy": 123.8796,
+        "buyHold": 90.321,
+        "relativePct": 37.1548,
+        "drawdownPct": -7.0355
+      },
+      {
+        "timestamp": "2024-01-06",
+        "strategy": 122.3081,
+        "buyHold": 94.2391,
+        "relativePct": 29.7848,
+        "drawdownPct": -8.2148
+      },
+      {
+        "timestamp": "2024-01-13",
+        "strategy": 116.3934,
+        "buyHold": 91.8379,
+        "relativePct": 26.7379,
+        "drawdownPct": -12.6534
+      },
+      {
+        "timestamp": "2024-01-20",
+        "strategy": 114.8275,
+        "buyHold": 89.3688,
+        "relativePct": 28.4872,
+        "drawdownPct": -13.8285
+      },
+      {
+        "timestamp": "2024-01-27",
+        "strategy": 115.5343,
+        "buyHold": 90.2789,
+        "relativePct": 27.9749,
+        "drawdownPct": -13.2981
+      },
+      {
+        "timestamp": "2024-02-03",
+        "strategy": 117.7208,
+        "buyHold": 92.1874,
+        "relativePct": 27.6973,
+        "drawdownPct": -11.6572
+      },
+      {
+        "timestamp": "2024-02-10",
+        "strategy": 129.3598,
+        "buyHold": 102.3469,
+        "relativePct": 26.3935,
+        "drawdownPct": -2.9228
+      },
+      {
+        "timestamp": "2024-02-17",
+        "strategy": 138.9155,
+        "buyHold": 110.6878,
+        "relativePct": 25.5021,
+        "drawdownPct": -0.8439
+      },
+      {
+        "timestamp": "2024-02-24",
+        "strategy": 138.7806,
+        "buyHold": 110.5283,
+        "relativePct": 25.5611,
+        "drawdownPct": -1.1735
+      },
+      {
+        "timestamp": "2024-03-02",
+        "strategy": 169.9912,
+        "buyHold": 132.8599,
+        "relativePct": 27.9477,
+        "drawdownPct": -0.9132
+      },
+      {
+        "timestamp": "2024-03-09",
+        "strategy": 185.5753,
+        "buyHold": 146.4186,
+        "relativePct": 26.743,
+        "drawdownPct": -0.8542
+      },
+      {
+        "timestamp": "2024-03-16",
+        "strategy": 180.6167,
+        "buyHold": 139.9615,
+        "relativePct": 29.0474,
+        "drawdownPct": -7.7695
+      },
+      {
+        "timestamp": "2024-03-23",
+        "strategy": 178.8331,
+        "buyHold": 137.1524,
+        "relativePct": 30.39,
+        "drawdownPct": -8.6803
+      },
+      {
+        "timestamp": "2024-03-30",
+        "strategy": 186.0991,
+        "buyHold": 149.1383,
+        "relativePct": 24.7829,
+        "drawdownPct": -4.9699
+      },
+      {
+        "timestamp": "2024-04-06",
+        "strategy": 184.5662,
+        "buyHold": 147.6676,
+        "relativePct": 24.9876,
+        "drawdownPct": -5.7527
+      },
+      {
+        "timestamp": "2024-04-13",
+        "strategy": 175.4728,
+        "buyHold": 137.012,
+        "relativePct": 28.0711,
+        "drawdownPct": -10.3961
+      },
+      {
+        "timestamp": "2024-04-20",
+        "strategy": 176.8335,
+        "buyHold": 139.1898,
+        "relativePct": 27.0449,
+        "drawdownPct": -9.7013
+      },
+      {
+        "timestamp": "2024-04-27",
+        "strategy": 174.8534,
+        "buyHold": 136.0207,
+        "relativePct": 28.5492,
+        "drawdownPct": -10.7124
+      },
+      {
+        "timestamp": "2024-05-04",
+        "strategy": 169.8553,
+        "buyHold": 136.9424,
+        "relativePct": 24.0341,
+        "drawdownPct": -13.2647
+      },
+      {
+        "timestamp": "2024-05-11",
+        "strategy": 168.3126,
+        "buyHold": 130.3708,
+        "relativePct": 29.103,
+        "drawdownPct": -14.0524
+      },
+      {
+        "timestamp": "2024-05-18",
+        "strategy": 171.8486,
+        "buyHold": 143.4221,
+        "relativePct": 19.8202,
+        "drawdownPct": -12.2468
+      },
+      {
+        "timestamp": "2024-05-25",
+        "strategy": 170.9439,
+        "buyHold": 148.5133,
+        "relativePct": 15.1034,
+        "drawdownPct": -12.7088
+      },
+      {
+        "timestamp": "2024-06-01",
+        "strategy": 167.2691,
+        "buyHold": 145.2475,
+        "relativePct": 15.1615,
+        "drawdownPct": -14.5853
+      },
+      {
+        "timestamp": "2024-06-08",
+        "strategy": 169.3258,
+        "buyHold": 148.556,
+        "relativePct": 13.9811,
+        "drawdownPct": -13.5351
+      },
+      {
+        "timestamp": "2024-06-15",
+        "strategy": 163.9942,
+        "buyHold": 141.9497,
+        "relativePct": 15.5298,
+        "drawdownPct": -16.2576
+      },
+      {
+        "timestamp": "2024-06-22",
+        "strategy": 161.5917,
+        "buyHold": 137.7354,
+        "relativePct": 17.3204,
+        "drawdownPct": -17.4844
+      },
+      {
+        "timestamp": "2024-06-29",
+        "strategy": 157.0787,
+        "buyHold": 130.7153,
+        "relativePct": 20.1686,
+        "drawdownPct": -19.789
+      },
+      {
+        "timestamp": "2024-07-06",
+        "strategy": 154.1814,
+        "buyHold": 124.807,
+        "relativePct": 23.5359,
+        "drawdownPct": -21.2684
+      },
+      {
+        "timestamp": "2024-07-13",
+        "strategy": 154.5584,
+        "buyHold": 126.8944,
+        "relativePct": 21.8008,
+        "drawdownPct": -21.0759
+      },
+      {
+        "timestamp": "2024-07-20",
+        "strategy": 165.1501,
+        "buyHold": 143.9038,
+        "relativePct": 14.7642,
+        "drawdownPct": -15.6674
+      },
+      {
+        "timestamp": "2024-07-27",
+        "strategy": 162.8392,
+        "buyHold": 145.5254,
+        "relativePct": 11.8974,
+        "drawdownPct": -16.8474
+      },
+      {
+        "timestamp": "2024-08-03",
+        "strategy": 152.9195,
+        "buyHold": 130.0965,
+        "relativePct": 17.5431,
+        "drawdownPct": -21.9128
+      },
+      {
+        "timestamp": "2024-08-10",
+        "strategy": 149.3356,
+        "buyHold": 130.5799,
+        "relativePct": 14.3634,
+        "drawdownPct": -23.7429
+      },
+      {
+        "timestamp": "2024-08-17",
+        "strategy": 148.7718,
+        "buyHold": 127.5116,
+        "relativePct": 16.6731,
+        "drawdownPct": -24.0308
+      },
+      {
+        "timestamp": "2024-08-24",
+        "strategy": 150.6091,
+        "buyHold": 137.5104,
+        "relativePct": 9.5256,
+        "drawdownPct": -23.0926
+      },
+      {
+        "timestamp": "2024-08-31",
+        "strategy": 148.5678,
+        "buyHold": 126.4014,
+        "relativePct": 17.5365,
+        "drawdownPct": -24.135
+      },
+      {
+        "timestamp": "2024-09-07",
+        "strategy": 146.6722,
+        "buyHold": 116.0852,
+        "relativePct": 26.3487,
+        "drawdownPct": -25.103
+      },
+      {
+        "timestamp": "2024-09-14",
+        "strategy": 148.9691,
+        "buyHold": 128.5855,
+        "relativePct": 15.8522,
+        "drawdownPct": -23.9301
+      },
+      {
+        "timestamp": "2024-09-21",
+        "strategy": 151.0023,
+        "buyHold": 135.7784,
+        "relativePct": 11.2123,
+        "drawdownPct": -22.8918
+      },
+      {
+        "timestamp": "2024-09-28",
+        "strategy": 155.347,
+        "buyHold": 141.1562,
+        "relativePct": 10.0533,
+        "drawdownPct": -20.6733
+      },
+      {
+        "timestamp": "2024-10-05",
+        "strategy": 148.9085,
+        "buyHold": 133.0115,
+        "relativePct": 11.9516,
+        "drawdownPct": -23.961
+      },
+      {
+        "timestamp": "2024-10-12",
+        "strategy": 146.5325,
+        "buyHold": 135.4725,
+        "relativePct": 8.164,
+        "drawdownPct": -25.1743
+      },
+      {
+        "timestamp": "2024-10-19",
+        "strategy": 157.714,
+        "buyHold": 146.5574,
+        "relativePct": 7.6125,
+        "drawdownPct": -19.4645
+      },
+      {
+        "timestamp": "2024-10-26",
+        "strategy": 154.8849,
+        "buyHold": 143.8027,
+        "relativePct": 7.7065,
+        "drawdownPct": -20.9092
+      },
+      {
+        "timestamp": "2024-11-02",
+        "strategy": 158.36,
+        "buyHold": 148.6937,
+        "relativePct": 6.5008,
+        "drawdownPct": -19.1347
+      },
+      {
+        "timestamp": "2024-11-09",
+        "strategy": 169.5339,
+        "buyHold": 164.3459,
+        "relativePct": 3.1567,
+        "drawdownPct": -13.4288
+      },
+      {
+        "timestamp": "2024-11-16",
+        "strategy": 201.9781,
+        "buyHold": 194.1587,
+        "relativePct": 4.0273,
+        "drawdownPct": -0.4646
+      },
+      {
+        "timestamp": "2024-11-23",
+        "strategy": 216.9851,
+        "buyHold": 209.3453,
+        "relativePct": 3.6494,
+        "drawdownPct": -1.1764
+      },
+      {
+        "timestamp": "2024-11-30",
+        "strategy": 212.7894,
+        "buyHold": 206.6352,
+        "relativePct": 2.9783,
+        "drawdownPct": -3.0874
+      },
+      {
+        "timestamp": "2024-12-07",
+        "strategy": 214.0148,
+        "buyHold": 213.974,
+        "relativePct": 0.0191,
+        "drawdownPct": -2.5292
+      },
+      {
+        "timestamp": "2024-12-14",
+        "strategy": 213.0187,
+        "buyHold": 217.3777,
+        "relativePct": -2.0052,
+        "drawdownPct": -2.9829
+      },
+      {
+        "timestamp": "2024-12-21",
+        "strategy": 207.3107,
+        "buyHold": 208.5299,
+        "relativePct": -0.5847,
+        "drawdownPct": -5.7713
+      },
+      {
+        "timestamp": "2024-12-28",
+        "strategy": 205.2259,
+        "buyHold": 204.2604,
+        "relativePct": 0.4727,
+        "drawdownPct": -6.7189
+      },
+      {
+        "timestamp": "2025-01-04",
+        "strategy": 209.3389,
+        "buyHold": 210.52,
+        "relativePct": -0.5611,
+        "drawdownPct": -4.8494
+      },
+      {
+        "timestamp": "2025-01-11",
+        "strategy": 204.1046,
+        "buyHold": 202.76,
+        "relativePct": 0.6631,
+        "drawdownPct": -7.2286
+      },
+      {
+        "timestamp": "2025-01-18",
+        "strategy": 221.4341,
+        "buyHold": 224.0997,
+        "relativePct": -1.1894,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2025-01-25",
+        "strategy": 221.7877,
+        "buyHold": 224.5082,
+        "relativePct": -1.2118,
+        "drawdownPct": -1.1548
+      },
+      {
+        "timestamp": "2025-02-01",
+        "strategy": 212.0585,
+        "buyHold": 215.6965,
+        "relativePct": -1.6866,
+        "drawdownPct": -5.4908
+      },
+      {
+        "timestamp": "2025-02-08",
+        "strategy": 206.8469,
+        "buyHold": 206.714,
+        "relativePct": 0.0643,
+        "drawdownPct": -7.8135
+      },
+      {
+        "timestamp": "2025-02-15",
+        "strategy": 208.0344,
+        "buyHold": 209.1251,
+        "relativePct": -0.5215,
+        "drawdownPct": -7.2843
+      },
+      {
+        "timestamp": "2025-02-22",
+        "strategy": 206.9591,
+        "buyHold": 206.9417,
+        "relativePct": 0.0084,
+        "drawdownPct": -7.7635
+      },
+      {
+        "timestamp": "2025-03-01",
+        "strategy": 197.3497,
+        "buyHold": 184.4656,
+        "relativePct": 6.9845,
+        "drawdownPct": -12.0462
+      },
+      {
+        "timestamp": "2025-03-08",
+        "strategy": 196.4444,
+        "buyHold": 184.8041,
+        "relativePct": 6.2987,
+        "drawdownPct": -12.4496
+      },
+      {
+        "timestamp": "2025-03-15",
+        "strategy": 195.8232,
+        "buyHold": 180.766,
+        "relativePct": 8.3296,
+        "drawdownPct": -12.7265
+      },
+      {
+        "timestamp": "2025-03-22",
+        "strategy": 195.1397,
+        "buyHold": 179.699,
+        "relativePct": 8.5926,
+        "drawdownPct": -13.0311
+      },
+      {
+        "timestamp": "2025-03-29",
+        "strategy": 194.4689,
+        "buyHold": 177.144,
+        "relativePct": 9.7801,
+        "drawdownPct": -13.3301
+      },
+      {
+        "timestamp": "2025-04-05",
+        "strategy": 194.9695,
+        "buyHold": 179.0504,
+        "relativePct": 8.8908,
+        "drawdownPct": -13.107
+      },
+      {
+        "timestamp": "2025-04-12",
+        "strategy": 195.948,
+        "buyHold": 182.7775,
+        "relativePct": 7.2058,
+        "drawdownPct": -12.6709
+      },
+      {
+        "timestamp": "2025-04-19",
+        "strategy": 195.8355,
+        "buyHold": 182.3491,
+        "relativePct": 7.396,
+        "drawdownPct": -12.721
+      },
+      {
+        "timestamp": "2025-04-26",
+        "strategy": 203.51,
+        "buyHold": 202.8201,
+        "relativePct": 0.3402,
+        "drawdownPct": -9.3007
+      },
+      {
+        "timestamp": "2025-05-03",
+        "strategy": 205.8877,
+        "buyHold": 205.453,
+        "relativePct": 0.2116,
+        "drawdownPct": -8.241
+      },
+      {
+        "timestamp": "2025-05-10",
+        "strategy": 223.217,
+        "buyHold": 224.6426,
+        "relativePct": -0.6346,
+        "drawdownPct": -0.5178
+      },
+      {
+        "timestamp": "2025-05-17",
+        "strategy": 219.9597,
+        "buyHold": 221.0356,
+        "relativePct": -0.4868,
+        "drawdownPct": -1.9695
+      },
+      {
+        "timestamp": "2025-05-24",
+        "strategy": 230.5042,
+        "buyHold": 230.9705,
+        "relativePct": -0.2019,
+        "drawdownPct": -3.9953
+      },
+      {
+        "timestamp": "2025-05-31",
+        "strategy": 224.8649,
+        "buyHold": 224.1761,
+        "relativePct": 0.3073,
+        "drawdownPct": -6.3441
+      },
+      {
+        "timestamp": "2025-06-07",
+        "strategy": 225.8898,
+        "buyHold": 226.2343,
+        "relativePct": -0.1523,
+        "drawdownPct": -5.9172
+      },
+      {
+        "timestamp": "2025-06-14",
+        "strategy": 220.2441,
+        "buyHold": 225.9395,
+        "relativePct": -2.5208,
+        "drawdownPct": -8.2686
+      },
+      {
+        "timestamp": "2025-06-21",
+        "strategy": 208.8444,
+        "buyHold": 218.878,
+        "relativePct": -4.5841,
+        "drawdownPct": -13.0166
+      },
+      {
+        "timestamp": "2025-06-28",
+        "strategy": 215.7388,
+        "buyHold": 229.9736,
+        "relativePct": -6.1898,
+        "drawdownPct": -10.1451
+      },
+      {
+        "timestamp": "2025-07-05",
+        "strategy": 212.7362,
+        "buyHold": 231.9055,
+        "relativePct": -8.266,
+        "drawdownPct": -11.3956
+      },
+      {
+        "timestamp": "2025-07-12",
+        "strategy": 238.5113,
+        "buyHold": 251.6711,
+        "relativePct": -5.229,
+        "drawdownPct": -0.6604
+      },
+      {
+        "timestamp": "2025-07-19",
+        "strategy": 239.6921,
+        "buyHold": 252.5713,
+        "relativePct": -5.0992,
+        "drawdownPct": -2.2935
+      },
+      {
+        "timestamp": "2025-07-26",
+        "strategy": 236.5198,
+        "buyHold": 252.7428,
+        "relativePct": -6.4187,
+        "drawdownPct": -3.7116
+      },
+      {
+        "timestamp": "2025-08-02",
+        "strategy": 231.086,
+        "buyHold": 241.2252,
+        "relativePct": -4.2032,
+        "drawdownPct": -5.9238
+      },
+      {
+        "timestamp": "2025-08-09",
+        "strategy": 235.0506,
+        "buyHold": 249.6183,
+        "relativePct": -5.836,
+        "drawdownPct": -4.3098
+      },
+      {
+        "timestamp": "2025-08-16",
+        "strategy": 238.6668,
+        "buyHold": 251.5868,
+        "relativePct": -5.1354,
+        "drawdownPct": -6.6893
+      },
+      {
+        "timestamp": "2025-08-23",
+        "strategy": 235.1898,
+        "buyHold": 247.4231,
+        "relativePct": -4.9443,
+        "drawdownPct": -8.0487
+      },
+      {
+        "timestamp": "2025-08-30",
+        "strategy": 223.3586,
+        "buyHold": 233.2305,
+        "relativePct": -4.2327,
+        "drawdownPct": -12.6743
+      },
+      {
+        "timestamp": "2025-09-06",
+        "strategy": 223.02,
+        "buyHold": 236.1704,
+        "relativePct": -5.5682,
+        "drawdownPct": -12.8067
+      },
+      {
+        "timestamp": "2025-09-13",
+        "strategy": 228.3544,
+        "buyHold": 248.4524,
+        "relativePct": -8.0893,
+        "drawdownPct": -10.7212
+      },
+      {
+        "timestamp": "2025-09-20",
+        "strategy": 228.1378,
+        "buyHold": 247.9538,
+        "relativePct": -7.9918,
+        "drawdownPct": -10.8058
+      },
+      {
+        "timestamp": "2025-09-27",
+        "strategy": 224.3517,
+        "buyHold": 234.987,
+        "relativePct": -4.5259,
+        "drawdownPct": -12.2861
+      },
+      {
+        "timestamp": "2025-10-04",
+        "strategy": 242.3702,
+        "buyHold": 262.3257,
+        "relativePct": -7.6071,
+        "drawdownPct": -5.2414
+      },
+      {
+        "timestamp": "2025-10-11",
+        "strategy": 224.0422,
+        "buyHold": 237.1487,
+        "relativePct": -5.5267,
+        "drawdownPct": -12.4071
+      },
+      {
+        "timestamp": "2025-10-18",
+        "strategy": 223.0061,
+        "buyHold": 229.734,
+        "relativePct": -2.9286,
+        "drawdownPct": -12.8121
+      },
+      {
+        "timestamp": "2025-10-25",
+        "strategy": 225.0423,
+        "buyHold": 239.296,
+        "relativePct": -5.9565,
+        "drawdownPct": -12.0161
+      },
+      {
+        "timestamp": "2025-11-01",
+        "strategy": 224.4055,
+        "buyHold": 235.9778,
+        "relativePct": -4.904,
+        "drawdownPct": -12.265
+      },
+      {
+        "timestamp": "2025-11-08",
+        "strategy": 222.0492,
+        "buyHold": 219.2915,
+        "relativePct": 1.2575,
+        "drawdownPct": -13.1863
+      },
+      {
+        "timestamp": "2025-11-15",
+        "strategy": 216.4038,
+        "buyHold": 204.8953,
+        "relativePct": 5.6167,
+        "drawdownPct": -15.3934
+      },
+      {
+        "timestamp": "2025-11-22",
+        "strategy": 212.7992,
+        "buyHold": 181.6262,
+        "relativePct": 17.1633,
+        "drawdownPct": -16.8027
+      },
+      {
+        "timestamp": "2025-11-29",
+        "strategy": 215.1544,
+        "buyHold": 194.6206,
+        "relativePct": 10.5507,
+        "drawdownPct": -15.8819
+      },
+      {
+        "timestamp": "2025-12-06",
+        "strategy": 213.5914,
+        "buyHold": 191.2649,
+        "relativePct": 11.6731,
+        "drawdownPct": -16.493
+      },
+      {
+        "timestamp": "2025-12-13",
+        "strategy": 212.8446,
+        "buyHold": 193.4151,
+        "relativePct": 10.0455,
+        "drawdownPct": -16.7849
+      },
+      {
+        "timestamp": "2025-12-20",
+        "strategy": 214.3621,
+        "buyHold": 189.3875,
+        "relativePct": 13.187,
+        "drawdownPct": -16.1916
+      },
+      {
+        "timestamp": "2025-12-27",
+        "strategy": 211.9226,
+        "buyHold": 188.3504,
+        "relativePct": 12.5151,
+        "drawdownPct": -17.1454
+      },
+      {
+        "timestamp": "2026-01-03",
+        "strategy": 210.0369,
+        "buyHold": 194.2467,
+        "relativePct": 8.1289,
+        "drawdownPct": -17.8827
+      },
+      {
+        "timestamp": "2026-01-10",
+        "strategy": 210.1215,
+        "buyHold": 193.9824,
+        "relativePct": 8.3198,
+        "drawdownPct": -17.8496
+      },
+      {
+        "timestamp": "2026-01-17",
+        "strategy": 206.9389,
+        "buyHold": 203.9341,
+        "relativePct": 1.4734,
+        "drawdownPct": -19.0939
+      },
+      {
+        "timestamp": "2026-01-24",
+        "strategy": 215.9272,
+        "buyHold": 191.2403,
+        "relativePct": 12.9088,
+        "drawdownPct": -15.5798
+      },
+      {
+        "timestamp": "2026-01-31",
+        "strategy": 235.653,
+        "buyHold": 168.769,
+        "relativePct": 39.6305,
+        "drawdownPct": -7.8676
+      },
+      {
+        "timestamp": "2026-02-07",
+        "strategy": 276.076,
+        "buyHold": 148.5108,
+        "relativePct": 85.8963,
+        "drawdownPct": -5.1258
+      },
+      {
+        "timestamp": "2026-02-14",
+        "strategy": 279.6165,
+        "buyHold": 149.6544,
+        "relativePct": 86.8415,
+        "drawdownPct": -3.9091
+      },
+      {
+        "timestamp": "2026-02-21",
+        "strategy": 284.3253,
+        "buyHold": 145.6956,
+        "relativePct": 95.1502,
+        "drawdownPct": -2.2909
+      },
+      {
+        "timestamp": "2026-02-28",
+        "strategy": 282.268,
+        "buyHold": 143.5465,
+        "relativePct": 96.6387,
+        "drawdownPct": -2.9979
+      },
+      {
+        "timestamp": "2026-03-07",
+        "strategy": 283.0718,
+        "buyHold": 144.1674,
+        "relativePct": 96.3494,
+        "drawdownPct": -2.7217
+      },
+      {
+        "timestamp": "2026-03-14",
+        "strategy": 279.0512,
+        "buyHold": 152.6315,
+        "relativePct": 82.8268,
+        "drawdownPct": -4.1033
+      },
+      {
+        "timestamp": "2026-03-21",
+        "strategy": 282.0774,
+        "buyHold": 147.715,
+        "relativePct": 90.9605,
+        "drawdownPct": -3.0634
+      },
+      {
+        "timestamp": "2026-03-28",
+        "strategy": 290.9981,
+        "buyHold": 142.2686,
+        "relativePct": 104.5413,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2026-04-04",
+        "strategy": 284.4685,
+        "buyHold": 144.2478,
+        "relativePct": 97.2083,
+        "drawdownPct": -2.6769
+      },
+      {
+        "timestamp": "2026-04-11",
+        "strategy": 277.4429,
+        "buyHold": 156.5564,
+        "relativePct": 77.2159,
+        "drawdownPct": -5.0805
+      },
+      {
+        "timestamp": "2026-04-18",
+        "strategy": 264.4716,
+        "buyHold": 162.2333,
+        "relativePct": 63.0193,
+        "drawdownPct": -9.5183
+      },
+      {
+        "timestamp": "2026-04-25",
+        "strategy": 266.7906,
+        "buyHold": 166.3769,
+        "relativePct": 60.3532,
+        "drawdownPct": -8.7249
+      },
+      {
+        "timestamp": "2026-05-02",
+        "strategy": 262.1326,
+        "buyHold": 168.6528,
+        "relativePct": 55.4274,
+        "drawdownPct": -10.3185
+      },
+      {
+        "timestamp": "2026-05-09",
+        "strategy": 260.2853,
+        "buyHold": 172.9213,
+        "relativePct": 50.5224,
+        "drawdownPct": -10.9505
+      },
+      {
+        "timestamp": "2026-05-16",
+        "strategy": 259.5185,
+        "buyHold": 167.4979,
+        "relativePct": 54.9383,
+        "drawdownPct": -11.2129
+      },
+      {
+        "timestamp": "2026-05-23",
+        "strategy": 261.4705,
+        "buyHold": 164.5057,
+        "relativePct": 58.9431,
+        "drawdownPct": -10.545
+      },
+      {
+        "timestamp": "2026-05-30",
+        "strategy": 265.0118,
+        "buyHold": 158.3594,
+        "relativePct": 67.3483,
+        "drawdownPct": -9.3335
+      },
+      {
+        "timestamp": "2026-06-06",
+        "strategy": 314.9006,
+        "buyHold": 130.4965,
+        "relativePct": 141.3096,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2026-06-13",
+        "strategy": 304.1499,
+        "buyHold": 138.1555,
+        "relativePct": 120.1504,
+        "drawdownPct": -3.414
+      },
+      {
+        "timestamp": "2026-06-20",
+        "strategy": 296.6982,
+        "buyHold": 137.8126,
+        "relativePct": 115.2911,
+        "drawdownPct": -5.7804
+      },
+      {
+        "timestamp": "2026-06-27",
+        "strategy": 307.4904,
+        "buyHold": 128.6626,
+        "relativePct": 138.9897,
+        "drawdownPct": -2.3532
+      },
+      {
+        "timestamp": "2026-07-01",
+        "strategy": 311.1636,
+        "buyHold": 125.5483,
+        "relativePct": 147.8436,
+        "drawdownPct": -1.1867
+      }
+    ]
+  },
+  {
+    "asset": "ETH",
+    "title": "ETH Profile vs Buy-and-Hold",
+    "subtitle": "Fast-transition profile with bearish-confirmed shorts",
+    "totalReturnPct": 165.1,
+    "buyHoldPct": -57.69,
+    "maxDrawdownPct": 39.07,
+    "worstRelativeDate": "2022-01-02",
+    "worstRelativePct": -1.17,
+    "maxDrawdownDate": "2026-01-27",
+    "points": [
+      {
+        "timestamp": "2022-01-01",
+        "strategy": 100.4953,
+        "buyHold": 101.1415,
+        "relativePct": -0.6389,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2022-01-08",
+        "strategy": 97.4082,
+        "buyHold": 82.7536,
+        "relativePct": 17.7087,
+        "drawdownPct": -4.1515
+      },
+      {
+        "timestamp": "2022-01-15",
+        "strategy": 100.5164,
+        "buyHold": 89.3367,
+        "relativePct": 12.5142,
+        "drawdownPct": -2.9091
+      },
+      {
+        "timestamp": "2022-01-22",
+        "strategy": 84.7378,
+        "buyHold": 64.7906,
+        "relativePct": 30.7872,
+        "drawdownPct": -18.15
+      },
+      {
+        "timestamp": "2022-01-29",
+        "strategy": 84.1448,
+        "buyHold": 69.8738,
+        "relativePct": 20.424,
+        "drawdownPct": -18.7228
+      },
+      {
+        "timestamp": "2022-02-05",
+        "strategy": 86.3647,
+        "buyHold": 80.9191,
+        "relativePct": 6.7298,
+        "drawdownPct": -16.5785
+      },
+      {
+        "timestamp": "2022-02-12",
+        "strategy": 83.5369,
+        "buyHold": 78.4004,
+        "relativePct": 6.5515,
+        "drawdownPct": -19.31
+      },
+      {
+        "timestamp": "2022-02-19",
+        "strategy": 82.02,
+        "buyHold": 74.2305,
+        "relativePct": 10.4938,
+        "drawdownPct": -20.7752
+      },
+      {
+        "timestamp": "2022-02-26",
+        "strategy": 83.3927,
+        "buyHold": 74.6559,
+        "relativePct": 11.7028,
+        "drawdownPct": -19.4493
+      },
+      {
+        "timestamp": "2022-03-05",
+        "strategy": 77.8278,
+        "buyHold": 71.5853,
+        "relativePct": 8.7204,
+        "drawdownPct": -24.8245
+      },
+      {
+        "timestamp": "2022-03-12",
+        "strategy": 73.4753,
+        "buyHold": 68.9974,
+        "relativePct": 6.49,
+        "drawdownPct": -29.0287
+      },
+      {
+        "timestamp": "2022-03-19",
+        "strategy": 83.3551,
+        "buyHold": 79.2589,
+        "relativePct": 5.1682,
+        "drawdownPct": -19.4856
+      },
+      {
+        "timestamp": "2022-03-26",
+        "strategy": 88.0703,
+        "buyHold": 84.474,
+        "relativePct": 4.2573,
+        "drawdownPct": -14.9311
+      },
+      {
+        "timestamp": "2022-04-02",
+        "strategy": 95.833,
+        "buyHold": 92.4989,
+        "relativePct": 3.6045,
+        "drawdownPct": -7.433
+      },
+      {
+        "timestamp": "2022-04-09",
+        "strategy": 88.604,
+        "buyHold": 87.5244,
+        "relativePct": 1.2334,
+        "drawdownPct": -14.4156
+      },
+      {
+        "timestamp": "2022-04-16",
+        "strategy": 86.9254,
+        "buyHold": 82.1721,
+        "relativePct": 5.7846,
+        "drawdownPct": -16.0369
+      },
+      {
+        "timestamp": "2022-04-23",
+        "strategy": 85.9696,
+        "buyHold": 78.7805,
+        "relativePct": 9.1255,
+        "drawdownPct": -16.9602
+      },
+      {
+        "timestamp": "2022-04-30",
+        "strategy": 84.0625,
+        "buyHold": 73.2375,
+        "relativePct": 14.7807,
+        "drawdownPct": -18.8023
+      },
+      {
+        "timestamp": "2022-05-07",
+        "strategy": 82.7628,
+        "buyHold": 70.7846,
+        "relativePct": 16.922,
+        "drawdownPct": -20.0578
+      },
+      {
+        "timestamp": "2022-05-14",
+        "strategy": 82.7628,
+        "buyHold": 55.2366,
+        "relativePct": 49.8333,
+        "drawdownPct": -20.0578
+      },
+      {
+        "timestamp": "2022-05-21",
+        "strategy": 81.0594,
+        "buyHold": 53.0499,
+        "relativePct": 52.7983,
+        "drawdownPct": -21.7031
+      },
+      {
+        "timestamp": "2022-05-28",
+        "strategy": 84.3307,
+        "buyHold": 48.1386,
+        "relativePct": 75.183,
+        "drawdownPct": -18.5433
+      },
+      {
+        "timestamp": "2022-06-04",
+        "strategy": 79.6538,
+        "buyHold": 48.4706,
+        "relativePct": 64.3342,
+        "drawdownPct": -23.0608
+      },
+      {
+        "timestamp": "2022-06-11",
+        "strategy": 81.5179,
+        "buyHold": 41.1731,
+        "relativePct": 97.9883,
+        "drawdownPct": -21.2602
+      },
+      {
+        "timestamp": "2022-06-18",
+        "strategy": 97.2609,
+        "buyHold": 26.729,
+        "relativePct": 263.8784,
+        "drawdownPct": -6.0537
+      },
+      {
+        "timestamp": "2022-06-25",
+        "strategy": 89.6979,
+        "buyHold": 33.3695,
+        "relativePct": 168.8021,
+        "drawdownPct": -13.359
+      },
+      {
+        "timestamp": "2022-07-02",
+        "strategy": 94.8708,
+        "buyHold": 28.6596,
+        "relativePct": 231.0259,
+        "drawdownPct": -8.3623
+      },
+      {
+        "timestamp": "2022-07-09",
+        "strategy": 89.9576,
+        "buyHold": 32.6889,
+        "relativePct": 175.1932,
+        "drawdownPct": -13.1082
+      },
+      {
+        "timestamp": "2022-07-16",
+        "strategy": 86.9402,
+        "buyHold": 36.4178,
+        "relativePct": 138.7298,
+        "drawdownPct": -16.0227
+      },
+      {
+        "timestamp": "2022-07-23",
+        "strategy": 90.1586,
+        "buyHold": 41.5969,
+        "relativePct": 116.7433,
+        "drawdownPct": -12.914
+      },
+      {
+        "timestamp": "2022-07-30",
+        "strategy": 94.0585,
+        "buyHold": 45.581,
+        "relativePct": 106.3544,
+        "drawdownPct": -9.147
+      },
+      {
+        "timestamp": "2022-08-06",
+        "strategy": 92.9272,
+        "buyHold": 45.4091,
+        "relativePct": 104.6444,
+        "drawdownPct": -10.2397
+      },
+      {
+        "timestamp": "2022-08-13",
+        "strategy": 95.5161,
+        "buyHold": 53.2777,
+        "relativePct": 79.2797,
+        "drawdownPct": -7.7391
+      },
+      {
+        "timestamp": "2022-08-20",
+        "strategy": 95.6741,
+        "buyHold": 42.3321,
+        "relativePct": 126.0086,
+        "drawdownPct": -7.5864
+      },
+      {
+        "timestamp": "2022-08-27",
+        "strategy": 96.2812,
+        "buyHold": 40.0495,
+        "relativePct": 140.4054,
+        "drawdownPct": -7.0
+      },
+      {
+        "timestamp": "2022-09-03",
+        "strategy": 96.7339,
+        "buyHold": 41.833,
+        "relativePct": 131.2382,
+        "drawdownPct": -6.5628
+      },
+      {
+        "timestamp": "2022-09-10",
+        "strategy": 103.1708,
+        "buyHold": 47.6525,
+        "relativePct": 116.5067,
+        "drawdownPct": -0.3453
+      },
+      {
+        "timestamp": "2022-09-17",
+        "strategy": 93.7883,
+        "buyHold": 39.4524,
+        "relativePct": 137.7249,
+        "drawdownPct": -9.408
+      },
+      {
+        "timestamp": "2022-09-24",
+        "strategy": 90.6298,
+        "buyHold": 35.3778,
+        "relativePct": 156.177,
+        "drawdownPct": -12.4588
+      },
+      {
+        "timestamp": "2022-10-01",
+        "strategy": 89.1986,
+        "buyHold": 35.2344,
+        "relativePct": 153.1578,
+        "drawdownPct": -13.8413
+      },
+      {
+        "timestamp": "2022-10-08",
+        "strategy": 89.3963,
+        "buyHold": 35.3335,
+        "relativePct": 153.0072,
+        "drawdownPct": -13.6503
+      },
+      {
+        "timestamp": "2022-10-15",
+        "strategy": 88.7963,
+        "buyHold": 34.2441,
+        "relativePct": 159.3044,
+        "drawdownPct": -14.2298
+      },
+      {
+        "timestamp": "2022-10-22",
+        "strategy": 89.4399,
+        "buyHold": 35.2833,
+        "relativePct": 153.491,
+        "drawdownPct": -13.6082
+      },
+      {
+        "timestamp": "2022-10-29",
+        "strategy": 123.8783,
+        "buyHold": 43.5007,
+        "relativePct": 184.7728,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2022-11-05",
+        "strategy": 118.6483,
+        "buyHold": 43.7003,
+        "relativePct": 171.5044,
+        "drawdownPct": -4.2219
+      },
+      {
+        "timestamp": "2022-11-12",
+        "strategy": 103.1726,
+        "buyHold": 33.7694,
+        "relativePct": 205.5207,
+        "drawdownPct": -16.7145
+      },
+      {
+        "timestamp": "2022-11-19",
+        "strategy": 101.4697,
+        "buyHold": 32.7063,
+        "relativePct": 210.2449,
+        "drawdownPct": -18.0892
+      },
+      {
+        "timestamp": "2022-11-26",
+        "strategy": 102.5556,
+        "buyHold": 32.3821,
+        "relativePct": 216.7041,
+        "drawdownPct": -17.2126
+      },
+      {
+        "timestamp": "2022-12-03",
+        "strategy": 99.8867,
+        "buyHold": 33.3198,
+        "relativePct": 199.7818,
+        "drawdownPct": -19.367
+      },
+      {
+        "timestamp": "2022-12-10",
+        "strategy": 97.9984,
+        "buyHold": 34.0139,
+        "relativePct": 188.1131,
+        "drawdownPct": -20.8914
+      },
+      {
+        "timestamp": "2022-12-17",
+        "strategy": 93.9509,
+        "buyHold": 31.8868,
+        "relativePct": 194.6383,
+        "drawdownPct": -24.1587
+      },
+      {
+        "timestamp": "2022-12-24",
+        "strategy": 93.1707,
+        "buyHold": 32.7799,
+        "relativePct": 184.2308,
+        "drawdownPct": -24.7885
+      },
+      {
+        "timestamp": "2022-12-31",
+        "strategy": 91.9116,
+        "buyHold": 32.1278,
+        "relativePct": 186.0813,
+        "drawdownPct": -25.8049
+      },
+      {
+        "timestamp": "2023-01-07",
+        "strategy": 95.5384,
+        "buyHold": 33.9526,
+        "relativePct": 181.3873,
+        "drawdownPct": -22.8772
+      },
+      {
+        "timestamp": "2023-01-14",
+        "strategy": 141.6757,
+        "buyHold": 41.63,
+        "relativePct": 240.3214,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2023-01-21",
+        "strategy": 140.2513,
+        "buyHold": 43.6917,
+        "relativePct": 221.0021,
+        "drawdownPct": -4.3241
+      },
+      {
+        "timestamp": "2023-01-28",
+        "strategy": 123.466,
+        "buyHold": 42.2262,
+        "relativePct": 192.3916,
+        "drawdownPct": -15.7747
+      },
+      {
+        "timestamp": "2023-02-04",
+        "strategy": 125.8274,
+        "buyHold": 44.7586,
+        "relativePct": 181.1246,
+        "drawdownPct": -14.1638
+      },
+      {
+        "timestamp": "2023-02-11",
+        "strategy": 111.7319,
+        "buyHold": 41.324,
+        "relativePct": 170.38,
+        "drawdownPct": -23.7794
+      },
+      {
+        "timestamp": "2023-02-18",
+        "strategy": 115.0209,
+        "buyHold": 45.4365,
+        "relativePct": 153.1464,
+        "drawdownPct": -21.5357
+      },
+      {
+        "timestamp": "2023-02-25",
+        "strategy": 111.4739,
+        "buyHold": 42.8301,
+        "relativePct": 160.2704,
+        "drawdownPct": -23.9553
+      },
+      {
+        "timestamp": "2023-03-04",
+        "strategy": 99.5002,
+        "buyHold": 42.082,
+        "relativePct": 136.4436,
+        "drawdownPct": -32.1235
+      },
+      {
+        "timestamp": "2023-03-11",
+        "strategy": 94.3249,
+        "buyHold": 39.5368,
+        "relativePct": 138.5751,
+        "drawdownPct": -35.654
+      },
+      {
+        "timestamp": "2023-03-18",
+        "strategy": 113.5653,
+        "buyHold": 47.242,
+        "relativePct": 140.3903,
+        "drawdownPct": -22.5287
+      },
+      {
+        "timestamp": "2023-03-25",
+        "strategy": 106.436,
+        "buyHold": 46.7865,
+        "relativePct": 127.493,
+        "drawdownPct": -27.3921
+      },
+      {
+        "timestamp": "2023-04-01",
+        "strategy": 111.1718,
+        "buyHold": 48.906,
+        "relativePct": 127.3173,
+        "drawdownPct": -24.1615
+      },
+      {
+        "timestamp": "2023-04-08",
+        "strategy": 113.9405,
+        "buyHold": 49.6589,
+        "relativePct": 129.4464,
+        "drawdownPct": -22.2727
+      },
+      {
+        "timestamp": "2023-04-15",
+        "strategy": 132.9192,
+        "buyHold": 56.153,
+        "relativePct": 136.7089,
+        "drawdownPct": -9.3259
+      },
+      {
+        "timestamp": "2023-04-22",
+        "strategy": 118.8499,
+        "buyHold": 50.3395,
+        "relativePct": 136.0966,
+        "drawdownPct": -18.9237
+      },
+      {
+        "timestamp": "2023-04-29",
+        "strategy": 115.1555,
+        "buyHold": 51.2431,
+        "relativePct": 124.7241,
+        "drawdownPct": -21.4439
+      },
+      {
+        "timestamp": "2023-05-06",
+        "strategy": 115.4117,
+        "buyHold": 50.935,
+        "relativePct": 126.5863,
+        "drawdownPct": -21.2691
+      },
+      {
+        "timestamp": "2023-05-13",
+        "strategy": 115.4117,
+        "buyHold": 48.2162,
+        "relativePct": 139.3627,
+        "drawdownPct": -21.2691
+      },
+      {
+        "timestamp": "2023-05-20",
+        "strategy": 114.13,
+        "buyHold": 48.8692,
+        "relativePct": 133.5417,
+        "drawdownPct": -22.1435
+      },
+      {
+        "timestamp": "2023-05-27",
+        "strategy": 112.5703,
+        "buyHold": 49.1504,
+        "relativePct": 129.0322,
+        "drawdownPct": -23.2074
+      },
+      {
+        "timestamp": "2023-06-03",
+        "strategy": 111.1161,
+        "buyHold": 50.8203,
+        "relativePct": 118.645,
+        "drawdownPct": -24.1995
+      },
+      {
+        "timestamp": "2023-06-10",
+        "strategy": 93.6918,
+        "buyHold": 47.0457,
+        "relativePct": 99.1507,
+        "drawdownPct": -36.0858
+      },
+      {
+        "timestamp": "2023-06-17",
+        "strategy": 95.1261,
+        "buyHold": 46.4072,
+        "relativePct": 104.9811,
+        "drawdownPct": -35.1075
+      },
+      {
+        "timestamp": "2023-06-24",
+        "strategy": 106.1699,
+        "buyHold": 50.361,
+        "relativePct": 110.8177,
+        "drawdownPct": -27.5736
+      },
+      {
+        "timestamp": "2023-07-01",
+        "strategy": 108.6744,
+        "buyHold": 51.6916,
+        "relativePct": 110.2359,
+        "drawdownPct": -25.8651
+      },
+      {
+        "timestamp": "2023-07-08",
+        "strategy": 104.6605,
+        "buyHold": 50.0999,
+        "relativePct": 108.9036,
+        "drawdownPct": -28.6033
+      },
+      {
+        "timestamp": "2023-07-15",
+        "strategy": 108.1066,
+        "buyHold": 51.8772,
+        "relativePct": 108.3893,
+        "drawdownPct": -26.2525
+      },
+      {
+        "timestamp": "2023-07-22",
+        "strategy": 105.4419,
+        "buyHold": 50.1343,
+        "relativePct": 110.3188,
+        "drawdownPct": -28.0703
+      },
+      {
+        "timestamp": "2023-07-29",
+        "strategy": 106.1066,
+        "buyHold": 50.5087,
+        "relativePct": 110.0759,
+        "drawdownPct": -27.6168
+      },
+      {
+        "timestamp": "2023-08-05",
+        "strategy": 100.1261,
+        "buyHold": 49.3274,
+        "relativePct": 102.9827,
+        "drawdownPct": -31.6965
+      },
+      {
+        "timestamp": "2023-08-12",
+        "strategy": 99.8483,
+        "buyHold": 49.6887,
+        "relativePct": 100.9476,
+        "drawdownPct": -31.8861
+      },
+      {
+        "timestamp": "2023-08-19",
+        "strategy": 99.1692,
+        "buyHold": 44.847,
+        "relativePct": 121.1281,
+        "drawdownPct": -32.3493
+      },
+      {
+        "timestamp": "2023-08-26",
+        "strategy": 97.4612,
+        "buyHold": 44.2391,
+        "relativePct": 120.3054,
+        "drawdownPct": -33.5145
+      },
+      {
+        "timestamp": "2023-09-02",
+        "strategy": 97.395,
+        "buyHold": 43.9703,
+        "relativePct": 121.5019,
+        "drawdownPct": -33.5597
+      },
+      {
+        "timestamp": "2023-09-09",
+        "strategy": 96.5566,
+        "buyHold": 43.9302,
+        "relativePct": 119.7954,
+        "drawdownPct": -34.1315
+      },
+      {
+        "timestamp": "2023-09-16",
+        "strategy": 97.0306,
+        "buyHold": 43.8996,
+        "relativePct": 121.0285,
+        "drawdownPct": -33.8082
+      },
+      {
+        "timestamp": "2023-09-23",
+        "strategy": 96.5842,
+        "buyHold": 42.8107,
+        "relativePct": 125.6076,
+        "drawdownPct": -34.1127
+      },
+      {
+        "timestamp": "2023-09-30",
+        "strategy": 100.2968,
+        "buyHold": 44.8797,
+        "relativePct": 123.4791,
+        "drawdownPct": -31.5801
+      },
+      {
+        "timestamp": "2023-10-07",
+        "strategy": 99.4328,
+        "buyHold": 43.8773,
+        "relativePct": 126.6155,
+        "drawdownPct": -32.1695
+      },
+      {
+        "timestamp": "2023-10-14",
+        "strategy": 101.8631,
+        "buyHold": 41.7653,
+        "relativePct": 143.894,
+        "drawdownPct": -30.5116
+      },
+      {
+        "timestamp": "2023-10-21",
+        "strategy": 99.5759,
+        "buyHold": 43.753,
+        "relativePct": 127.5867,
+        "drawdownPct": -32.0719
+      },
+      {
+        "timestamp": "2023-10-28",
+        "strategy": 103.8582,
+        "buyHold": 47.7083,
+        "relativePct": 117.694,
+        "drawdownPct": -29.1506
+      },
+      {
+        "timestamp": "2023-11-04",
+        "strategy": 104.2835,
+        "buyHold": 49.8394,
+        "relativePct": 109.2392,
+        "drawdownPct": -28.8605
+      },
+      {
+        "timestamp": "2023-11-11",
+        "strategy": 112.8196,
+        "buyHold": 55.1477,
+        "relativePct": 104.5772,
+        "drawdownPct": -23.0374
+      },
+      {
+        "timestamp": "2023-11-18",
+        "strategy": 102.9351,
+        "buyHold": 52.715,
+        "relativePct": 95.2672,
+        "drawdownPct": -29.7803
+      },
+      {
+        "timestamp": "2023-11-25",
+        "strategy": 99.3293,
+        "buyHold": 55.9513,
+        "relativePct": 77.528,
+        "drawdownPct": -32.2401
+      },
+      {
+        "timestamp": "2023-12-02",
+        "strategy": 101.1344,
+        "buyHold": 58.1444,
+        "relativePct": 73.9366,
+        "drawdownPct": -31.0087
+      },
+      {
+        "timestamp": "2023-12-09",
+        "strategy": 116.2025,
+        "buyHold": 62.865,
+        "relativePct": 84.8445,
+        "drawdownPct": -20.7296
+      },
+      {
+        "timestamp": "2023-12-16",
+        "strategy": 104.7574,
+        "buyHold": 59.8694,
+        "relativePct": 74.9766,
+        "drawdownPct": -28.5372
+      },
+      {
+        "timestamp": "2023-12-23",
+        "strategy": 111.9899,
+        "buyHold": 61.9977,
+        "relativePct": 80.6355,
+        "drawdownPct": -23.6034
+      },
+      {
+        "timestamp": "2023-12-30",
+        "strategy": 108.2893,
+        "buyHold": 61.554,
+        "relativePct": 75.9257,
+        "drawdownPct": -26.1278
+      },
+      {
+        "timestamp": "2024-01-06",
+        "strategy": 101.5852,
+        "buyHold": 60.1868,
+        "relativePct": 68.7831,
+        "drawdownPct": -30.7012
+      },
+      {
+        "timestamp": "2024-01-13",
+        "strategy": 124.4755,
+        "buyHold": 69.2496,
+        "relativePct": 79.749,
+        "drawdownPct": -15.086
+      },
+      {
+        "timestamp": "2024-01-20",
+        "strategy": 115.2999,
+        "buyHold": 66.3976,
+        "relativePct": 73.6506,
+        "drawdownPct": -21.3454
+      },
+      {
+        "timestamp": "2024-01-27",
+        "strategy": 111.4781,
+        "buyHold": 60.9163,
+        "relativePct": 83.002,
+        "drawdownPct": -23.9525
+      },
+      {
+        "timestamp": "2024-02-03",
+        "strategy": 111.8438,
+        "buyHold": 61.6832,
+        "relativePct": 81.3198,
+        "drawdownPct": -23.703
+      },
+      {
+        "timestamp": "2024-02-10",
+        "strategy": 120.6418,
+        "buyHold": 67.1559,
+        "relativePct": 79.6445,
+        "drawdownPct": -17.7013
+      },
+      {
+        "timestamp": "2024-02-17",
+        "strategy": 148.8456,
+        "buyHold": 74.8294,
+        "relativePct": 98.9131,
+        "drawdownPct": -2.5577
+      },
+      {
+        "timestamp": "2024-02-24",
+        "strategy": 171.0155,
+        "buyHold": 80.3811,
+        "relativePct": 112.7559,
+        "drawdownPct": -1.4419
+      },
+      {
+        "timestamp": "2024-03-02",
+        "strategy": 219.3618,
+        "buyHold": 91.898,
+        "relativePct": 138.7014,
+        "drawdownPct": -0.6145
+      },
+      {
+        "timestamp": "2024-03-09",
+        "strategy": 235.6474,
+        "buyHold": 104.893,
+        "relativePct": 124.6549,
+        "drawdownPct": -2.8777
+      },
+      {
+        "timestamp": "2024-03-16",
+        "strategy": 224.3903,
+        "buyHold": 94.6294,
+        "relativePct": 137.1254,
+        "drawdownPct": -9.8844
+      },
+      {
+        "timestamp": "2024-03-23",
+        "strategy": 219.445,
+        "buyHold": 89.4304,
+        "relativePct": 145.3807,
+        "drawdownPct": -11.8705
+      },
+      {
+        "timestamp": "2024-03-30",
+        "strategy": 223.7463,
+        "buyHold": 94.1607,
+        "relativePct": 137.6218,
+        "drawdownPct": -10.1431
+      },
+      {
+        "timestamp": "2024-04-06",
+        "strategy": 222.2623,
+        "buyHold": 90.0229,
+        "relativePct": 146.8952,
+        "drawdownPct": -10.739
+      },
+      {
+        "timestamp": "2024-04-13",
+        "strategy": 207.2884,
+        "buyHold": 80.7676,
+        "relativePct": 156.6479,
+        "drawdownPct": -16.7526
+      },
+      {
+        "timestamp": "2024-04-20",
+        "strategy": 202.4566,
+        "buyHold": 84.7638,
+        "relativePct": 138.848,
+        "drawdownPct": -18.693
+      },
+      {
+        "timestamp": "2024-04-27",
+        "strategy": 203.7929,
+        "buyHold": 87.4436,
+        "relativePct": 133.0564,
+        "drawdownPct": -18.1564
+      },
+      {
+        "timestamp": "2024-05-04",
+        "strategy": 203.6098,
+        "buyHold": 83.7281,
+        "relativePct": 143.1798,
+        "drawdownPct": -18.2299
+      },
+      {
+        "timestamp": "2024-05-11",
+        "strategy": 202.4872,
+        "buyHold": 78.2277,
+        "relativePct": 158.8432,
+        "drawdownPct": -18.6808
+      },
+      {
+        "timestamp": "2024-05-18",
+        "strategy": 207.6857,
+        "buyHold": 83.8815,
+        "relativePct": 147.5944,
+        "drawdownPct": -16.593
+      },
+      {
+        "timestamp": "2024-05-25",
+        "strategy": 226.9079,
+        "buyHold": 100.7043,
+        "relativePct": 125.321,
+        "drawdownPct": -8.8734
+      },
+      {
+        "timestamp": "2024-06-01",
+        "strategy": 224.2843,
+        "buyHold": 102.492,
+        "relativePct": 118.831,
+        "drawdownPct": -9.927
+      },
+      {
+        "timestamp": "2024-06-08",
+        "strategy": 219.1632,
+        "buyHold": 98.8861,
+        "relativePct": 121.6319,
+        "drawdownPct": -11.9836
+      },
+      {
+        "timestamp": "2024-06-15",
+        "strategy": 216.721,
+        "buyHold": 95.8555,
+        "relativePct": 126.0913,
+        "drawdownPct": -12.9644
+      },
+      {
+        "timestamp": "2024-06-22",
+        "strategy": 219.0109,
+        "buyHold": 93.895,
+        "relativePct": 133.2507,
+        "drawdownPct": -12.0448
+      },
+      {
+        "timestamp": "2024-06-29",
+        "strategy": 222.6798,
+        "buyHold": 90.7538,
+        "relativePct": 145.3669,
+        "drawdownPct": -10.5714
+      },
+      {
+        "timestamp": "2024-07-06",
+        "strategy": 231.2163,
+        "buyHold": 82.3743,
+        "relativePct": 180.6896,
+        "drawdownPct": -7.1431
+      },
+      {
+        "timestamp": "2024-07-13",
+        "strategy": 226.8085,
+        "buyHold": 85.3048,
+        "relativePct": 165.8803,
+        "drawdownPct": -8.9133
+      },
+      {
+        "timestamp": "2024-07-20",
+        "strategy": 217.4512,
+        "buyHold": 94.4792,
+        "relativePct": 130.1576,
+        "drawdownPct": -12.6712
+      },
+      {
+        "timestamp": "2024-07-27",
+        "strategy": 213.7686,
+        "buyHold": 87.2677,
+        "relativePct": 144.9574,
+        "drawdownPct": -14.1501
+      },
+      {
+        "timestamp": "2024-08-03",
+        "strategy": 225.4366,
+        "buyHold": 77.9911,
+        "relativePct": 189.0543,
+        "drawdownPct": -9.4642
+      },
+      {
+        "timestamp": "2024-08-10",
+        "strategy": 233.7226,
+        "buyHold": 70.1019,
+        "relativePct": 233.4043,
+        "drawdownPct": -6.1366
+      },
+      {
+        "timestamp": "2024-08-17",
+        "strategy": 231.5192,
+        "buyHold": 70.2251,
+        "relativePct": 229.6813,
+        "drawdownPct": -7.0215
+      },
+      {
+        "timestamp": "2024-08-24",
+        "strategy": 222.269,
+        "buyHold": 74.3478,
+        "relativePct": 198.9583,
+        "drawdownPct": -10.7363
+      },
+      {
+        "timestamp": "2024-08-31",
+        "strategy": 230.379,
+        "buyHold": 67.4989,
+        "relativePct": 241.308,
+        "drawdownPct": -7.4793
+      },
+      {
+        "timestamp": "2024-09-07",
+        "strategy": 241.6963,
+        "buyHold": 61.0678,
+        "relativePct": 295.7832,
+        "drawdownPct": -2.9343
+      },
+      {
+        "timestamp": "2024-09-14",
+        "strategy": 234.8798,
+        "buyHold": 64.9413,
+        "relativePct": 261.6803,
+        "drawdownPct": -5.6718
+      },
+      {
+        "timestamp": "2024-09-21",
+        "strategy": 229.6554,
+        "buyHold": 70.1685,
+        "relativePct": 227.2914,
+        "drawdownPct": -7.77
+      },
+      {
+        "timestamp": "2024-09-28",
+        "strategy": 229.2389,
+        "buyHold": 71.8555,
+        "relativePct": 219.0275,
+        "drawdownPct": -7.9372
+      },
+      {
+        "timestamp": "2024-10-05",
+        "strategy": 227.9916,
+        "buyHold": 64.8572,
+        "relativePct": 251.5285,
+        "drawdownPct": -8.4381
+      },
+      {
+        "timestamp": "2024-10-12",
+        "strategy": 225.1631,
+        "buyHold": 66.5155,
+        "relativePct": 238.512,
+        "drawdownPct": -9.5741
+      },
+      {
+        "timestamp": "2024-10-19",
+        "strategy": 219.5733,
+        "buyHold": 71.13,
+        "relativePct": 208.6927,
+        "drawdownPct": -11.819
+      },
+      {
+        "timestamp": "2024-10-26",
+        "strategy": 223.4874,
+        "buyHold": 66.6796,
+        "relativePct": 235.1659,
+        "drawdownPct": -10.247
+      },
+      {
+        "timestamp": "2024-11-02",
+        "strategy": 222.9802,
+        "buyHold": 66.9944,
+        "relativePct": 232.8339,
+        "drawdownPct": -10.4507
+      },
+      {
+        "timestamp": "2024-11-09",
+        "strategy": 230.7065,
+        "buyHold": 83.9693,
+        "relativePct": 174.7511,
+        "drawdownPct": -7.3478
+      },
+      {
+        "timestamp": "2024-11-16",
+        "strategy": 233.9848,
+        "buyHold": 84.1482,
+        "relativePct": 178.0628,
+        "drawdownPct": -6.0313
+      },
+      {
+        "timestamp": "2024-11-23",
+        "strategy": 245.8733,
+        "buyHold": 91.1596,
+        "relativePct": 169.7172,
+        "drawdownPct": -1.2568
+      },
+      {
+        "timestamp": "2024-11-30",
+        "strategy": 257.5827,
+        "buyHold": 99.4778,
+        "relativePct": 158.9347,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2024-12-07",
+        "strategy": 275.1634,
+        "buyHold": 107.3376,
+        "relativePct": 156.3534,
+        "drawdownPct": -0.0812
+      },
+      {
+        "timestamp": "2024-12-14",
+        "strategy": 261.8346,
+        "buyHold": 103.9551,
+        "relativePct": 151.8728,
+        "drawdownPct": -5.0749
+      },
+      {
+        "timestamp": "2024-12-21",
+        "strategy": 246.0741,
+        "buyHold": 89.6826,
+        "relativePct": 174.3832,
+        "drawdownPct": -10.7887
+      },
+      {
+        "timestamp": "2024-12-28",
+        "strategy": 242.4353,
+        "buyHold": 91.4307,
+        "relativePct": 165.1576,
+        "drawdownPct": -12.1079
+      },
+      {
+        "timestamp": "2025-01-04",
+        "strategy": 247.981,
+        "buyHold": 98.223,
+        "relativePct": 152.4674,
+        "drawdownPct": -10.0974
+      },
+      {
+        "timestamp": "2025-01-11",
+        "strategy": 229.2531,
+        "buyHold": 88.1761,
+        "relativePct": 159.9947,
+        "drawdownPct": -16.8869
+      },
+      {
+        "timestamp": "2025-01-18",
+        "strategy": 232.9388,
+        "buyHold": 88.8443,
+        "relativePct": 162.1875,
+        "drawdownPct": -15.5507
+      },
+      {
+        "timestamp": "2025-01-25",
+        "strategy": 230.9626,
+        "buyHold": 89.1414,
+        "relativePct": 159.0969,
+        "drawdownPct": -16.2672
+      },
+      {
+        "timestamp": "2025-02-01",
+        "strategy": 225.8995,
+        "buyHold": 83.7364,
+        "relativePct": 169.7745,
+        "drawdownPct": -18.1027
+      },
+      {
+        "timestamp": "2025-02-08",
+        "strategy": 219.1463,
+        "buyHold": 70.7073,
+        "relativePct": 209.9347,
+        "drawdownPct": -20.551
+      },
+      {
+        "timestamp": "2025-02-15",
+        "strategy": 214.0692,
+        "buyHold": 72.3344,
+        "relativePct": 195.9436,
+        "drawdownPct": -22.3917
+      },
+      {
+        "timestamp": "2025-02-22",
+        "strategy": 208.2494,
+        "buyHold": 74.2195,
+        "relativePct": 180.586,
+        "drawdownPct": -24.5016
+      },
+      {
+        "timestamp": "2025-03-01",
+        "strategy": 228.4422,
+        "buyHold": 59.5586,
+        "relativePct": 283.5588,
+        "drawdownPct": -17.1809
+      },
+      {
+        "timestamp": "2025-03-08",
+        "strategy": 221.5684,
+        "buyHold": 59.1877,
+        "relativePct": 274.3491,
+        "drawdownPct": -19.6729
+      },
+      {
+        "timestamp": "2025-03-15",
+        "strategy": 233.8267,
+        "buyHold": 52.0319,
+        "relativePct": 349.3907,
+        "drawdownPct": -15.2288
+      },
+      {
+        "timestamp": "2025-03-22",
+        "strategy": 231.8709,
+        "buyHold": 53.2009,
+        "relativePct": 335.8403,
+        "drawdownPct": -15.9379
+      },
+      {
+        "timestamp": "2025-03-29",
+        "strategy": 227.1623,
+        "buyHold": 49.1018,
+        "relativePct": 362.6352,
+        "drawdownPct": -17.6449
+      },
+      {
+        "timestamp": "2025-04-05",
+        "strategy": 228.454,
+        "buyHold": 48.509,
+        "relativePct": 370.9517,
+        "drawdownPct": -17.1766
+      },
+      {
+        "timestamp": "2025-04-12",
+        "strategy": 233.1556,
+        "buyHold": 44.1623,
+        "relativePct": 427.9518,
+        "drawdownPct": -15.4721
+      },
+      {
+        "timestamp": "2025-04-19",
+        "strategy": 233.8633,
+        "buyHold": 43.3321,
+        "relativePct": 439.7004,
+        "drawdownPct": -15.2156
+      },
+      {
+        "timestamp": "2025-04-26",
+        "strategy": 226.603,
+        "buyHold": 48.9084,
+        "relativePct": 363.321,
+        "drawdownPct": -17.8477
+      },
+      {
+        "timestamp": "2025-05-03",
+        "strategy": 227.16,
+        "buyHold": 49.2479,
+        "relativePct": 361.258,
+        "drawdownPct": -17.6458
+      },
+      {
+        "timestamp": "2025-05-10",
+        "strategy": 264.7957,
+        "buyHold": 69.385,
+        "relativePct": 281.6327,
+        "drawdownPct": -4.0014
+      },
+      {
+        "timestamp": "2025-05-17",
+        "strategy": 260.6812,
+        "buyHold": 66.4801,
+        "relativePct": 292.1192,
+        "drawdownPct": -5.493
+      },
+      {
+        "timestamp": "2025-05-24",
+        "strategy": 241.9846,
+        "buyHold": 67.966,
+        "relativePct": 256.0379,
+        "drawdownPct": -12.2713
+      },
+      {
+        "timestamp": "2025-05-31",
+        "strategy": 239.9277,
+        "buyHold": 67.9031,
+        "relativePct": 253.3383,
+        "drawdownPct": -13.017
+      },
+      {
+        "timestamp": "2025-06-07",
+        "strategy": 220.0427,
+        "buyHold": 67.811,
+        "relativePct": 224.4941,
+        "drawdownPct": -20.2261
+      },
+      {
+        "timestamp": "2025-06-14",
+        "strategy": 200.6331,
+        "buyHold": 67.9756,
+        "relativePct": 195.1544,
+        "drawdownPct": -27.2628
+      },
+      {
+        "timestamp": "2025-06-21",
+        "strategy": 193.0,
+        "buyHold": 61.6628,
+        "relativePct": 212.9928,
+        "drawdownPct": -30.0301
+      },
+      {
+        "timestamp": "2025-06-28",
+        "strategy": 194.117,
+        "buyHold": 65.4202,
+        "relativePct": 196.7234,
+        "drawdownPct": -29.6251
+      },
+      {
+        "timestamp": "2025-07-05",
+        "strategy": 186.5032,
+        "buyHold": 67.5902,
+        "relativePct": 175.9323,
+        "drawdownPct": -32.3854
+      },
+      {
+        "timestamp": "2025-07-12",
+        "strategy": 229.6847,
+        "buyHold": 79.0558,
+        "relativePct": 190.5348,
+        "drawdownPct": -16.7305
+      },
+      {
+        "timestamp": "2025-07-19",
+        "strategy": 288.544,
+        "buyHold": 96.4806,
+        "relativePct": 199.0696,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2025-07-26",
+        "strategy": 291.0542,
+        "buyHold": 100.4851,
+        "relativePct": 189.6492,
+        "drawdownPct": -5.7102
+      },
+      {
+        "timestamp": "2025-08-02",
+        "strategy": 274.9593,
+        "buyHold": 91.1604,
+        "relativePct": 201.6212,
+        "drawdownPct": -10.9243
+      },
+      {
+        "timestamp": "2025-08-09",
+        "strategy": 310.0959,
+        "buyHold": 114.4393,
+        "relativePct": 170.9699,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2025-08-16",
+        "strategy": 334.1923,
+        "buyHold": 118.7736,
+        "relativePct": 181.3691,
+        "drawdownPct": -7.2952
+      },
+      {
+        "timestamp": "2025-08-23",
+        "strategy": 335.6117,
+        "buyHold": 128.3467,
+        "relativePct": 161.4883,
+        "drawdownPct": -6.9015
+      },
+      {
+        "timestamp": "2025-08-30",
+        "strategy": 295.1152,
+        "buyHold": 117.4766,
+        "relativePct": 151.2119,
+        "drawdownPct": -18.1352
+      },
+      {
+        "timestamp": "2025-09-06",
+        "strategy": 282.7336,
+        "buyHold": 114.7756,
+        "relativePct": 146.3361,
+        "drawdownPct": -21.5698
+      },
+      {
+        "timestamp": "2025-09-13",
+        "strategy": 312.4909,
+        "buyHold": 125.3419,
+        "relativePct": 149.3107,
+        "drawdownPct": -13.3152
+      },
+      {
+        "timestamp": "2025-09-20",
+        "strategy": 291.6934,
+        "buyHold": 120.3431,
+        "relativePct": 142.3849,
+        "drawdownPct": -19.0844
+      },
+      {
+        "timestamp": "2025-09-27",
+        "strategy": 281.0596,
+        "buyHold": 107.9328,
+        "relativePct": 160.4025,
+        "drawdownPct": -22.0342
+      },
+      {
+        "timestamp": "2025-10-04",
+        "strategy": 308.8735,
+        "buyHold": 120.5238,
+        "relativePct": 156.2759,
+        "drawdownPct": -14.3186
+      },
+      {
+        "timestamp": "2025-10-11",
+        "strategy": 281.1937,
+        "buyHold": 100.6379,
+        "relativePct": 179.4113,
+        "drawdownPct": -21.997
+      },
+      {
+        "timestamp": "2025-10-18",
+        "strategy": 276.1943,
+        "buyHold": 104.4633,
+        "relativePct": 164.3936,
+        "drawdownPct": -23.3838
+      },
+      {
+        "timestamp": "2025-10-25",
+        "strategy": 268.0166,
+        "buyHold": 106.1987,
+        "relativePct": 152.3728,
+        "drawdownPct": -25.6523
+      },
+      {
+        "timestamp": "2025-11-01",
+        "strategy": 268.6587,
+        "buyHold": 104.0486,
+        "relativePct": 158.2051,
+        "drawdownPct": -25.4742
+      },
+      {
+        "timestamp": "2025-11-08",
+        "strategy": 266.5785,
+        "buyHold": 91.3638,
+        "relativePct": 191.777,
+        "drawdownPct": -26.0512
+      },
+      {
+        "timestamp": "2025-11-15",
+        "strategy": 267.6748,
+        "buyHold": 85.0885,
+        "relativePct": 214.5838,
+        "drawdownPct": -25.7471
+      },
+      {
+        "timestamp": "2025-11-22",
+        "strategy": 261.1317,
+        "buyHold": 74.4048,
+        "relativePct": 250.9608,
+        "drawdownPct": -27.5622
+      },
+      {
+        "timestamp": "2025-11-29",
+        "strategy": 251.0906,
+        "buyHold": 80.2882,
+        "relativePct": 212.7368,
+        "drawdownPct": -30.3476
+      },
+      {
+        "timestamp": "2025-12-06",
+        "strategy": 236.6914,
+        "buyHold": 81.6016,
+        "relativePct": 190.0573,
+        "drawdownPct": -34.3419
+      },
+      {
+        "timestamp": "2025-12-13",
+        "strategy": 238.7735,
+        "buyHold": 83.6585,
+        "relativePct": 185.4144,
+        "drawdownPct": -33.7643
+      },
+      {
+        "timestamp": "2025-12-20",
+        "strategy": 232.0951,
+        "buyHold": 79.9865,
+        "relativePct": 190.1678,
+        "drawdownPct": -35.6169
+      },
+      {
+        "timestamp": "2025-12-27",
+        "strategy": 233.2414,
+        "buyHold": 79.2108,
+        "relativePct": 194.4566,
+        "drawdownPct": -35.2989
+      },
+      {
+        "timestamp": "2026-01-03",
+        "strategy": 225.7307,
+        "buyHold": 83.9935,
+        "relativePct": 168.748,
+        "drawdownPct": -37.3824
+      },
+      {
+        "timestamp": "2026-01-10",
+        "strategy": 226.1085,
+        "buyHold": 82.9086,
+        "relativePct": 172.7203,
+        "drawdownPct": -37.2776
+      },
+      {
+        "timestamp": "2026-01-17",
+        "strategy": 229.5908,
+        "buyHold": 88.9209,
+        "relativePct": 158.1967,
+        "drawdownPct": -36.3116
+      },
+      {
+        "timestamp": "2026-01-24",
+        "strategy": 225.1151,
+        "buyHold": 79.3228,
+        "relativePct": 183.7961,
+        "drawdownPct": -37.5532
+      },
+      {
+        "timestamp": "2026-01-31",
+        "strategy": 244.9323,
+        "buyHold": 65.8588,
+        "relativePct": 271.9052,
+        "drawdownPct": -32.0559
+      },
+      {
+        "timestamp": "2026-02-07",
+        "strategy": 262.4372,
+        "buyHold": 56.0585,
+        "relativePct": 368.1488,
+        "drawdownPct": -27.2
+      },
+      {
+        "timestamp": "2026-02-14",
+        "strategy": 259.9058,
+        "buyHold": 56.0453,
+        "relativePct": 363.742,
+        "drawdownPct": -27.9023
+      },
+      {
+        "timestamp": "2026-02-21",
+        "strategy": 265.6914,
+        "buyHold": 53.0037,
+        "relativePct": 401.2692,
+        "drawdownPct": -26.2973
+      },
+      {
+        "timestamp": "2026-02-28",
+        "strategy": 256.9246,
+        "buyHold": 52.7663,
+        "relativePct": 386.9106,
+        "drawdownPct": -28.7292
+      },
+      {
+        "timestamp": "2026-03-07",
+        "strategy": 257.2177,
+        "buyHold": 52.9027,
+        "relativePct": 386.2088,
+        "drawdownPct": -28.6479
+      },
+      {
+        "timestamp": "2026-03-14",
+        "strategy": 260.9639,
+        "buyHold": 56.3024,
+        "relativePct": 363.5043,
+        "drawdownPct": -27.6087
+      },
+      {
+        "timestamp": "2026-03-21",
+        "strategy": 265.6058,
+        "buyHold": 55.9991,
+        "relativePct": 374.3034,
+        "drawdownPct": -26.3211
+      },
+      {
+        "timestamp": "2026-03-28",
+        "strategy": 269.9215,
+        "buyHold": 53.5783,
+        "relativePct": 403.7893,
+        "drawdownPct": -25.1239
+      },
+      {
+        "timestamp": "2026-04-04",
+        "strategy": 265.3594,
+        "buyHold": 55.4794,
+        "relativePct": 378.3026,
+        "drawdownPct": -26.3894
+      },
+      {
+        "timestamp": "2026-04-11",
+        "strategy": 257.0932,
+        "buyHold": 61.3743,
+        "relativePct": 318.8939,
+        "drawdownPct": -28.6825
+      },
+      {
+        "timestamp": "2026-04-18",
+        "strategy": 258.5527,
+        "buyHold": 63.1291,
+        "relativePct": 309.562,
+        "drawdownPct": -28.2776
+      },
+      {
+        "timestamp": "2026-04-25",
+        "strategy": 256.2332,
+        "buyHold": 62.3012,
+        "relativePct": 311.281,
+        "drawdownPct": -28.921
+      },
+      {
+        "timestamp": "2026-05-02",
+        "strategy": 254.5906,
+        "buyHold": 62.2333,
+        "relativePct": 309.0908,
+        "drawdownPct": -29.3767
+      },
+      {
+        "timestamp": "2026-05-09",
+        "strategy": 254.3466,
+        "buyHold": 62.4876,
+        "relativePct": 307.035,
+        "drawdownPct": -29.4444
+      },
+      {
+        "timestamp": "2026-05-16",
+        "strategy": 253.7389,
+        "buyHold": 58.575,
+        "relativePct": 333.1865,
+        "drawdownPct": -29.6129
+      },
+      {
+        "timestamp": "2026-05-23",
+        "strategy": 257.2972,
+        "buyHold": 56.8804,
+        "relativePct": 352.3477,
+        "drawdownPct": -28.6259
+      },
+      {
+        "timestamp": "2026-05-30",
+        "strategy": 262.6688,
+        "buyHold": 54.3223,
+        "relativePct": 383.5378,
+        "drawdownPct": -27.1358
+      },
+      {
+        "timestamp": "2026-06-06",
+        "strategy": 293.819,
+        "buyHold": 42.1615,
+        "relativePct": 596.8891,
+        "drawdownPct": -18.4947
+      },
+      {
+        "timestamp": "2026-06-13",
+        "strategy": 283.8173,
+        "buyHold": 45.1561,
+        "relativePct": 528.5246,
+        "drawdownPct": -21.2692
+      },
+      {
+        "timestamp": "2026-06-20",
+        "strategy": 270.2605,
+        "buyHold": 46.765,
+        "relativePct": 477.9119,
+        "drawdownPct": -25.0298
+      },
+      {
+        "timestamp": "2026-06-27",
+        "strategy": 265.1833,
+        "buyHold": 42.277,
+        "relativePct": 527.2518,
+        "drawdownPct": -26.4383
+      },
+      {
+        "timestamp": "2026-07-01",
+        "strategy": 265.096,
+        "buyHold": 42.306,
+        "relativePct": 526.6154,
+        "drawdownPct": -26.4625
+      }
+    ]
+  },
+  {
+    "asset": "SOL",
+    "title": "SOL Profile vs Buy-and-Hold",
+    "subtitle": "High-beta near-long-only profile",
+    "totalReturnPct": 397.05,
+    "buyHoldPct": -57.27,
+    "maxDrawdownPct": 50.18,
+    "worstRelativeDate": "2022-01-01",
+    "worstRelativePct": -2.33,
+    "maxDrawdownDate": "2023-06-14",
+    "points": [
+      {
+        "timestamp": "2022-01-01",
+        "strategy": 101.4514,
+        "buyHold": 103.8752,
+        "relativePct": -2.3333,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2022-01-08",
+        "strategy": 93.6758,
+        "buyHold": 82.4574,
+        "relativePct": 13.6051,
+        "drawdownPct": -7.6644
+      },
+      {
+        "timestamp": "2022-01-15",
+        "strategy": 92.4371,
+        "buyHold": 85.648,
+        "relativePct": 7.9267,
+        "drawdownPct": -8.8854
+      },
+      {
+        "timestamp": "2022-01-22",
+        "strategy": 74.3823,
+        "buyHold": 54.8439,
+        "relativePct": 35.6254,
+        "drawdownPct": -26.6818
+      },
+      {
+        "timestamp": "2022-01-29",
+        "strategy": 74.7829,
+        "buyHold": 55.7663,
+        "relativePct": 34.1005,
+        "drawdownPct": -26.287
+      },
+      {
+        "timestamp": "2022-02-05",
+        "strategy": 82.0068,
+        "buyHold": 65.9879,
+        "relativePct": 24.2754,
+        "drawdownPct": -19.1665
+      },
+      {
+        "timestamp": "2022-02-12",
+        "strategy": 74.5494,
+        "buyHold": 55.6677,
+        "relativePct": 33.9185,
+        "drawdownPct": -26.5172
+      },
+      {
+        "timestamp": "2022-02-19",
+        "strategy": 68.3961,
+        "buyHold": 52.947,
+        "relativePct": 29.1785,
+        "drawdownPct": -32.5824
+      },
+      {
+        "timestamp": "2022-02-26",
+        "strategy": 68.1642,
+        "buyHold": 52.3437,
+        "relativePct": 30.2244,
+        "drawdownPct": -32.811
+      },
+      {
+        "timestamp": "2022-03-05",
+        "strategy": 64.5203,
+        "buyHold": 51.9956,
+        "relativePct": 24.0881,
+        "drawdownPct": -36.4027
+      },
+      {
+        "timestamp": "2022-03-12",
+        "strategy": 61.1511,
+        "buyHold": 47.2097,
+        "relativePct": 29.5309,
+        "drawdownPct": -39.7238
+      },
+      {
+        "timestamp": "2022-03-19",
+        "strategy": 65.9237,
+        "buyHold": 53.5503,
+        "relativePct": 23.1062,
+        "drawdownPct": -35.0194
+      },
+      {
+        "timestamp": "2022-03-26",
+        "strategy": 72.7115,
+        "buyHold": 59.015,
+        "relativePct": 23.2087,
+        "drawdownPct": -28.3287
+      },
+      {
+        "timestamp": "2022-04-02",
+        "strategy": 94.2554,
+        "buyHold": 76.8593,
+        "relativePct": 22.6337,
+        "drawdownPct": -7.0931
+      },
+      {
+        "timestamp": "2022-04-09",
+        "strategy": 81.9853,
+        "buyHold": 65.5296,
+        "relativePct": 25.1118,
+        "drawdownPct": -19.1876
+      },
+      {
+        "timestamp": "2022-04-16",
+        "strategy": 78.9069,
+        "buyHold": 59.2064,
+        "relativePct": 33.2743,
+        "drawdownPct": -22.222
+      },
+      {
+        "timestamp": "2022-04-23",
+        "strategy": 77.6293,
+        "buyHold": 58.3768,
+        "relativePct": 32.9796,
+        "drawdownPct": -23.4813
+      },
+      {
+        "timestamp": "2022-04-30",
+        "strategy": 74.8282,
+        "buyHold": 49.095,
+        "relativePct": 52.4151,
+        "drawdownPct": -26.2423
+      },
+      {
+        "timestamp": "2022-05-07",
+        "strategy": 72.1234,
+        "buyHold": 45.7478,
+        "relativePct": 57.6545,
+        "drawdownPct": -28.9084
+      },
+      {
+        "timestamp": "2022-05-14",
+        "strategy": 68.7252,
+        "buyHold": 30.4154,
+        "relativePct": 125.9557,
+        "drawdownPct": -32.258
+      },
+      {
+        "timestamp": "2022-05-21",
+        "strategy": 68.4527,
+        "buyHold": 29.1855,
+        "relativePct": 134.5432,
+        "drawdownPct": -32.5267
+      },
+      {
+        "timestamp": "2022-05-28",
+        "strategy": 67.6735,
+        "buyHold": 25.67,
+        "relativePct": 163.6285,
+        "drawdownPct": -33.2947
+      },
+      {
+        "timestamp": "2022-06-04",
+        "strategy": 66.9985,
+        "buyHold": 22.6244,
+        "relativePct": 196.1334,
+        "drawdownPct": -33.96
+      },
+      {
+        "timestamp": "2022-06-11",
+        "strategy": 63.8676,
+        "buyHold": 19.6833,
+        "relativePct": 224.477,
+        "drawdownPct": -37.0461
+      },
+      {
+        "timestamp": "2022-06-18",
+        "strategy": 63.1526,
+        "buyHold": 18.5752,
+        "relativePct": 239.9828,
+        "drawdownPct": -37.7509
+      },
+      {
+        "timestamp": "2022-06-25",
+        "strategy": 62.7451,
+        "buyHold": 24.4924,
+        "relativePct": 156.182,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-07-02",
+        "strategy": 62.7451,
+        "buyHold": 19.3526,
+        "relativePct": 224.2208,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-07-09",
+        "strategy": 62.7451,
+        "buyHold": 22.0791,
+        "relativePct": 184.183,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-07-16",
+        "strategy": 62.7451,
+        "buyHold": 22.9609,
+        "relativePct": 173.2695,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-07-23",
+        "strategy": 62.7451,
+        "buyHold": 23.1871,
+        "relativePct": 170.6031,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-07-30",
+        "strategy": 62.7451,
+        "buyHold": 25.4322,
+        "relativePct": 146.7154,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-08-06",
+        "strategy": 62.7451,
+        "buyHold": 23.2452,
+        "relativePct": 169.9278,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-08-13",
+        "strategy": 62.7451,
+        "buyHold": 27.0333,
+        "relativePct": 132.1031,
+        "drawdownPct": -38.1525
+      },
+      {
+        "timestamp": "2022-08-20",
+        "strategy": 60.5503,
+        "buyHold": 20.4664,
+        "relativePct": 195.8523,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-08-27",
+        "strategy": 60.5503,
+        "buyHold": 18.291,
+        "relativePct": 231.0392,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-09-03",
+        "strategy": 60.5503,
+        "buyHold": 18.0531,
+        "relativePct": 235.4006,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-09-10",
+        "strategy": 60.5503,
+        "buyHold": 20.3214,
+        "relativePct": 197.9637,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-09-17",
+        "strategy": 60.5503,
+        "buyHold": 19.5382,
+        "relativePct": 209.907,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-09-24",
+        "strategy": 60.5503,
+        "buyHold": 19.3642,
+        "relativePct": 212.6923,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-10-01",
+        "strategy": 60.5503,
+        "buyHold": 18.8189,
+        "relativePct": 221.753,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-10-08",
+        "strategy": 60.5503,
+        "buyHold": 18.9001,
+        "relativePct": 220.3704,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-10-15",
+        "strategy": 60.5503,
+        "buyHold": 17.1656,
+        "relativePct": 252.7431,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-10-22",
+        "strategy": 60.5503,
+        "buyHold": 16.249,
+        "relativePct": 272.6408,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-10-29",
+        "strategy": 60.5503,
+        "buyHold": 19.0683,
+        "relativePct": 217.5439,
+        "drawdownPct": -40.3159
+      },
+      {
+        "timestamp": "2022-11-05",
+        "strategy": 62.2082,
+        "buyHold": 21.4062,
+        "relativePct": 190.6085,
+        "drawdownPct": -38.6818
+      },
+      {
+        "timestamp": "2022-11-12",
+        "strategy": 57.6224,
+        "buyHold": 8.4581,
+        "relativePct": 581.2717,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2022-11-19",
+        "strategy": 57.6224,
+        "buyHold": 7.4487,
+        "relativePct": 673.5935,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2022-11-26",
+        "strategy": 57.6224,
+        "buyHold": 8.2202,
+        "relativePct": 600.9838,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2022-12-03",
+        "strategy": 57.6224,
+        "buyHold": 7.7097,
+        "relativePct": 647.3996,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2022-12-10",
+        "strategy": 57.6224,
+        "buyHold": 7.8779,
+        "relativePct": 631.439,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2022-12-17",
+        "strategy": 57.6224,
+        "buyHold": 7.2572,
+        "relativePct": 694.0001,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2022-12-24",
+        "strategy": 57.6224,
+        "buyHold": 6.6423,
+        "relativePct": 767.5058,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2022-12-31",
+        "strategy": 57.6224,
+        "buyHold": 5.7837,
+        "relativePct": 896.283,
+        "drawdownPct": -43.202
+      },
+      {
+        "timestamp": "2023-01-07",
+        "strategy": 57.1158,
+        "buyHold": 7.5995,
+        "relativePct": 651.5741,
+        "drawdownPct": -43.7013
+      },
+      {
+        "timestamp": "2023-01-14",
+        "strategy": 68.2207,
+        "buyHold": 14.062,
+        "relativePct": 385.1436,
+        "drawdownPct": -32.7553
+      },
+      {
+        "timestamp": "2023-01-21",
+        "strategy": 68.5496,
+        "buyHold": 14.2534,
+        "relativePct": 380.9356,
+        "drawdownPct": -32.4311
+      },
+      {
+        "timestamp": "2023-01-28",
+        "strategy": 66.3436,
+        "buyHold": 13.9227,
+        "relativePct": 376.5128,
+        "drawdownPct": -34.6056
+      },
+      {
+        "timestamp": "2023-02-04",
+        "strategy": 64.5108,
+        "buyHold": 14.12,
+        "relativePct": 356.8767,
+        "drawdownPct": -36.4121
+      },
+      {
+        "timestamp": "2023-02-11",
+        "strategy": 61.4047,
+        "buyHold": 12.0722,
+        "relativePct": 408.6468,
+        "drawdownPct": -39.4738
+      },
+      {
+        "timestamp": "2023-02-18",
+        "strategy": 66.0345,
+        "buyHold": 13.6037,
+        "relativePct": 385.4168,
+        "drawdownPct": -34.9102
+      },
+      {
+        "timestamp": "2023-02-25",
+        "strategy": 63.3141,
+        "buyHold": 12.9771,
+        "relativePct": 387.8897,
+        "drawdownPct": -37.5917
+      },
+      {
+        "timestamp": "2023-03-04",
+        "strategy": 62.0482,
+        "buyHold": 12.1708,
+        "relativePct": 409.8123,
+        "drawdownPct": -38.8395
+      },
+      {
+        "timestamp": "2023-03-11",
+        "strategy": 59.5806,
+        "buyHold": 10.4827,
+        "relativePct": 468.3731,
+        "drawdownPct": -41.2718
+      },
+      {
+        "timestamp": "2023-03-18",
+        "strategy": 61.7155,
+        "buyHold": 12.2984,
+        "relativePct": 401.8168,
+        "drawdownPct": -39.1674
+      },
+      {
+        "timestamp": "2023-03-25",
+        "strategy": 60.8175,
+        "buyHold": 11.8401,
+        "relativePct": 413.6559,
+        "drawdownPct": -40.0526
+      },
+      {
+        "timestamp": "2023-04-01",
+        "strategy": 60.6263,
+        "buyHold": 12.2288,
+        "relativePct": 395.7671,
+        "drawdownPct": -40.241
+      },
+      {
+        "timestamp": "2023-04-08",
+        "strategy": 60.151,
+        "buyHold": 11.6255,
+        "relativePct": 417.4065,
+        "drawdownPct": -40.7096
+      },
+      {
+        "timestamp": "2023-04-15",
+        "strategy": 63.4147,
+        "buyHold": 13.9517,
+        "relativePct": 354.5289,
+        "drawdownPct": -37.4926
+      },
+      {
+        "timestamp": "2023-04-22",
+        "strategy": 58.8274,
+        "buyHold": 12.6407,
+        "relativePct": 365.382,
+        "drawdownPct": -42.0142
+      },
+      {
+        "timestamp": "2023-04-29",
+        "strategy": 60.3287,
+        "buyHold": 13.4528,
+        "relativePct": 348.4459,
+        "drawdownPct": -40.5344
+      },
+      {
+        "timestamp": "2023-05-06",
+        "strategy": 56.2929,
+        "buyHold": 12.7103,
+        "relativePct": 342.8923,
+        "drawdownPct": -44.5125
+      },
+      {
+        "timestamp": "2023-05-13",
+        "strategy": 55.1919,
+        "buyHold": 12.0896,
+        "relativePct": 356.525,
+        "drawdownPct": -45.5977
+      },
+      {
+        "timestamp": "2023-05-20",
+        "strategy": 54.3858,
+        "buyHold": 11.7647,
+        "relativePct": 362.279,
+        "drawdownPct": -46.3923
+      },
+      {
+        "timestamp": "2023-05-27",
+        "strategy": 53.7318,
+        "buyHold": 11.8517,
+        "relativePct": 353.367,
+        "drawdownPct": -47.0369
+      },
+      {
+        "timestamp": "2023-06-03",
+        "strategy": 54.604,
+        "buyHold": 12.2926,
+        "relativePct": 344.2021,
+        "drawdownPct": -46.1772
+      },
+      {
+        "timestamp": "2023-06-10",
+        "strategy": 51.1657,
+        "buyHold": 9.0556,
+        "relativePct": 465.0184,
+        "drawdownPct": -49.5663
+      },
+      {
+        "timestamp": "2023-06-17",
+        "strategy": 51.1776,
+        "buyHold": 9.073,
+        "relativePct": 464.0657,
+        "drawdownPct": -49.5546
+      },
+      {
+        "timestamp": "2023-06-24",
+        "strategy": 51.7974,
+        "buyHold": 9.6531,
+        "relativePct": 436.5883,
+        "drawdownPct": -48.9437
+      },
+      {
+        "timestamp": "2023-07-01",
+        "strategy": 54.9121,
+        "buyHold": 10.8481,
+        "relativePct": 406.1899,
+        "drawdownPct": -45.8735
+      },
+      {
+        "timestamp": "2023-07-08",
+        "strategy": 59.7637,
+        "buyHold": 12.6523,
+        "relativePct": 372.3554,
+        "drawdownPct": -41.0913
+      },
+      {
+        "timestamp": "2023-07-15",
+        "strategy": 79.1355,
+        "buyHold": 15.9299,
+        "relativePct": 396.7724,
+        "drawdownPct": -21.9967
+      },
+      {
+        "timestamp": "2023-07-22",
+        "strategy": 69.7253,
+        "buyHold": 14.2244,
+        "relativePct": 390.1816,
+        "drawdownPct": -31.2722
+      },
+      {
+        "timestamp": "2023-07-29",
+        "strategy": 68.1436,
+        "buyHold": 14.6015,
+        "relativePct": 366.6906,
+        "drawdownPct": -32.8313
+      },
+      {
+        "timestamp": "2023-08-05",
+        "strategy": 63.4866,
+        "buyHold": 13.1396,
+        "relativePct": 383.1708,
+        "drawdownPct": -37.4217
+      },
+      {
+        "timestamp": "2023-08-12",
+        "strategy": 66.5609,
+        "buyHold": 14.4506,
+        "relativePct": 360.609,
+        "drawdownPct": -34.3913
+      },
+      {
+        "timestamp": "2023-08-19",
+        "strategy": 61.1274,
+        "buyHold": 12.7045,
+        "relativePct": 381.1477,
+        "drawdownPct": -39.7472
+      },
+      {
+        "timestamp": "2023-08-26",
+        "strategy": 59.9585,
+        "buyHold": 11.7705,
+        "relativePct": 409.3964,
+        "drawdownPct": -40.8993
+      },
+      {
+        "timestamp": "2023-09-02",
+        "strategy": 58.0325,
+        "buyHold": 11.3122,
+        "relativePct": 413.0074,
+        "drawdownPct": -42.7977
+      },
+      {
+        "timestamp": "2023-09-09",
+        "strategy": 58.0059,
+        "buyHold": 11.2774,
+        "relativePct": 414.3546,
+        "drawdownPct": -42.824
+      },
+      {
+        "timestamp": "2023-09-16",
+        "strategy": 57.8639,
+        "buyHold": 11.0918,
+        "relativePct": 421.6828,
+        "drawdownPct": -42.964
+      },
+      {
+        "timestamp": "2023-09-23",
+        "strategy": 57.4422,
+        "buyHold": 11.3064,
+        "relativePct": 408.0499,
+        "drawdownPct": -43.3796
+      },
+      {
+        "timestamp": "2023-09-30",
+        "strategy": 60.6101,
+        "buyHold": 12.397,
+        "relativePct": 388.908,
+        "drawdownPct": -40.2571
+      },
+      {
+        "timestamp": "2023-10-07",
+        "strategy": 62.726,
+        "buyHold": 13.5166,
+        "relativePct": 364.0648,
+        "drawdownPct": -38.1714
+      },
+      {
+        "timestamp": "2023-10-14",
+        "strategy": 56.8474,
+        "buyHold": 12.7625,
+        "relativePct": 345.4252,
+        "drawdownPct": -43.9659
+      },
+      {
+        "timestamp": "2023-10-21",
+        "strategy": 83.6552,
+        "buyHold": 17.0089,
+        "relativePct": 391.8308,
+        "drawdownPct": -17.5416
+      },
+      {
+        "timestamp": "2023-10-28",
+        "strategy": 92.8899,
+        "buyHold": 18.349,
+        "relativePct": 406.2399,
+        "drawdownPct": -8.439
+      },
+      {
+        "timestamp": "2023-11-04",
+        "strategy": 139.6511,
+        "buyHold": 24.6026,
+        "relativePct": 467.6271,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2023-11-11",
+        "strategy": 197.7949,
+        "buyHold": 32.6836,
+        "relativePct": 505.1806,
+        "drawdownPct": -0.3107
+      },
+      {
+        "timestamp": "2023-11-18",
+        "strategy": 213.1269,
+        "buyHold": 33.9715,
+        "relativePct": 527.3705,
+        "drawdownPct": -11.3105
+      },
+      {
+        "timestamp": "2023-11-25",
+        "strategy": 199.2318,
+        "buyHold": 34.1223,
+        "relativePct": 483.876,
+        "drawdownPct": -17.0927
+      },
+      {
+        "timestamp": "2023-12-02",
+        "strategy": 211.2952,
+        "buyHold": 36.93,
+        "relativePct": 472.1499,
+        "drawdownPct": -12.0727
+      },
+      {
+        "timestamp": "2023-12-09",
+        "strategy": 239.7591,
+        "buyHold": 41.9422,
+        "relativePct": 471.6414,
+        "drawdownPct": -3.5005
+      },
+      {
+        "timestamp": "2023-12-16",
+        "strategy": 221.9089,
+        "buyHold": 42.766,
+        "relativePct": 418.8912,
+        "drawdownPct": -10.685
+      },
+      {
+        "timestamp": "2023-12-23",
+        "strategy": 316.7919,
+        "buyHold": 62.5827,
+        "relativePct": 406.1975,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2023-12-30",
+        "strategy": 300.1818,
+        "buyHold": 59.1136,
+        "relativePct": 407.8051,
+        "drawdownPct": -14.9588
+      },
+      {
+        "timestamp": "2024-01-06",
+        "strategy": 288.6335,
+        "buyHold": 54.3973,
+        "relativePct": 430.6031,
+        "drawdownPct": -18.2304
+      },
+      {
+        "timestamp": "2024-01-13",
+        "strategy": 290.4474,
+        "buyHold": 55.6039,
+        "relativePct": 422.3507,
+        "drawdownPct": -17.7166
+      },
+      {
+        "timestamp": "2024-01-20",
+        "strategy": 287.8574,
+        "buyHold": 53.881,
+        "relativePct": 434.247,
+        "drawdownPct": -18.4503
+      },
+      {
+        "timestamp": "2024-01-27",
+        "strategy": 289.0783,
+        "buyHold": 54.6931,
+        "relativePct": 428.546,
+        "drawdownPct": -18.1044
+      },
+      {
+        "timestamp": "2024-02-03",
+        "strategy": 286.7806,
+        "buyHold": 56.8279,
+        "relativePct": 404.6471,
+        "drawdownPct": -18.7554
+      },
+      {
+        "timestamp": "2024-02-10",
+        "strategy": 308.3621,
+        "buyHold": 63.2382,
+        "relativePct": 387.62,
+        "drawdownPct": -12.6414
+      },
+      {
+        "timestamp": "2024-02-17",
+        "strategy": 304.5171,
+        "buyHold": 63.186,
+        "relativePct": 381.9378,
+        "drawdownPct": -13.7306
+      },
+      {
+        "timestamp": "2024-02-24",
+        "strategy": 299.6541,
+        "buyHold": 60.3376,
+        "relativePct": 396.629,
+        "drawdownPct": -15.1083
+      },
+      {
+        "timestamp": "2024-03-02",
+        "strategy": 373.4286,
+        "buyHold": 75.4264,
+        "relativePct": 395.0902,
+        "drawdownPct": 0.0
+      },
+      {
+        "timestamp": "2024-03-09",
+        "strategy": 420.4791,
+        "buyHold": 83.7046,
+        "relativePct": 402.3369,
+        "drawdownPct": -0.3905
+      },
+      {
+        "timestamp": "2024-03-16",
+        "strategy": 544.9798,
+        "buyHold": 105.6097,
+        "relativePct": 416.0319,
+        "drawdownPct": -1.1364
+      },
+      {
+        "timestamp": "2024-03-23",
+        "strategy": 518.4018,
+        "buyHold": 100.1566,
+        "relativePct": 417.5911,
+        "drawdownPct": -15.0574
+      },
+      {
+        "timestamp": "2024-03-30",
+        "strategy": 588.0686,
+        "buyHold": 112.6581,
+        "relativePct": 421.9941,
+        "drawdownPct": -3.6422
+      },
+      {
+        "timestamp": "2024-04-06",
+        "strategy": 561.3853,
+        "buyHold": 103.6547,
+        "relativePct": 441.5916,
+        "drawdownPct": -8.6791
+      },
+      {
+        "timestamp": "2024-04-13",
+        "strategy": 520.3631,
+        "buyHold": 80.3283,
+        "relativePct": 547.7952,
+        "drawdownPct": -15.3522
+      },
+      {
+        "timestamp": "2024-04-20",
+        "strategy": 527.2791,
+        "buyHold": 87.7248,
+        "relativePct": 501.0605,
+        "drawdownPct": -14.2272
+      },
+      {
+        "timestamp": "2024-04-27",
+        "strategy": 515.2186,
+        "buyHold": 81.9759,
+        "relativePct": 528.5003,
+        "drawdownPct": -16.1891
+      },
+      {
+        "timestamp": "2024-05-04",
+        "strategy": 518.8013,
+        "buyHold": 84.7256,
+        "relativePct": 512.3311,
+        "drawdownPct": -15.6063
+      },
+      {
+        "timestamp": "2024-05-11",
+        "strategy": 518.0967,
+        "buyHold": 84.3601,
+        "relativePct": 514.1487,
+        "drawdownPct": -15.7209
+      },
+      {
+        "timestamp": "2024-05-18",
+        "strategy": 539.0187,
+        "buyHold": 100.0116,
+        "relativePct": 438.9562,
+        "drawdownPct": -12.3175
+      },
+      {
+        "timestamp": "2024-05-25",
+        "strategy": 498.5068,
+        "buyHold": 97.6621,
+        "relativePct": 410.4402,
+        "drawdownPct": -18.9076
+      },
+      {
+        "timestamp": "2024-06-01",
+        "strategy": 491.4289,
+        "buyHold": 96.3801,
+        "relativePct": 409.8863,
+        "drawdownPct": -20.059
+      },
+      {
+        "timestamp": "2024-06-08",
+        "strategy": 474.8105,
+        "buyHold": 91.5593,
+        "relativePct": 418.5822,
+        "drawdownPct": -22.7623
+      },
+      {
+        "timestamp": "2024-06-15",
+        "strategy": 459.8848,
+        "buyHold": 84.4181,
+        "relativePct": 444.77,
+        "drawdownPct": -25.1903
+      },
+      {
+        "timestamp": "2024-06-22",
+        "strategy": 400.5266,
+        "buyHold": 77.5554,
+        "relativePct": 416.4394,
+        "drawdownPct": -34.8461
+      },
+      {
+        "timestamp": "2024-06-29",
+        "strategy": 407.106,
+        "buyHold": 81.3784,
+        "relativePct": 400.2632,
+        "drawdownPct": -33.7758
+      },
+      {
+        "timestamp": "2024-07-06",
+        "strategy": 404.7977,
+        "buyHold": 82.9853,
+        "relativePct": 387.7947,
+        "drawdownPct": -34.1513
+      },
+      {
+        "timestamp": "2024-07-13",
+        "strategy": 404.2903,
+        "buyHold": 82.3181,
+        "relativePct": 391.1315,
+        "drawdownPct": -34.2338
+      },
+      {
+        "timestamp": "2024-07-20",
+        "strategy": 448.0136,
+        "buyHold": 100.7077,
+        "relativePct": 344.8651,
+        "drawdownPct": -27.1214
+      },
+      {
+        "timestamp": "2024-07-27",
+        "strategy": 486.534,
+        "buyHold": 106.6945,
+        "relativePct": 356.0066,
+        "drawdownPct": -20.8552
+      },
+      {
+        "timestamp": "2024-08-03",
+        "strategy": 407.0505,
+        "buyHold": 82.6778,
+        "relativePct": 392.3335,
+        "drawdownPct": -33.7848
+      },
+      {
+        "timestamp": "2024-08-10",
+        "strategy": 409.2213,
+        "buyHold": 89.3433,
+        "relativePct": 358.0324,
+        "drawdownPct": -33.4317
+      },
+      {
+        "timestamp": "2024-08-17",
+        "strategy": 398.7088,
+        "buyHold": 82.3355,
+        "relativePct": 384.2487,
+        "drawdownPct": -35.1418
+      },
+      {
+        "timestamp": "2024-08-24",
+        "strategy": 412.3009,
+        "buyHold": 93.2069,
+        "relativePct": 342.3503,
+        "drawdownPct": -32.9308
+      },
+      {
+        "timestamp": "2024-08-31",
+        "strategy": 393.0117,
+        "buyHold": 78.5184,
+        "relativePct": 400.5346,
+        "drawdownPct": -36.0685
+      },
+      {
+        "timestamp": "2024-09-07",
+        "strategy": 389.8916,
+        "buyHold": 74.0863,
+        "relativePct": 426.2666,
+        "drawdownPct": -36.5761
+      },
+      {
+        "timestamp": "2024-09-14",
+        "strategy": 394.749,
+        "buyHold": 79.5568,
+        "relativePct": 396.1852,
+        "drawdownPct": -35.7859
+      },
+      {
+        "timestamp": "2024-09-21",
+        "strategy": 401.8894,
+        "buyHold": 86.6748,
+        "relativePct": 363.675,
+        "drawdownPct": -34.6244
+      },
+      {
+        "timestamp": "2024-09-28",
+        "strategy": 410.1366,
+        "buyHold": 90.9328,
+        "relativePct": 351.0326,
+        "drawdownPct": -33.2828
+      },
+      {
+        "timestamp": "2024-10-05",
+        "strategy": 395.9399,
+        "buyHold": 82.7184,
+        "relativePct": 378.66,
+        "drawdownPct": -35.5922
+      },
+      {
+        "timestamp": "2024-10-12",
+        "strategy": 385.8321,
+        "buyHold": 84.9286,
+        "relativePct": 354.3014,
+        "drawdownPct": -37.2365
+      },
+      {
+        "timestamp": "2024-10-19",
+        "strategy": 398.9045,
+        "buyHold": 92.6964,
+        "relativePct": 330.3346,
+        "drawdownPct": -35.11
+      },
+      {
+        "timestamp": "2024-10-26",
+        "strategy": 419.1983,
+        "buyHold": 99.1298,
+        "relativePct": 322.8781,
+        "drawdownPct": -31.8087
+      },
+      {
+        "timestamp": "2024-11-02",
+        "strategy": 404.5185,
+        "buyHold": 96.3975,
+        "relativePct": 319.6359,
+        "drawdownPct": -34.1967
+      },
+      {
+        "timestamp": "2024-11-09",
+        "strategy": 481.9905,
+        "buyHold": 115.9589,
+        "relativePct": 315.6563,
+        "drawdownPct": -21.5943
+      },
+      {
+        "timestamp": "2024-11-16",
+        "strategy": 536.6669,
+        "buyHold": 125.1363,
+        "relativePct": 328.8658,
+        "drawdownPct": -12.7001
+      },
+      {
+        "timestamp": "2024-11-23",
+        "strategy": 683.5409,
+        "buyHold": 147.8652,
+        "relativePct": 362.273,
+        "drawdownPct": -1.0903
+      },
+      {
+        "timestamp": "2024-11-30",
+        "strategy": 612.8618,
+        "buyHold": 137.835,
+        "relativePct": 344.6343,
+        "drawdownPct": -11.3177
+      },
+      {
+        "timestamp": "2024-12-07",
+        "strategy": 613.5219,
+        "buyHold": 138.1483,
+        "relativePct": 344.1039,
+        "drawdownPct": -11.2222
+      },
+      {
+        "timestamp": "2024-12-14",
+        "strategy": 591.2616,
+        "buyHold": 127.5844,
+        "relativePct": 363.4278,
+        "drawdownPct": -14.4433
+      },
+      {
+        "timestamp": "2024-12-21",
+        "strategy": 555.0589,
+        "buyHold": 105.2616,
+        "relativePct": 427.3136,
+        "drawdownPct": -19.6819
+      },
+      {
+        "timestamp": "2024-12-28",
+        "strategy": 561.1151,
+        "buyHold": 113.4122,
+        "relativePct": 394.7572,
+        "drawdownPct": -18.8056
+      },
+      {
+        "timestamp": "2025-01-04",
+        "strategy": 576.9298,
+        "buyHold": 125.6932,
+        "relativePct": 358.9983,
+        "drawdownPct": -16.5171
+      },
+      {
+        "timestamp": "2025-01-11",
+        "strategy": 556.3624,
+        "buyHold": 109.1136,
+        "relativePct": 409.8928,
+        "drawdownPct": -19.4933
+      },
+      {
+        "timestamp": "2025-01-18",
+        "strategy": 639.2271,
+        "buyHold": 151.9724,
+        "relativePct": 320.6205,
+        "drawdownPct": -7.5026
+      },
+      {
+        "timestamp": "2025-01-25",
+        "strategy": 627.2349,
+        "buyHold": 148.747,
+        "relativePct": 321.6792,
+        "drawdownPct": -9.2379
+      },
+      {
+        "timestamp": "2025-02-01",
+        "strategy": 543.2967,
+        "buyHold": 123.5816,
+        "relativePct": 339.6258,
+        "drawdownPct": -21.3839
+      },
+      {
+        "timestamp": "2025-02-08",
+        "strategy": 530.8879,
+        "buyHold": 115.6283,
+        "relativePct": 359.1333,
+        "drawdownPct": -23.1795
+      },
+      {
+        "timestamp": "2025-02-15",
+        "strategy": 528.9362,
+        "buyHold": 112.8205,
+        "relativePct": 368.8298,
+        "drawdownPct": -23.4619
+      },
+      {
+        "timestamp": "2025-02-22",
+        "strategy": 519.8995,
+        "buyHold": 99.8202,
+        "relativePct": 420.8362,
+        "drawdownPct": -24.7695
+      },
+      {
+        "timestamp": "2025-03-01",
+        "strategy": 508.4434,
+        "buyHold": 83.3391,
+        "relativePct": 510.0896,
+        "drawdownPct": -26.4273
+      },
+      {
+        "timestamp": "2025-03-08",
+        "strategy": 487.6334,
+        "buyHold": 79.4814,
+        "relativePct": 513.5191,
+        "drawdownPct": -29.4385
+      },
+      {
+        "timestamp": "2025-03-15",
+        "strategy": 487.0164,
+        "buyHold": 78.8142,
+        "relativePct": 517.9294,
+        "drawdownPct": -29.5278
+      },
+      {
+        "timestamp": "2025-03-22",
+        "strategy": 479.9029,
+        "buyHold": 74.5504,
+        "relativePct": 543.7294,
+        "drawdownPct": -30.5571
+      },
+      {
+        "timestamp": "2025-03-29",
+        "strategy": 478.2172,
+        "buyHold": 72.2706,
+        "relativePct": 561.704,
+        "drawdownPct": -30.801
+      },
+      {
+        "timestamp": "2025-04-05",
+        "strategy": 475.8423,
+        "buyHold": 69.7993,
+        "relativePct": 581.7296,
+        "drawdownPct": -31.1447
+      },
+      {
+        "timestamp": "2025-04-12",
+        "strategy": 490.1701,
+        "buyHold": 76.7142,
+        "relativePct": 538.9559,
+        "drawdownPct": -29.0714
+      },
+      {
+        "timestamp": "2025-04-19",
+        "strategy": 491.0439,
+        "buyHold": 81.1405,
+        "relativePct": 505.1772,
+        "drawdownPct": -28.945
+      },
+      {
+        "timestamp": "2025-04-26",
+        "strategy": 492.3845,
+        "buyHold": 86.5588,
+        "relativePct": 468.8441,
+        "drawdownPct": -28.751
+      },
+      {
+        "timestamp": "2025-05-03",
+        "strategy": 489.5944,
+        "buyHold": 85.1085,
+        "relativePct": 475.2593,
+        "drawdownPct": -29.1547
+      },
+      {
+        "timestamp": "2025-05-10",
+        "strategy": 535.7107,
+        "buyHold": 103.1964,
+        "relativePct": 419.1175,
+        "drawdownPct": -22.4816
+      },
+      {
+        "timestamp": "2025-05-17",
+        "strategy": 518.2821,
+        "buyHold": 96.2641,
+        "relativePct": 438.3962,
+        "drawdownPct": -25.0036
+      },
+      {
+        "timestamp": "2025-05-24",
+        "strategy": 532.7646,
+        "buyHold": 102.0246,
+        "relativePct": 422.1923,
+        "drawdownPct": -22.9079
+      },
+      {
+        "timestamp": "2025-05-31",
+        "strategy": 520.0901,
+        "buyHold": 90.7588,
+        "relativePct": 473.0465,
+        "drawdownPct": -24.742
+      },
+      {
+        "timestamp": "2025-06-07",
+        "strategy": 520.0901,
+        "buyHold": 87.0519,
+        "relativePct": 497.4485,
+        "drawdownPct": -24.742
+      },
+      {
+        "timestamp": "2025-06-14",
+        "strategy": 520.0901,
+        "buyHold": 83.9076,
+        "relativePct": 519.8363,
+        "drawdownPct": -24.742
+      },
+      {
+        "timestamp": "2025-06-21",
+        "strategy": 520.0901,
+        "buyHold": 78.5648,
+        "relativePct": 561.9887,
+        "drawdownPct": -24.742
+      },
+      {
+        "timestamp": "2025-06-28",
+        "strategy": 520.0901,
+        "buyHold": 87.4347,
+        "relativePct": 494.8323,
+        "drawdownPct": -24.742
+      },
+      {
+        "timestamp": "2025-07-05",
+        "strategy": 520.0901,
+        "buyHold": 85.5958,
+        "relativePct": 507.6118,
+        "drawdownPct": -24.742
+      },
+      {
+        "timestamp": "2025-07-12",
+        "strategy": 520.0901,
+        "buyHold": 93.2185,
+        "relativePct": 457.926,
+        "drawdownPct": -24.742
+      },
+      {
+        "timestamp": "2025-07-19",
+        "strategy": 526.3777,
+        "buyHold": 102.6569,
+        "relativePct": 412.7542,
+        "drawdownPct": -23.8321
+      },
+      {
+        "timestamp": "2025-07-26",
+        "strategy": 539.258,
+        "buyHold": 107.2514,
+        "relativePct": 402.798,
+        "drawdownPct": -21.9683
+      },
+      {
+        "timestamp": "2025-08-02",
+        "strategy": 527.0989,
+        "buyHold": 91.9364,
+        "relativePct": 473.3298,
+        "drawdownPct": -23.7278
+      },
+      {
+        "timestamp": "2025-08-09",
+        "strategy": 527.0989,
+        "buyHold": 104.3915,
+        "relativePct": 404.9253,
+        "drawdownPct": -23.7278
+      },
+      {
+        "timestamp": "2025-08-16",
+        "strategy": 527.0989,
+        "buyHold": 109.9896,
+        "relativePct": 379.2263,
+        "drawdownPct": -23.7278
+      },
+      {
+        "timestamp": "2025-08-23",
+        "strategy": 527.0989,
+        "buyHold": 118.4244,
+        "relativePct": 345.0931,
+        "drawdownPct": -23.7278
+      },
+      {
+        "timestamp": "2025-08-30",
+        "strategy": 494.2334,
+        "buyHold": 117.589,
+        "relativePct": 320.3056,
+        "drawdownPct": -28.4835
+      },
+      {
+        "timestamp": "2025-09-06",
+        "strategy": 491.1708,
+        "buyHold": 116.1156,
+        "relativePct": 323.0017,
+        "drawdownPct": -28.9266
+      },
+      {
+        "timestamp": "2025-09-13",
+        "strategy": 542.077,
+        "buyHold": 140.608,
+        "relativePct": 285.5237,
+        "drawdownPct": -21.5604
+      },
+      {
+        "timestamp": "2025-09-20",
+        "strategy": 538.5804,
+        "buyHold": 138.9256,
+        "relativePct": 287.6753,
+        "drawdownPct": -22.0664
+      },
+      {
+        "timestamp": "2025-09-27",
+        "strategy": 516.741,
+        "buyHold": 118.0299,
+        "relativePct": 337.805,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-10-04",
+        "strategy": 516.741,
+        "buyHold": 132.1847,
+        "relativePct": 290.9234,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-10-11",
+        "strategy": 516.741,
+        "buyHold": 103.0398,
+        "relativePct": 401.4965,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-10-18",
+        "strategy": 516.741,
+        "buyHold": 108.8061,
+        "relativePct": 374.919,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-10-25",
+        "strategy": 516.741,
+        "buyHold": 112.4492,
+        "relativePct": 359.5327,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-11-01",
+        "strategy": 516.741,
+        "buyHold": 108.1042,
+        "relativePct": 378.0027,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-11-08",
+        "strategy": 516.741,
+        "buyHold": 91.6696,
+        "relativePct": 463.6996,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-11-15",
+        "strategy": 516.741,
+        "buyHold": 80.9897,
+        "relativePct": 538.0332,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-11-22",
+        "strategy": 516.741,
+        "buyHold": 74.0167,
+        "relativePct": 598.141,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-11-29",
+        "strategy": 516.741,
+        "buyHold": 78.8433,
+        "relativePct": 555.4029,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-12-06",
+        "strategy": 516.741,
+        "buyHold": 76.6852,
+        "relativePct": 573.8468,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-12-13",
+        "strategy": 516.741,
+        "buyHold": 77.2363,
+        "relativePct": 569.0387,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-12-20",
+        "strategy": 516.741,
+        "buyHold": 72.9841,
+        "relativePct": 608.0185,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2025-12-27",
+        "strategy": 516.741,
+        "buyHold": 72.3576,
+        "relativePct": 614.149,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-01-03",
+        "strategy": 516.741,
+        "buyHold": 77.3698,
+        "relativePct": 567.8849,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-01-10",
+        "strategy": 516.741,
+        "buyHold": 78.8026,
+        "relativePct": 555.7406,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-01-17",
+        "strategy": 516.741,
+        "buyHold": 83.3739,
+        "relativePct": 519.7871,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-01-24",
+        "strategy": 516.741,
+        "buyHold": 73.7963,
+        "relativePct": 600.2265,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-01-31",
+        "strategy": 516.741,
+        "buyHold": 61.2484,
+        "relativePct": 743.6807,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-02-07",
+        "strategy": 516.741,
+        "buyHold": 50.8122,
+        "relativePct": 916.9632,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-02-14",
+        "strategy": 516.741,
+        "buyHold": 51.0848,
+        "relativePct": 911.5354,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-02-21",
+        "strategy": 516.741,
+        "buyHold": 49.4083,
+        "relativePct": 945.859,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-02-28",
+        "strategy": 516.741,
+        "buyHold": 48.9326,
+        "relativePct": 956.0262,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-03-07",
+        "strategy": 516.741,
+        "buyHold": 48.2771,
+        "relativePct": 970.3654,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-03-14",
+        "strategy": 516.741,
+        "buyHold": 51.0674,
+        "relativePct": 911.8801,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-03-21",
+        "strategy": 516.741,
+        "buyHold": 50.7948,
+        "relativePct": 917.3117,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-03-28",
+        "strategy": 516.741,
+        "buyHold": 47.6215,
+        "relativePct": 985.0994,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-04-04",
+        "strategy": 516.741,
+        "buyHold": 46.8906,
+        "relativePct": 1002.0142,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-04-11",
+        "strategy": 516.741,
+        "buyHold": 49.2691,
+        "relativePct": 948.8144,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-04-18",
+        "strategy": 516.741,
+        "buyHold": 49.9826,
+        "relativePct": 933.8418,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-04-25",
+        "strategy": 516.741,
+        "buyHold": 49.9942,
+        "relativePct": 933.6019,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-05-02",
+        "strategy": 516.741,
+        "buyHold": 48.8804,
+        "relativePct": 957.1542,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-05-09",
+        "strategy": 516.741,
+        "buyHold": 54.026,
+        "relativePct": 856.4674,
+        "drawdownPct": -25.2266
+      },
+      {
+        "timestamp": "2026-05-16",
+        "strategy": 497.0481,
+        "buyHold": 50.203,
+        "relativePct": 890.0757,
+        "drawdownPct": -28.0762
+      },
+      {
+        "timestamp": "2026-05-23",
+        "strategy": 497.0481,
+        "buyHold": 49.7447,
+        "relativePct": 899.1971,
+        "drawdownPct": -28.0762
+      },
+      {
+        "timestamp": "2026-05-30",
+        "strategy": 497.0481,
+        "buyHold": 47.9928,
+        "relativePct": 935.6721,
+        "drawdownPct": -28.0762
+      },
+      {
+        "timestamp": "2026-06-06",
+        "strategy": 497.0481,
+        "buyHold": 36.0831,
+        "relativePct": 1277.5105,
+        "drawdownPct": -28.0762
+      },
+      {
+        "timestamp": "2026-06-13",
+        "strategy": 497.0481,
+        "buyHold": 39.993,
+        "relativePct": 1142.8366,
+        "drawdownPct": -28.0762
+      },
+      {
+        "timestamp": "2026-06-20",
+        "strategy": 497.0481,
+        "buyHold": 42.4759,
+        "relativePct": 1070.1878,
+        "drawdownPct": -28.0762
+      },
+      {
+        "timestamp": "2026-06-27",
+        "strategy": 497.0481,
+        "buyHold": 40.898,
+        "relativePct": 1115.3355,
+        "drawdownPct": -28.0762
+      },
+      {
+        "timestamp": "2026-07-01",
+        "strategy": 497.0481,
+        "buyHold": 42.7254,
+        "relativePct": 1063.3558,
+        "drawdownPct": -28.0762
+      }
+    ]
+  }
+]

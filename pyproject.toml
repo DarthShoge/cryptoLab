@@ -1,0 +1,37 @@
+[project]
+name = "cryptolab-workspace"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8,<9", "playwright>=1.58,<2"]
+tools = ["pandas>=2,<3"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+  "packages/arblab",
+  "apps/kamino-simulator",
+  "apps/strategy-backtester",
+  "apps/report-explorer",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+  "packages/arblab/tests",
+  "apps/kamino-simulator/tests",
+  "apps/strategy-backtester/tests",
+  "apps/report-explorer/tests",
+  "tests",
+]
+addopts = "-p no:anchorpy -m 'not functional and not onchain and not market_data'"
+markers = [
+  "scenario: multi-step DeFi scenario tests",
+  "functional: browser-based functional tests",
+  "backtest: backtesting framework tests",
+  "onchain: tests requiring Solana RPC",
+  "market_data: tests requiring remote market data",
+]
