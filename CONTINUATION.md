@@ -55,4 +55,4 @@ uv run python -m kamino_simulator.cli --input data/fixtures/kamino_sample.json
 - `packages/arblab/src/arblab/kamino_risk.py` - Core risk models and liquidation calculations
 - `apps/kamino-simulator/src/kamino_simulator/cli.py` - CLI entry point
 - `data/fixtures/kamino_idl.json` - Kamino Lending Anchor IDL (from klend-sdk)
-- `requirements.txt` - Python dependencies
+- `pyproject.toml` and `uv.lock` - Python workspace metadata and locked dependencies
