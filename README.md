@@ -115,6 +115,14 @@ just test-browser
 
 Tests marked `onchain` (Solana RPC) or `market_data` (remote market data) are opt-in when such tests exist, for example `uv run pytest -m onchain` or `uv run pytest -m market_data`.
 
+## Hyperliquid trader ensemble
+
+The [offline trader-ensemble prototype](docs/hyperliquid-trader-ensemble.md) reuses
+Hyperliquid data helpers and tests causal wallet ranking, ensemble signals and
+delayed perpetual execution. It cannot submit exchange orders. Paid archive
+downloads require explicit cost acceptance; research and live-paper qualification
+remain separate checkpoints.
+
 ## Checks and generated data
 
 ```bash

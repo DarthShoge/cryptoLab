@@ -33,6 +33,11 @@ def price_cache_dir() -> Path:
     return (repo_root() / ".price_cache").resolve()
 
 
+def hyperliquid_cache_dir() -> Path:
+    """Return the local Hyperliquid research cache without creating it."""
+    return (repo_root() / ".hyperliquid_cache").resolve()
+
+
 def notebook_price_cache_dir() -> Path:
     """Return the absolute directory for the historical notebook price cache."""
     return (repo_root() / "notebooks" / ".price_cache").resolve()

@@ -14,6 +14,9 @@ dependencies = [
   "solana>=0.33.0",
   "base58",
   "python-dotenv",
+  "duckdb==1.5.5",
+  "hyperliquid-data==0.1.0",
+  "hyperliquid-python-sdk==0.24.0",
 ]
 
 [tool.hatch.build.targets.wheel]

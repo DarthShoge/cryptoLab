@@ -193,6 +193,8 @@ node_modules/
 
 # Price data cache (backtest)
 .price_cache/
+.hyperliquid_cache/
+reports/hyperliquid_trader_ensemble_*/
 
 # Local agent/process artifacts
 docs/superpowers/
