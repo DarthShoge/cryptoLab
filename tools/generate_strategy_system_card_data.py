@@ -11,7 +11,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 LATEST = ROOT / "reports/latest_strategy_presets_20260627_035218"
 TRANSFER = ROOT / "reports/btc_eth_directional_best_mechanics_20260628_172432"
-OUT = ROOT / "src/data/strategySystemCardData.ts"
+OUT = ROOT / "apps/strategy-system-card/src/data/strategySystemCardData.ts"
 
 TOP_NAME = "barbell_deep70_rec1.85_dd12_gy_cd12_thr5"
 
@@ -195,8 +195,8 @@ def _build_data() -> dict[str, Any]:
         "meta": {
             "title": "SOL/ETH Traffic-Light Governor System Card",
             "generatedFrom": [
-                str(LATEST.relative_to(ROOT)),
-                str(TRANSFER.relative_to(ROOT)),
+                str(Path("reports") / LATEST.name),
+                str(Path("reports") / TRANSFER.name),
             ],
             "topCandidate": TOP_NAME,
             "window": "2021-01-01 to 2026-06-01",

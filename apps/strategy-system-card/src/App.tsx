@@ -816,7 +816,7 @@ function KaminoSystemCard({ selected, onSelect }: { selected: "kamino" | "pure-p
                 </tbody>
               </table>
             </div>
-            <p className="footer-note">Generated typed data module: src/data/strategySystemCardData.ts</p>
+            <p className="footer-note">Generated typed data module: apps/strategy-system-card/src/data/strategySystemCardData.ts</p>
           </Section>
         </div>
       </main>
@@ -1092,7 +1092,7 @@ function PurePerpSystemCard({ selected, onSelect }: { selected: "kamino" | "pure
                 </tbody>
               </table>
             </div>
-            <p className="footer-note">Typed data module: src/data/purePerpSignalSystemCardData.ts</p>
+            <p className="footer-note">Typed data module: apps/strategy-system-card/src/data/purePerpSignalSystemCardData.ts</p>
           </Section>
         </div>
       </main>
