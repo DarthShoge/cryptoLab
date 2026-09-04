@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from arblab.backtest.app_helpers import (
+from strategy_backtester.app_helpers import (
     DEFAULT_END_DATE,
     DEFAULT_START_DATE,
     DEFAULT_STRATEGY,

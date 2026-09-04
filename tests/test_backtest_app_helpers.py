@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from arblab.backtest.app_helpers import (
+from strategy_backtester.app_helpers import (
     DEFAULT_END_DATE,
     DEFAULT_STRATEGY,
     DEFAULT_START_DATE,
