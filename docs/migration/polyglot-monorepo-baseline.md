@@ -4,14 +4,17 @@ Captured on 2026-09-04 before structural migration work. This record describes t
 approved source-tree checkpoint and the validation baseline for later migration
 tasks.
 
+Baseline commit: aef10192e859099b61936023e5c1e0078262d4b3
+
 ## Repository and snapshot state
 
-- Original approved-spec SHA: `aef10192e859099b61936023e5c1e0078262d4b3`
+- Source HEAD at capture: `aef10192e859099b61936023e5c1e0078262d4b3`
 - Original working tree: `/home/lshoge/code/cryptoLab`
 - Approved tracked-work checkpoint: `64570f7e202bc8640e23fdf5af49b188f44addbc`
   (`chore: checkpoint pre-monorepo working tree`)
 - Migration worktree: `/home/lshoge/code/cryptoLab/.worktrees/polyglot-monorepo`
-- Preserved source snapshot: `/tmp/cryptolab-monorepo-snapshot.nNbywJ`
+- Preserved source snapshot: `/tmp/cryptolab-monorepo-snapshot.nNbywJ` (retained
+  only through migration integration)
 - The worktree was clean immediately after the checkpoint commit.
 
 The task handoff described six modified paths, but the captured status contains
