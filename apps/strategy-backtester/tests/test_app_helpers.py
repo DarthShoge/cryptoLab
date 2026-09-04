@@ -323,7 +323,13 @@ def test_sol_supertrend_visible_controls_drop_leverage_loop_controls():
 
 
 def test_froth_reserve_rebuy_fraction_is_rendered_with_froth_reserve_controls():
-    app_source = Path("backtest_app.py").read_text()
+    app_path = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "strategy_backtester"
+        / "app.py"
+    )
+    app_source = app_path.read_text()
 
     froth_section = app_source.index("if enable_froth_reserve:")
     rebuy_fraction = app_source.index('"Froth Reserve Rebuy Fraction"')
