@@ -24,7 +24,7 @@
 - Modify `.gitignore`: workspace build/cache ignores without changing unrelated existing rules.
 - Modify `README.md`: new structure, setup, commands, and direct-tool alternatives.
 - Remove `pytest.ini` in Task 4 after the tests move and the equivalent root `pyproject.toml` configuration is verified against the new workspace paths.
-- Remove `requirements.txt`, `setup.py`, `package-lock.json`, and root TypeScript/Vite configuration only after their replacements pass.
+- Remove `requirements.txt`, `package-lock.json`, and root TypeScript/Vite configuration only after their replacements pass. Move the historical exchange-arbitrage `setup.py` under `legacy/exchange-arbitrage/` in Task 10.
 
 ### Shared Python package
 
@@ -53,7 +53,7 @@
 
 ### Legacy isolation
 
-- Move `main.py`, `arblab/account.py`, `arblab/arb_lab.py`, and `arblab/utils.py` under `legacy/exchange-arbitrage/`.
+- Move `main.py`, `arblab/account.py`, `arblab/arb_lab.py`, `arblab/utils.py`, `setup.py`, and `windows_setup.bat` under `legacy/exchange-arbitrage/`.
 - Create `legacy/exchange-arbitrage/README.md` documenting isolation and execution risk.
 
 ## Implementation Rules
@@ -572,6 +572,8 @@ git commit -m "refactor: move system card into pnpm workspace"
 - Move: `arblab/account.py` → `legacy/exchange-arbitrage/arblab/account.py`
 - Move: `arblab/arb_lab.py` → `legacy/exchange-arbitrage/arblab/arb_lab.py`
 - Move: `arblab/utils.py` → `legacy/exchange-arbitrage/arblab/utils.py`
+- Move: `setup.py` → `legacy/exchange-arbitrage/setup.py`
+- Move: `windows_setup.bat` → `legacy/exchange-arbitrage/windows_setup.bat`
 - Create: `legacy/exchange-arbitrage/arblab/__init__.py`
 - Create: `legacy/exchange-arbitrage/README.md`
 
@@ -680,7 +682,7 @@ git commit -m "build: add root workspace commands"
 **Files:**
 - Modify: `README.md`
 - Remove: `requirements.txt`
-- Remove: `setup.py`
+- Already moved: `setup.py` → `legacy/exchange-arbitrage/setup.py` in Task 10
 - Remove: `package-lock.json`
 - Previously removed: `pytest.ini` in Task 4 after workspace test discovery was verified
 - Confirm absent from root: `src/`, `index.html`, `vite.config.ts`, `tsconfig*.json`, active `*_app.py`
@@ -701,7 +703,7 @@ Expected: no unintended active-code or current-documentation matches. Historical
 
 - [ ] **Step 3: Remove old dependency metadata**
 
-Only after `uv sync`, `pnpm install`, Python tests, typecheck, and build have succeeded, use `git rm` for `requirements.txt`, `setup.py`, and `package-lock.json`. `pytest.ini` was already removed in Task 4 after verifying pytest's root `pyproject.toml` configuration.
+Only after `uv sync`, `pnpm install`, Python tests, typecheck, and build have succeeded, use `git rm` for `requirements.txt` and `package-lock.json`. `setup.py` was already moved to `legacy/exchange-arbitrage/` in Task 10, and `pytest.ini` was already removed in Task 4 after verifying pytest's root `pyproject.toml` configuration.
 
 - [ ] **Step 4: Verify clean reproducibility**
 
@@ -719,7 +721,7 @@ Expected: both installs exit 0 and neither lockfile changes. Do not delete or re
 
 ```bash
 git add README.md
-git rm requirements.txt setup.py package-lock.json
+git rm requirements.txt package-lock.json
 git commit -m "docs: make workspace commands canonical"
 ```
 
