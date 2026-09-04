@@ -8,6 +8,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+from arblab.paths import notebook_price_cache_dir, reports_dir
 from arblab.backtest.report_explorer import (
     build_buy_hold_frame,
     build_composition_frame,
@@ -35,7 +36,7 @@ st.set_page_config(page_title="Strategy Report Explorer", layout="wide")
 st.title("Strategy Report Explorer")
 
 MAX_CHART_POINTS = 800
-REPORT_ROOT = Path("reports")
+REPORT_ROOT = reports_dir()
 
 
 def _downsample(df: pd.DataFrame, max_points: int = MAX_CHART_POINTS) -> pd.DataFrame:
@@ -56,7 +57,7 @@ def _load_report(path: str):
 
 @st.cache_data(show_spinner=False)
 def _load_prices():
-    return load_price_cache(Path("notebooks/.price_cache"), ["SOL", "ETH"])
+    return load_price_cache(notebook_price_cache_dir(), ["SOL", "ETH"])
 
 
 def _format_money(value: object) -> str:

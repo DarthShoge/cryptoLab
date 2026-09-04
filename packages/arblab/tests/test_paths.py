@@ -4,6 +4,7 @@ from pathlib import Path
 
 from arblab.paths import (
     fixture_path,
+    notebook_price_cache_dir,
     price_cache_dir,
     repo_root,
     reports_dir,
@@ -21,6 +22,7 @@ def test_paths_are_absolute_and_independent_of_cwd(monkeypatch, tmp_path):
     assert fixture_path("prices/sample.csv") == expected_root / "data/fixtures/prices/sample.csv"
     assert reports_dir() == expected_root / "reports"
     assert price_cache_dir() == expected_root / ".price_cache"
+    assert notebook_price_cache_dir() == expected_root / "notebooks/.price_cache"
     assert all(
         path.is_absolute()
         for path in (
@@ -28,6 +30,7 @@ def test_paths_are_absolute_and_independent_of_cwd(monkeypatch, tmp_path):
             fixture_path("sample.csv"),
             reports_dir(),
             price_cache_dir(),
+            notebook_price_cache_dir(),
         )
     )
 
@@ -41,6 +44,7 @@ def test_environment_override_is_resolved_against_cwd(monkeypatch, tmp_path):
     assert fixture_path("sample.csv") == expected_root / "data/fixtures/sample.csv"
     assert reports_dir() == expected_root / "reports"
     assert price_cache_dir() == expected_root / ".price_cache"
+    assert notebook_price_cache_dir() == expected_root / "notebooks/.price_cache"
 
 
 def test_path_helpers_do_not_create_directories(monkeypatch, tmp_path):
@@ -50,5 +54,6 @@ def test_path_helpers_do_not_create_directories(monkeypatch, tmp_path):
     fixture_path("nested/sample.csv")
     reports_dir()
     price_cache_dir()
+    notebook_price_cache_dir()
 
     assert not root.exists()

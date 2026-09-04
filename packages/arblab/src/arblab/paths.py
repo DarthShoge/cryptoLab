@@ -31,3 +31,8 @@ def reports_dir() -> Path:
 def price_cache_dir() -> Path:
     """Return the absolute directory for the repository price cache."""
     return (repo_root() / ".price_cache").resolve()
+
+
+def notebook_price_cache_dir() -> Path:
+    """Return the absolute directory for the historical notebook price cache."""
+    return (repo_root() / "notebooks" / ".price_cache").resolve()
