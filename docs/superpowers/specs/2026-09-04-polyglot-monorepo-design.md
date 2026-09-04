@@ -102,11 +102,11 @@ The existing `kamino_app.py`, `backtest_app.py`, and `strategy_report_app.py` be
 
 The current root Vite project becomes `apps/strategy-system-card`. It owns its Vite and TypeScript configuration, browser-facing source, assets, tests, and package scripts. The root Node package is private and contains only workspace-wide scripts or metadata; it is not itself an application.
 
-The existing Python generator remains in `tools/` because it is a repository maintenance task. Its output path is explicit and targets the TypeScript application's data directory. It runs through the Python workspace rather than maintaining a separate ad hoc environment.
+The existing Python generator remains in `tools/` because it is a repository maintenance task. Its output path is explicit and targets the TypeScript application's data directory. Its Python dependencies are declared in a root `tools` dependency group in the workspace `pyproject.toml`, and it runs through that group rather than maintaining a separate ad hoc environment.
 
 ### Legacy code
 
-The old `main.py` exchange-arbitrage runner and the tightly coupled exchange account/arbitrage modules move to `legacy/exchange-arbitrage`. Legacy code is excluded from normal imports, tests, and workspace commands. A README records why it is isolated and that it may execute exchange operations; the migration does not repair or run it.
+The old `main.py` exchange-arbitrage runner and its tightly coupled `arblab/account.py`, `arblab/arb_lab.py`, and `arblab/utils.py` modules move to `legacy/exchange-arbitrage`. Repository usage confirms these modules form a separate subsystem. Legacy code is excluded from normal imports, tests, and workspace commands. A README records why it is isolated and that it may execute exchange operations; the migration does not repair or run it.
 
 ### Data and durable artifacts
 
@@ -142,7 +142,7 @@ just dev-system-card
 ```
 
 - `install` synchronizes the Python workspace and installs the pnpm workspace.
-- `test` runs the default offline Python and TypeScript test suites.
+- `test` runs the default offline Python and TypeScript test suites. Separate recipes document and run opt-in browser, RPC/on-chain, and market-data test categories.
 - `typecheck` runs configured Python static checks, if retained or added during migration, plus TypeScript type checking.
 - `build` builds the TypeScript application and any meaningful package build checks.
 - Each `dev-*` command launches exactly one frontend.
@@ -158,7 +158,7 @@ Tests move with the behavior they verify:
 - `apps/strategy-system-card/tests` contains its TypeScript and browser tests.
 - `tests/integration` is reserved for tests that genuinely cross package or application boundaries.
 
-Default tests must remain offline and deterministic. Existing functional, scenario, backtest, or on-chain markers remain available, with tests needing browsers, RPC services, or market data invoked explicitly where necessary. Test discovery is configured centrally and verified after every move.
+Default tests must remain offline and deterministic. Existing functional, scenario, backtest, or on-chain markers remain available. Dedicated `just test-browser`, `just test-onchain`, and `just test-market-data` recipes (limited to categories actually present after test classification) provide explicit entry points for tests needing browsers, RPC services, or market data. Test discovery is configured centrally and verified after every move.
 
 ## Migration Sequence
 
@@ -197,4 +197,3 @@ The reorganization is complete when:
 - No active code or documentation retains unintended references to removed root entry points or old fixture paths.
 - Historical reports, research, notebooks, and all pre-existing uncommitted changes remain intact.
 - The legacy arbitrage code is isolated and excluded from normal workspace operations.
-
