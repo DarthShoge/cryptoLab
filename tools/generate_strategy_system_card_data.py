@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,43 @@ TRANSFER = ROOT / "reports/btc_eth_directional_best_mechanics_20260628_172432"
 OUT = ROOT / "apps/strategy-system-card/src/data/strategySystemCardData.ts"
 
 TOP_NAME = "barbell_deep70_rec1.85_dd12_gy_cd12_thr5"
+
+TRANSFER_CHART_NAMES = (
+    "control_best_SOL_ETH",
+    "best_mechanics_SOL_only_directional",
+    "best_mechanics_BTC_only_directional",
+    "best_mechanics_ETH_only_directional",
+)
+
+
+def _summary_names(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    summary = pd.read_csv(path, usecols=["name"])
+    return set(summary["name"].astype(str))
+
+
+def _required_input_paths() -> list[Path]:
+    latest_summary = LATEST / "summary.csv"
+    transfer_summary = TRANSFER / "summary.csv"
+    paths = {
+        latest_summary,
+        transfer_summary,
+        TRANSFER / "benchmarks.csv",
+        TRANSFER / "regime_summary.csv",
+    }
+    latest_names = _summary_names(latest_summary) | {TOP_NAME}
+    transfer_names = _summary_names(transfer_summary) | set(TRANSFER_CHART_NAMES)
+    paths.update(LATEST / f"{name}_history.csv" for name in latest_names)
+    paths.update(TRANSFER / f"{name}_history.csv" for name in transfer_names)
+    return sorted(paths, key=str)
+
+
+def _validate_required_inputs() -> None:
+    missing = [path for path in _required_input_paths() if not path.is_file()]
+    if missing:
+        details = "\n".join(f"- {path}" for path in missing)
+        raise FileNotFoundError(f"Missing required strategy system card inputs:\n{details}")
 
 
 def _load_csv(path: Path) -> pd.DataFrame:
@@ -290,14 +328,30 @@ def _build_data() -> dict[str, Any]:
 
 
 def main() -> None:
+    _validate_required_inputs()
     data = _build_data()
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(
+    content = (
         "import type { StrategySystemCardData } from \"../types\";\n\n"
         "export const strategySystemCardData = "
         + json.dumps(data, indent=2, allow_nan=False)
         + " satisfies StrategySystemCardData;\n"
     )
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=OUT.parent,
+            prefix=f".{OUT.name}.",
+            delete=False,
+        ) as temp_file:
+            temp_path = Path(temp_file.name)
+            temp_file.write(content)
+        temp_path.replace(OUT)
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
     print(f"wrote {OUT.relative_to(ROOT)}")
 
 
