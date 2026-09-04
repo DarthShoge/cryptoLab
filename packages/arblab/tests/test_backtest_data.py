@@ -10,7 +10,8 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from arblab.backtest.data import OHLCVConfig, fetch_ohlcv
+from arblab.backtest.data import DEFAULT_CACHE_DIR, OHLCVConfig, fetch_ohlcv
+from arblab.paths import price_cache_dir
 
 
 # ---------------------------------------------------------------------------
@@ -46,6 +47,15 @@ def _patch_ccxt(mock_exchange: MagicMock):
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
+def test_default_cache_dir_is_stable_after_chdir(monkeypatch, tmp_path):
+    expected = price_cache_dir()
+
+    monkeypatch.chdir(tmp_path)
+
+    assert DEFAULT_CACHE_DIR == expected
+    assert DEFAULT_CACHE_DIR == price_cache_dir()
+
 
 class TestOHLCVConfig:
     def test_construction(self):

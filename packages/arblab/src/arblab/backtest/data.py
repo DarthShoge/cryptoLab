@@ -10,7 +10,10 @@ from typing import List, Optional
 
 import pandas as pd
 
-DEFAULT_CACHE_DIR = Path(".price_cache")
+from arblab.paths import price_cache_dir
+
+
+DEFAULT_CACHE_DIR = price_cache_dir()
 
 
 @dataclass(frozen=True)
