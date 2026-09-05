@@ -7,6 +7,11 @@
     "build": "pnpm --filter @cryptolab/strategy-system-card build",
     "typecheck": "pnpm --filter @cryptolab/strategy-system-card typecheck",
     "preview": "pnpm --filter @cryptolab/strategy-system-card preview",
-    "generate:system-card-data": "pnpm --filter @cryptolab/strategy-system-card generate:system-card-data"
+    "generate:system-card-data": "pnpm --filter @cryptolab/strategy-system-card generate:system-card-data",
+    "dev:hyperliquid": "pnpm --filter @cryptolab/hyperliquid-explorer dev",
+    "build:hyperliquid": "pnpm --filter @cryptolab/hyperliquid-explorer build",
+    "test:hyperliquid": "pnpm --filter @cryptolab/hyperliquid-explorer test",
+    "test:hyperliquid-browser": "pnpm --filter @cryptolab/hyperliquid-explorer test:browser",
+    "types:hyperliquid": "pnpm --filter @cryptolab/hyperliquid-explorer types:check"
   }
 }

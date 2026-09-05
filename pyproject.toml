@@ -13,6 +13,7 @@ package = false
 
 [tool.uv.workspace]
 members = [
+  "apps/hyperliquid-explorer-api",
   "packages/arblab",
   "apps/kamino-simulator",
   "apps/strategy-backtester",
@@ -21,6 +22,7 @@ members = [
 
 [tool.pytest.ini_options]
 testpaths = [
+  "apps/hyperliquid-explorer-api/tests",
   "packages/arblab/tests",
   "apps/kamino-simulator/tests",
   "apps/strategy-backtester/tests",

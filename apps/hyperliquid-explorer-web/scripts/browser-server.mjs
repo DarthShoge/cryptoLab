@@ -1,0 +1,44 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { execFileSync, spawn } from "node:child_process";
+
+const root = fileURLToPath(new URL("../../../", import.meta.url));
+const python = join(root, ".venv/bin/python");
+const reports = mkdtempSync(join(tmpdir(), "hyperliquid-explorer-browser-"));
+execFileSync(
+  python,
+  [
+    "tools/generate_hyperliquid_explorer_demo.py",
+    "--output",
+    join(reports, "hyperliquid_trader_ensemble_browser_demo"),
+  ],
+  { cwd: root, stdio: "inherit" },
+);
+const server = spawn(
+  python,
+  [
+    "-m",
+    "uvicorn",
+    "hyperliquid_explorer_api.app:app",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8011",
+    "--ws",
+    "none",
+  ],
+  {
+    cwd: root,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      HYPERLIQUID_REPORTS_ROOT: reports,
+      HYPERLIQUID_WEB_ROOT: join(root, "apps/hyperliquid-explorer-web/dist"),
+    },
+  },
+);
+for (const signal of ["SIGTERM", "SIGINT"])
+  process.on(signal, () => server.kill(signal));
+server.on("exit", (code) => process.exit(code ?? 0));

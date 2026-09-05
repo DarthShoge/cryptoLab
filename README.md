@@ -1,13 +1,14 @@
 # CryptoLab
 
-CryptoLab is a polyglot workspace for DeFi lending-risk analysis and strategy research. It contains four independently runnable frontends:
+CryptoLab is a polyglot workspace for DeFi lending-risk analysis and strategy research. It contains five independently runnable frontends:
 
 - `kamino-simulator`: Streamlit liquidation-risk simulator and CLI
 - `strategy-backtester`: Streamlit historical strategy backtester
 - `report-explorer`: Streamlit explorer for generated research reports
 - `strategy-system-card`: React/Vite strategy system card
+- `hyperliquid-explorer-web` + `hyperliquid-explorer-api`: read-only React/TypeScript dashboard with a Python/FastAPI backend
 
-The three Python frontends share the `arblab` package. The JavaScript frontend is an independent pnpm workspace package.
+The Python apps share the `arblab` package. The JavaScript frontends are independent pnpm workspace packages.
 
 ## Prerequisites
 
@@ -123,6 +124,9 @@ delayed perpetual execution. It cannot submit exchange orders. Paid archive
 downloads require explicit cost acceptance; research and live-paper qualification
 remain separate checkpoints.
 
+The [read-only dashboard guide](docs/hyperliquid-explorer.md) covers the local UI,
+synthetic demo, portfolio analytics and startup at `http://127.0.0.1:8010`.
+
 ## Checks and generated data
 
 ```bash
@@ -149,6 +153,8 @@ apps/
   strategy-backtester/    Python Streamlit UI and app tests
   report-explorer/        Python Streamlit report UI and app tests
   strategy-system-card/   React/Vite UI and frontend-owned source
+  hyperliquid-explorer-api/ Python/FastAPI read-only artifact API
+  hyperliquid-explorer-web/ React/TypeScript report and portfolio dashboard
 packages/
   arblab/                 Shared Python domain, backtest, and strategy library
 tests/integration/        Cross-workspace integration checks

@@ -177,6 +177,8 @@ node_modules/
 
 # Playwright MCP
 .playwright-mcp/
+apps/hyperliquid-explorer-web/test-results/
+apps/hyperliquid-explorer-web/playwright-report/
 
 # Screenshots (test artifacts)
 *.png

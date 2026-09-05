@@ -10,6 +10,7 @@ resolution-markers = [
 members = [
     "arblab",
     "cryptolab-workspace",
+    "hyperliquid-explorer-api",
     "kamino-simulator",
     "report-explorer",
     "strategy-backtester",
@@ -224,6 +225,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/69/68/89adc5886abc87fa719cc76e5bc08c2fb4f48346b63fbb009aa3d18f55a0/anchorpy_core-0.2.0-cp37-abi3-musllinux_1_2_i686.whl", hash = "sha256:41588e343bad3945bf5bbdeeff1c92c6cf8b517590739e100d96fc9505c3bc6f", size = 2159888, upload-time = "2023-12-29T12:53:26.861Z" },
     { url = "https://files.pythonhosted.org/packages/02/ef/3666c84e46ee2d63bfcc67036bac55440b34c91ae2f12655b6308698b028/anchorpy_core-0.2.0-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:af25089ba1fe2a3494536b77d8b93e191cce50ced5afa2fdf7cc83a0d0839750", size = 2138551, upload-time = "2023-12-29T12:53:29.766Z" },
     { url = "https://files.pythonhosted.org/packages/8f/a3/c74871de3844c3cc7acd57a889537b9b83489bd6a2330587f7d861c89c75/anchorpy_core-0.2.0-cp37-abi3-win_amd64.whl", hash = "sha256:9e0d34e2b168855847d0b0c2e33d3c63767a89bb7b78bcb377365b4e6db6aaba", size = 677626, upload-time = "2023-12-29T12:53:32.307Z" },
+]
+
+[[package]]
+name = "annotated-doc"
+version = "0.0.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/8e/38aa427ed5402449e226975b649c5dc73ccadfefeb95e6aecb8f8ea4b6b6/annotated_doc-0.0.5.tar.gz", hash = "sha256:c7e58ce09192557605d8bbd92836d7e1d520ac9580096042c0bfd197efacf1bb", size = 10758, upload-time = "2026-07-28T13:50:58.129Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3e/30/e900b21425a860e195f32e37657aa1f7c7f2b1bfb26f03ca209b90933c06/annotated_doc-0.0.5-py3-none-any.whl", hash = "sha256:117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101", size = 5302, upload-time = "2026-07-28T13:50:57.239Z" },
 ]
 
 [[package]]
@@ -1149,6 +1159,22 @@ wheels = [
 ]
 
 [[package]]
+name = "fastapi"
+version = "0.141.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "annotated-doc" },
+    { name = "pydantic" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8a/02/91e3416a8fdd715abb903a952a6bec7cdd8d14eed55d415fc8595524c319/fastapi-0.141.1.tar.gz", hash = "sha256:e8822fc40db1e1858054d7a949a888695bc9bdce70139178e33bd2871a453ca1", size = 425799, upload-time = "2026-07-29T17:18:05.568Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/03/10388a42375ee7e4ac9b94eb2c5c569c8b5795e377e701c9ac3ad63de890/fastapi-0.141.1-py3-none-any.whl", hash = "sha256:bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3", size = 131954, upload-time = "2026-07-29T17:18:04.364Z" },
+]
+
+[[package]]
 name = "frozenlist"
 version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1412,6 +1438,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/72/d7/b7a7958be1d62e04a4556d7efec691e025fac7f82d321f8b493500a752a6/hyperliquid_data-0.1.0.tar.gz", hash = "sha256:c192f8db06555e180280e21e30161fff2ac70856ae8263e7bcd9cf2beb71d962", size = 69429, upload-time = "2026-08-06T06:17:18.537Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bb/54/159dd4fab96952fba1928b7ec81be27b596899c81a5329fdaf91a8d64bed/hyperliquid_data-0.1.0-py3-none-any.whl", hash = "sha256:ec1ed0cf15609bf13ae93fb63352955fa02432347cd7971685fc79c216e42546", size = 56767, upload-time = "2026-08-06T06:17:17.177Z" },
+]
+
+[[package]]
+name = "hyperliquid-explorer-api"
+version = "0.1.0"
+source = { editable = "apps/hyperliquid-explorer-api" }
+dependencies = [
+    { name = "arblab" },
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "arblab", editable = "packages/arblab" },
+    { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "httpx", specifier = ">=0.27,<1" },
+    { name = "uvicorn", specifier = ">=0.30,<1" },
 ]
 
 [[package]]
@@ -3078,6 +3123,19 @@ wheels = [
 ]
 
 [[package]]
+name = "starlette"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b5/b4/205b0d5241d934e8add0c38aa924c4f9fb7330834ff11e5444db964ec3f9/starlette-1.6.0.tar.gz", hash = "sha256:d4e3ac5e546444960c710297a3c9fc3f7ebae1b7e963f3d36173b49da535be9b", size = 2716969, upload-time = "2026-08-08T18:27:57.512Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/cb/6a6a47d5b464bd08695d254f3da6e7986cc70c9fa5d778eda57538edfe56/starlette-1.6.0-py3-none-any.whl", hash = "sha256:a86dd39d14bb45f85a3d18525215a9ef0cfd1f192ac793220e72598c90335f0c", size = 75969, upload-time = "2026-08-08T18:27:56.196Z" },
+]
+
+[[package]]
 name = "strategy-backtester"
 version = "0.1.0"
 source = { editable = "apps/strategy-backtester" }
@@ -3222,6 +3280,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/53/0c/06f8b233b8fd13b9e5ee11424ef85419ba0d8ba0b3138bf360be2ff56953/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c", size = 433602, upload-time = "2026-05-07T16:13:18.596Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897", size = 131087, upload-time = "2026-05-07T16:13:17.151Z" },
+]
+
+[[package]]
+name = "uvicorn"
+version = "0.52.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f2/0f/3f86e61397dd33bf2ccf28188c40db6a740658aeebbbf6e7dbc101a1f487/uvicorn-0.52.4.tar.gz", hash = "sha256:73acfee47a0b133c5de13d219492d62d8a31e935f4fe6e41a232451a15379f86", size = 100627, upload-time = "2026-08-19T06:27:41.821Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f1/79/4a20b54ab0491485ccd8c077db2d39187c7f12b3e15485d38a7be37c81b4/uvicorn-0.52.4-py3-none-any.whl", hash = "sha256:f86e41a149d7d05a9969337e3946a9c171c06a5d42680896daaba624aeac8da1", size = 79871, upload-time = "2026-08-19T06:27:40.36Z" },
 ]
 
 [[package]]
