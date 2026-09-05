@@ -1,5 +1,11 @@
 # Hyperliquid read-only report explorer
 
+> Superseded product direction: see [the copy-strategy lab design](2026-09-05-hyperliquid-copy-strategy-lab-design.md).
+> The original explorer remains the implemented baseline. The revised design adds
+> strategy configuration, saved backtest execution/comparison and first-class
+> historical trader-universe analysis; it retains the metric and artifact-safety
+> conventions below unless explicitly changed.
+
 ## Approved direction
 
 The user approved a read-only first version: React, TypeScript and Vite frontend,
