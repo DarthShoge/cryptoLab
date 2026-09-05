@@ -14,6 +14,17 @@ import { Status } from "./Status";
 import { RankingTable } from "./Universe";
 import { usePreflight } from "./usePreflight";
 import { RunPreflight } from "./RunPreflight";
+import { MarketUniverseBuilder } from "./MarketUniverseBuilder";
+import { useResource } from "./api";
+import type { components } from "./api.generated";
+import { MarketUniverse as MarketHistory } from "./MarketUniverse";
+import {
+  editorConfig,
+  universeOf,
+  wireConfig,
+  type MarketUniverse,
+  type WireConfig,
+} from "./marketConfig";
 
 type Props = {
   bootstrap: Bootstrap;
@@ -28,7 +39,10 @@ export function StrategyBuilder({
   onRun,
 }: Props) {
   const [config, setConfig] = useState<Config>(
-    (initial?.config ?? bootstrap.defaults) as Config,
+    editorConfig((initial?.config ?? bootstrap.defaults) as WireConfig),
+  );
+  const [marketUniverse, setMarketUniverse] = useState<MarketUniverse>(
+    universeOf((initial?.config ?? bootstrap.defaults) as WireConfig),
   );
   const [name, setName] = useState(
     initial?.name ?? "My trader-copy hypothesis",
@@ -42,10 +56,20 @@ export function StrategyBuilder({
   const [previewDate, setPreviewDate] = useState(config.start),
     [previewScope, setPreviewScope] = useState(config.coins[0]);
   const preview = useExperiment(previewId);
+  const previewInfo = useResource<components["schemas"]["PreviewInfo"]>(
+    preview.data?.status === "completed"
+      ? `/api/lab/experiments/${previewId}/preview-info`
+      : null,
+  );
   const dataset = datasets.find((d) => d.id === datasetId);
+  const submittedConfig = wireConfig(config, marketUniverse);
+  const previewAssets =
+    marketUniverse.mode === "explicit"
+      ? marketUniverse.instrument_ids
+      : (dataset?.coins ?? []);
   const preflight = usePreflight(
     dataset?.available ? datasetId : "",
-    config,
+    submittedConfig,
     bootstrap.token,
   );
   const submitting = useRef(false);
@@ -92,7 +116,7 @@ export function StrategyBuilder({
       const body = {
         name,
         dataset_id: datasetId,
-        config,
+        config: submittedConfig,
         parent_id: initial?.parent_id,
       };
       const result = await mutate<Experiment>(
@@ -102,7 +126,12 @@ export function StrategyBuilder({
           ? {
               ...body,
               decision_date: previewDate,
-              scope: config.scope === "pooled" ? null : previewScope,
+              scope:
+                config.scope === "pooled"
+                  ? null
+                  : previewAssets.includes(previewScope)
+                    ? previewScope
+                    : previewAssets[0],
             }
           : body,
       );
@@ -117,8 +146,10 @@ export function StrategyBuilder({
   };
   const preset = () => {
     if (dataset?.default_config) {
-      const c = dataset.default_config as Config;
+      const wire = dataset.default_config as WireConfig;
+      const c = editorConfig(wire, dataset.coins ?? []);
       setConfig(c);
+      setMarketUniverse(universeOf(wire));
       setPreviewDate(c.start);
       setPreviewScope(c.coins[0]);
       setError("");
@@ -129,7 +160,7 @@ export function StrategyBuilder({
     <>
       <div className="hypothesis-strip">
         <span className="eyebrow">EDITABLE STRATEGY DRAFT</span>
-        <p>{strategySummary(config)}</p>
+        <p>{strategySummary(submittedConfig)}</p>
       </div>
       <div className="builder-layout">
         <div>
@@ -148,37 +179,18 @@ export function StrategyBuilder({
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
-            <fieldset>
-              <legend>Copied markets</legend>
-              <div className="check-row">
-                {["BTC", "ETH", "SOL"].map((coin) => (
-                  <label key={coin}>
-                    <input
-                      type="checkbox"
-                      checked={config.coins.includes(coin)}
-                      onChange={(e) => {
-                        const coins = e.target.checked
-                          ? [...config.coins, coin].sort()
-                          : config.coins.filter((c) => c !== coin);
-                        setConfig((c) => ({
-                          ...c,
-                          coins,
-                          asset_weights: Object.fromEntries(
-                            coins.map((c) => [c, 1 / coins.length]),
-                          ),
-                        }));
-                        if (!e.target.checked && previewScope === coin)
-                          setPreviewScope(coins[0] ?? "");
-                      }}
-                    />
-                    {coin}
-                  </label>
-                ))}
-              </div>
-              <small>
-                BTC benchmark data is independent of these copied markets.
-              </small>
-            </fieldset>
+            {initial?.config.schema_version === "hyperliquid_copy_lab_v1" && (
+              <p className="notice">
+                Legacy configuration cloned into a v2 draft. Original settings
+                and saved evidence are preserved.
+              </p>
+            )}
+            <MarketUniverseBuilder
+              key={datasetId}
+              dataset={dataset}
+              value={marketUniverse}
+              onChange={setMarketUniverse}
+            />
             <div className="form-grid">
               {choose("scope", "Ranking scope", ["per_asset", "pooled"])}
               {numeric("lookback_days", "Trailing lookback (days)", "1")}
@@ -312,23 +324,6 @@ export function StrategyBuilder({
               )}
               {numeric("gross_cap", "Gross exposure budget (multiple)")}
               {numeric("asset_cap", "Per-asset exposure cap (multiple)")}
-              {config.coins.map((coin) => (
-                <label key={coin}>
-                  {coin} asset budget
-                  <input
-                    aria-label={`${coin} asset budget`}
-                    type="number"
-                    step="any"
-                    value={config.asset_weights[coin]}
-                    onChange={(e) =>
-                      set("asset_weights", {
-                        ...config.asset_weights,
-                        [coin]: Number(e.target.value),
-                      })
-                    }
-                  />
-                </label>
-              ))}
             </div>
             <small>
               Asset budgets must sum to one. Equal trader votes and equal asset
@@ -449,7 +444,7 @@ export function StrategyBuilder({
             )}
             <button
               className="primary full-width"
-              disabled={busy || !preflight.ready || !config.coins.length}
+              disabled={busy || !preflight.ready}
               onClick={() => void run()}
             >
               {busy ? "Saving…" : "Run and save backtest"}
@@ -474,10 +469,14 @@ export function StrategyBuilder({
                 Preview asset
                 <select
                   aria-label="Preview asset"
-                  value={previewScope}
+                  value={
+                    previewAssets.includes(previewScope)
+                      ? previewScope
+                      : (previewAssets[0] ?? "")
+                  }
                   onChange={(e) => setPreviewScope(e.target.value)}
                 >
-                  {config.coins.map((c) => (
+                  {previewAssets.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
                 </select>
@@ -507,14 +506,25 @@ export function StrategyBuilder({
               {
                 " — frozen historical preview; subsequent draft edits do not change it. "
               }
-              {strategySummary(preview.data.config as Config)}
+              {strategySummary(preview.data.config as WireConfig)}
             </p>
           )}
           {preview.data?.error && (
             <p className="notice error">{preview.data.error}</p>
           )}
           {preview.data?.status === "completed" && (
-            <RankingTable id={previewId} />
+            <>
+              <Status {...previewInfo} />
+              {previewInfo.data?.hypothetical != null && (
+                <p className="notice">
+                  {previewInfo.data.hypothetical
+                    ? "Hypothetical as-of preview — not a scheduled trader-selection decision."
+                    : "Actual trader-selection decision — rankings match the replay schedule."}
+                </p>
+              )}
+              <RankingTable id={previewId} />
+              <MarketHistory id={previewId} start={preview.data.config.start} />
+            </>
           )}
         </section>
       )}

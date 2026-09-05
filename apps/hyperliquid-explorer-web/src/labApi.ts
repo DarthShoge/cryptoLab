@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { components } from "./api.generated";
+import { editorConfig, marketSummary, type WireConfig } from "./marketConfig";
 export type Config = Required<components["schemas"]["LabConfig"]>;
 export type Experiment = components["schemas"]["Experiment"];
 export type Dataset = components["schemas"]["Dataset"];
@@ -78,22 +79,27 @@ export function useExperiment(id: string | null) {
   };
 }
 
-export function strategySummary(config: Config) {
+export function strategySummary(wire: WireConfig) {
+  const config = editorConfig(wire);
   const cohort =
     config.selection === "n"
       ? `top ${config.top_n}`
       : `top ${(config.top_fraction ?? 0) * 100}%`;
-  return `${config.coins.join(" + ")} · ${config.scope.replace("_", " ")} · ${cohort} eligible · ${config.lookback_days}d · ${config.reselection} · ${config.aggregation.replace(/_/g, " ")} · BTC perp benchmark`;
+  const markets =
+    wire.schema_version === "hyperliquid_copy_lab_v2"
+      ? marketSummary(wire.market_universe)
+      : config.coins.join(" + ");
+  return `${markets} · ${config.scope.replace("_", " ")} · ${cohort} eligible · ${config.lookback_days}d · ${config.reselection} · ${config.aggregation.replace(/_/g, " ")} · BTC perp benchmark`;
 }
 
 export function experimentLabel(experiment: Experiment) {
-  const config = experiment.config as Config;
+  const config = editorConfig(experiment.config as WireConfig);
   const methods = {
     direction_equal: "equal-weight direction copying",
     direction_score_weighted: "score-weighted direction copying",
     conviction_trimmed: "trimmed-conviction copying",
   };
-  const summary = strategySummary(config).replace(
+  const summary = strategySummary(experiment.config as WireConfig).replace(
     config.aggregation.replace(/_/g, " "),
     methods[config.aggregation],
   );

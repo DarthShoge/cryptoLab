@@ -73,6 +73,57 @@ development-only and cannot establish real strategy profitability.
 
 ## Dataset registration
 
+### Cross-class market-universe prototype
+
+Generate the additional fixture once (the writer refuses existing destinations):
+
+```bash
+.venv/bin/python tools/generate_hyperliquid_lab_cross_class_dataset.py \
+  --output .hyperliquid_lab/datasets/cross_class_demo
+```
+
+Select **Synthetic cross-class** in Local dataset, then **Load synthetic preset**.
+The copied-markets section now supports Crypto, Commodities, Equities and Indices.
+**General** is mutually exclusive with selected classes and automatically ranks
+the combined supported pool by traded USD notional. Within selected classes,
+choose explicit instrument checkboxes or top-N volume selection. Market reselection
+and trader reselection are independent. Changing classes/mode clears explicit
+IDs and custom budgets with a visible notice; changing instruments resets budgets
+to equal. Unavailable classes and volume capability are disabled for old datasets.
+
+Daily volume uses a fixed one-day lag: at Jan 5, a two-day window covers Jan 2–3,
+with every bucket published strictly before Jan 5. Missing volume is not zero.
+Equal allocation divides by selected markets before checking trader availability;
+an empty trader cohort does not redistribute its budget to other assets.
+
+Results include **Market universe** timeline, candidates, exclusions, volume
+windows, budgets, entries/exits and links to trader decisions. Comparisons separate
+market membership turnover from trader membership and portfolio trading turnover.
+Unscheduled previews are explicitly hypothetical; they do not change the actual
+selection schedule. Old v1 runs remain unchanged and readable; cloning in the UI
+creates a v2 draft with preserved scalar settings and explicit budgets.
+
+The fixture adds seven fabricated continuous USD-linear instruments across four
+classes, including two namespaced STOCK IDs. It is not real commodity/equity/index
+market history and does not model exchange sessions, corporate actions or settlement.
+
+For trusted v2 registration use `schema: hyperliquid_lab_dataset_v2`, the three
+original files plus `instruments.parquet` and optional `market_volume.parquet`.
+Declare `snapshot_at`, `catalogue_hash`, all file row counts/hashes, and volume
+provenance (`source`, `currency: USD`, `conversion`, `counting: market_once`,
+`interval: utc_day`). The fixture generator is the executable schema example.
+Instrument versions require strictly prior `known_at`, effective intervals and
+consistent lifetimes/execution specifications. Classification may change; base,
+quote, settlement, multiplier and execution model may not change in this increment.
+Only unit-multiplier continuous USD-linear contracts are executable. Unsupported
+models remain visible but excluded. Mid-run listings require no invented earlier
+marks; delisting during a participating run is rejected. Exiting a selected market
+requests zero through normal delayed/depth-limited execution; remaining exposure
+continues to be marked and funded. Market evidence has a one-million-row ceiling
+counting excluded-class candidates too.
+
+### Original v1 registration
+
 An operator places a trusted dataset in `<lab-root>/datasets/<safe-id>/` containing
 `manifest.json`, `fills.parquet`, `books.parquet`, and `funding.parquet`. The generated
 demo provides a concrete schema example using the existing `FillEvent` and

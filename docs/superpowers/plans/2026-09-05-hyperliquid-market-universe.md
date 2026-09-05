@@ -26,7 +26,29 @@
   passed; production build and OpenAPI drift passed. Existing dependency and
   chart-bundle warnings remain. Owned local server refreshed after confirming
   zero active jobs; no saved run or dataset was overwritten.
-- [ ] Tasks 3–10: market-universe extension not yet implemented.
+- [x] Tasks 3–8: versioned market/config contracts, dataset catalogue and daily
+  volume, causal selection, lifecycle-aware replay, immutable market artifacts,
+  bounded history/preview endpoints and comparison are integrated. Existing v1
+  execution remains on its legacy path; stored payloads are not migrated.
+- [x] Task 9: cross-class synthetic fixture, class/General controls, explicit or
+  volume selection, separate schedules, budgets, market history/trader links,
+  preview labels and comparison are wired into the frontend. Browser tests use
+  both old and new datasets and exercise mobile builder/result layouts.
+- [x] Task 10: bounded review found three material edge cases (subminute-listing
+  funding validation, changing execution specifications, excluded-class evidence
+  bounds). Each was reproduced, fixed and re-reviewed; focused six-test rerun
+  passed. Contract specification changes now fail closed while class refreshes
+  remain permitted; this limitation is documented.
+- [x] Final verification — 2026-09-06: 496 Python tests passed, 8 deselected;
+  10 frontend unit tests and 10 Chromium browser tests passed. Production build,
+  OpenAPI drift and `git diff --check` passed. Existing dependency deprecations
+  and chart-chunk size warning remain. Added a safe malformed-v2-request regression.
+- [x] Local handoff: registered `cross_class_demo` without overwriting `demo`;
+  restarted the owned port8010 server only after confirming no active jobs.
+  Health and both datasets are available. Both prior saved backtests remain
+  completed with unchanged config hashes. Inspected actual localhost builder
+  and a narrow-screen market-history screenshot. No exchange orders, downloads,
+  paid data, merge or push; retain the feature branch/worktree.
 
 The fine-grained task checklists below describe the execution recipe. This status
 section records completed checkpoint work without implying later tasks are done.

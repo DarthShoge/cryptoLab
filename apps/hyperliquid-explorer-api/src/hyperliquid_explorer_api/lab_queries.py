@@ -89,11 +89,15 @@ def compare(jobs, repo, identifiers, units):
         if item["status"] != "completed" or item["kind"] != "backtest":
             raise ValueError("Only completed backtests can be compared")
         config = item["config"]
+        follower = config.get("follower", config)
         scenario = repo.scenario(
-            item["run_id"], "strategy", config["aggregation"], config["latency_seconds"]
+            item["run_id"],
+            "strategy",
+            follower["aggregation"],
+            follower["latency_seconds"],
         )
         benchmark = repo.scenario(
-            item["run_id"], "control", "btc_buy_hold", config["latency_seconds"]
+            item["run_id"], "control", "btc_buy_hold", follower["latency_seconds"]
         )
         analytics = analyze(repo, item["run_id"], scenario, benchmark)
         curve = Curve(repo, item["run_id"], scenario).page()
@@ -128,11 +132,18 @@ def compare(jobs, repo, identifiers, units):
                     }
                 )
         cohort_path = jobs.root / "results" / identifier / "cohorts.parquet"
+        market_path = jobs.root / "results" / identifier / "market_cohorts.parquet"
+        market_turnover, mean_assets = None, None
         with connection() as db:
             turnover = db.execute(
                 "SELECT avg(membership_turnover) FROM read_parquet(?)",
                 [str(cohort_path)],
             ).fetchone()[0]
+            if market_path.is_file():
+                market_turnover, mean_assets = db.execute(
+                    "SELECT avg(membership_turnover), avg(selected_count) FROM read_parquet(?)",
+                    [str(market_path)],
+                ).fetchone()
         series.append(
             ComparisonSeries(
                 id=identifier,
@@ -141,14 +152,16 @@ def compare(jobs, repo, identifiers, units):
                 analytics=analytics,
                 curve=curve,
                 membership_turnover=turnover,
+                market_membership_turnover=market_turnover,
+                mean_selected_assets=mean_assets,
                 synthetic=item["provenance"]["manifest"]["synthetic"],
             )
         )
         metadata.append(item)
     differences = sorted(
         k
-        for k in series[0].config
-        if any(s.config.get(k) != series[0].config[k] for s in series[1:])
+        for k in set().union(*(s.config for s in series))
+        if any(s.config.get(k) != series[0].config.get(k) for s in series[1:])
     )
     warnings = []
     for key, message in (

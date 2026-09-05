@@ -15,6 +15,8 @@ import { Execution } from "./Records";
 import { DataView } from "./DataView";
 import { Universe } from "./Universe";
 import { utc } from "./format";
+import { MarketUniverse } from "./MarketUniverse";
+import { editorConfig, type WireConfig } from "./marketConfig";
 
 export function Experiments({
   onOpen,
@@ -143,6 +145,17 @@ export function Experiments({
 
 function ResultPanels({ experiment }: { experiment: Experiment }) {
   const [tab, setTab] = useState("Performance");
+  const [drilldown, setDrilldown] = useState<{
+    date: string;
+    instrument: string;
+  }>();
+  const manifest = experiment.provenance.manifest as
+    | { coins?: string[] }
+    | undefined;
+  const config = editorConfig(
+    experiment.config as WireConfig,
+    manifest?.coins ?? [],
+  );
   const report = useResource<Detail>(
     experiment.run_id ? runUrl(experiment.run_id) : null,
   );
@@ -155,6 +168,7 @@ function ResultPanels({ experiment }: { experiment: Experiment }) {
       <nav className="tabs" role="tablist" aria-label="Backtest research views">
         {[
           "Performance",
+          "Market universe",
           "Trader universe",
           "Execution",
           "Data & assumptions",
@@ -170,8 +184,25 @@ function ResultPanels({ experiment }: { experiment: Experiment }) {
         ))}
       </nav>
       <Status {...report} />
+      {tab === "Market universe" && (
+        <MarketUniverse
+          id={experiment.id}
+          start={config.start}
+          onTraders={(date, instrument) => {
+            setDrilldown({ date, instrument });
+            setTab("Trader universe");
+          }}
+        />
+      )}
       {tab === "Trader universe" && (
-        <Universe id={experiment.id} config={experiment.config as Config} />
+        <Universe
+          id={experiment.id}
+          config={config}
+          initialDate={drilldown?.date}
+          initialScope={
+            config.scope === "pooled" ? "pooled" : drilldown?.instrument
+          }
+        />
       )}
       {tab === "Performance" && report.data && scenario && (
         <Overview

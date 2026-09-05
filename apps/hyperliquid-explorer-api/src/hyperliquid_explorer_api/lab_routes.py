@@ -27,6 +27,9 @@ from .repository import ReportError
 from dataclasses import asdict
 from arblab.hyperliquid_copy.lab_validation import LabValidationError
 from .lab_models import Preflight
+from .lab_models import InstrumentRow, MarketRow, PreviewInfo
+from .lab_market_queries import market_universe, preview_info
+from arblab.hyperliquid_copy.lab_config_codec import migrate_v1_to_v2
 
 HOSTS = {
     "testserver",
@@ -120,6 +123,25 @@ def install_lab(app, root, repo):
     def datasets():
         return app.state.lab.catalog.list()
 
+    @router.get(
+        "/datasets/{identifier}/instruments", response_model=Page[InstrumentRow]
+    )
+    def instruments(
+        identifier: str,
+        page: int = Query(1, ge=1),
+        page_size: int = Query(50, ge=1, le=200),
+        search: str = Query("", max_length=120),
+        asset_class: Literal["crypto", "commodity", "equity", "index"] | None = None,
+    ):
+        return safe(
+            app.state.lab.catalog.instruments,
+            identifier,
+            page=page,
+            page_size=page_size,
+            search=search,
+            asset_class=asset_class,
+        )
+
     @router.get("/experiments", response_model=list[Experiment])
     def experiments():
         return app.state.lab.store.list()
@@ -140,17 +162,24 @@ def install_lab(app, root, repo):
     def detail(identifier: str):
         return safe(app.state.lab.store.get, identifier)
 
+    @router.get("/experiments/{identifier}/preview-info", response_model=PreviewInfo)
+    def preview_metadata(identifier: str):
+        return safe(preview_info, app.state.lab, identifier)
+
     @router.patch("/experiments/{identifier}/metadata", response_model=Experiment)
     def annotate(identifier: str, body: Annotation):
         return safe(app.state.lab.store.annotate, identifier, body.name, body.notes)
 
     @router.post("/experiments/{identifier}/clone", response_model=Submission)
-    def clone(identifier: str):
+    def clone(identifier: str, upgrade: bool = False):
         item = safe(app.state.lab.store.get, identifier)
+        config = item["config"]
+        if upgrade and config["schema_version"] == "hyperliquid_copy_lab_v1":
+            config = migrate_v1_to_v2(DomainConfig(**config)).to_dict()
         return Submission(
             name=(item["name"] + " copy")[:120],
             dataset_id=item["dataset_id"],
-            config=item["config"],
+            config=config,
             parent_id=identifier,
         )
 
@@ -169,7 +198,7 @@ def install_lab(app, root, repo):
         page: int = Query(1, ge=1),
         page_size: int = Query(50, ge=1, le=200),
         decision_date: date | None = None,
-        scope: str | None = Query(None, max_length=20),
+        scope: str | None = Query(None, max_length=80),
         wallet: str | None = Query(None, max_length=42),
         at: datetime | None = None,
         selection: Literal["selected", "eligible", "excluded"] | None = None,
@@ -186,6 +215,30 @@ def install_lab(app, root, repo):
             wallet=wallet,
             at=at,
             selection=selection,
+        )
+
+    @router.get(
+        "/experiments/{identifier}/market-universe", response_model=Page[MarketRow]
+    )
+    def market_history(
+        identifier: str,
+        table: Literal["rankings", "cohorts"] = "cohorts",
+        page: int = Query(1, ge=1),
+        page_size: int = Query(50, ge=1, le=200),
+        decision_date: date | None = None,
+        asset_class: Literal["crypto", "commodity", "equity", "index"] | None = None,
+        instrument_id: str | None = Query(None, max_length=80),
+    ):
+        return safe(
+            market_universe,
+            app.state.lab,
+            identifier,
+            table,
+            page=page,
+            page_size=page_size,
+            decision_date=decision_date,
+            asset_class=asset_class,
+            instrument_id=instrument_id,
         )
 
     @router.get("/compare", response_model=Comparison)

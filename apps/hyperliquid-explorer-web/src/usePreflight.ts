@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { components } from "./api.generated";
-import type { Config } from "./labApi";
+import type { WireConfig } from "./marketConfig";
 
 export type Preflight = components["schemas"]["Preflight"];
 
-export function usePreflight(datasetId: string, config: Config, token: string) {
+export function usePreflight(
+  datasetId: string,
+  config: WireConfig,
+  token: string,
+) {
   const key = JSON.stringify({ dataset_id: datasetId, config });
   const generation = useRef(0);
   const [attempt, setAttempt] = useState(0);

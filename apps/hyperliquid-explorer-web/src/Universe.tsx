@@ -247,10 +247,20 @@ function Contributions({
   );
 }
 
-export function Universe({ id, config }: { id: string; config: Config }) {
-  const [date, setDate] = useState(config.start),
+export function Universe({
+  id,
+  config,
+  initialDate,
+  initialScope,
+}: {
+  id: string;
+  config: Config;
+  initialDate?: string;
+  initialScope?: string;
+}) {
+  const [date, setDate] = useState(initialDate ?? config.start),
     [scope, setScope] = useState(
-      config.scope === "pooled" ? "pooled" : config.coins[0],
+      initialScope ?? (config.scope === "pooled" ? "pooled" : config.coins[0]),
     ),
     [wallet, setWallet] = useState(""),
     [cohortPage, setCohortPage] = useState(1);

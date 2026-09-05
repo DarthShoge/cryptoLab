@@ -10,6 +10,7 @@ it("describes the saved hypothesis and distinguishes repeated runs", () => {
     name: "My hypothesis",
     id: "abcdef1234567890",
     config: {
+      schema_version: "hyperliquid_copy_lab_v1",
       coins: ["ETH", "SOL"],
       selection: "n",
       top_n: 2,

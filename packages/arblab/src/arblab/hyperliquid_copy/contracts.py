@@ -25,8 +25,8 @@ def address(value: str) -> str:
 
 
 def symbol(value: str) -> str:
-    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*", value):
-        raise ValueError("invalid core perp symbol")
+    if not isinstance(value, str) or len(value) > 80 or not re.fullmatch(r"(?:[A-Za-z][A-Za-z0-9_-]*:)?[A-Za-z][A-Za-z0-9_-]*", value):
+        raise ValueError("invalid perp instrument ID")
     return value
 
 

@@ -43,6 +43,22 @@ def completed(client, identifier):
     pytest.fail("Local worker did not finish")
 
 
+def test_explicit_clone_upgrade_preserves_original(lab_client):
+    item, token = submit(lab_client)
+    completed(lab_client, item["id"])
+    clone = lab_client.post(
+        f"/api/lab/experiments/{item['id']}/clone?upgrade=true",
+        json={},
+        headers={"X-Lab-Token": token},
+    )
+    assert clone.status_code == 200
+    assert clone.json()["config"]["schema_version"] == "hyperliquid_copy_lab_v2"
+    assert (
+        lab_client.get(f"/api/lab/experiments/{item['id']}").json()["config"]
+        == item["config"]
+    )
+
+
 def test_mutations_require_local_token_and_safe_config(lab_client):
     client = lab_client
     assert client.post("/api/lab/experiments", json={}).status_code == 403

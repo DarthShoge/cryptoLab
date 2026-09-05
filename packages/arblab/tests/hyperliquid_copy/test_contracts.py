@@ -25,7 +25,8 @@ def test_identifiers_and_paths(tmp_path, monkeypatch):
         with pytest.raises(ValueError):
             address(bad)
     assert symbol("kPEPE") == "kPEPE"
-    for bad in ("../BTC", "xyz:TSLA", "@123", ""):
+    assert symbol("xyz:TSLA") == "xyz:TSLA"
+    for bad in ("../BTC", "xyz:../TSLA", "@123", ""):
         with pytest.raises(ValueError):
             symbol(bad)
     monkeypatch.setenv("CRYPTOLAB_ROOT", str(tmp_path))

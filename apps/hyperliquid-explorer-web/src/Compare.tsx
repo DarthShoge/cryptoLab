@@ -19,6 +19,32 @@ export function Compare({ ids }: { ids: string[] }) {
     `/api/lab/compare?${new URLSearchParams({ ids: ids.join(","), units })}`,
   );
   const data = state.data;
+  const differences =
+    data?.differences.flatMap((key) => {
+      if (key !== "trader" && key !== "follower")
+        return [
+          {
+            key,
+            title: label(key),
+            values: data.series.map((s) => s.config[key]),
+          },
+        ];
+      const sections = data.series.map(
+        (s) => (s.config[key] ?? {}) as Record<string, unknown>,
+      );
+      return [...new Set(sections.flatMap((s) => Object.keys(s)))]
+        .filter((field) =>
+          sections.some(
+            (s) =>
+              JSON.stringify(s[field]) !== JSON.stringify(sections[0][field]),
+          ),
+        )
+        .map((field) => ({
+          key: `${key}.${field}`,
+          title: label(field),
+          values: sections.map((s) => s[field]),
+        }));
+    }) ?? [];
   const points = new Map<number, Record<string, number>>();
   data?.series.forEach((series, index) =>
     series.curve.rows.forEach((row) => {
@@ -60,12 +86,12 @@ export function Compare({ ids }: { ids: string[] }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.differences.map((key) => (
+                  {differences.map(({ key, title, values }) => (
                     <tr key={key}>
-                      <th scope="row">{label(key)}</th>
-                      {data.series.map((s) => (
+                      <th scope="row">{title}</th>
+                      {data.series.map((s, index) => (
                         <td key={s.id}>
-                          <code>{JSON.stringify(s.config[key])}</code>
+                          <code>{JSON.stringify(values[index])}</code>
                         </td>
                       ))}
                     </tr>
@@ -118,10 +144,26 @@ export function Compare({ ids }: { ids: string[] }) {
                     </tr>
                   ))}
                   <tr>
-                    <th>Mean membership turnover</th>
+                    <th>Mean trader membership turnover</th>
                     {data.series.map((s) => (
                       <td key={s.id}>
                         {formatValue(s.membership_turnover, "percent")}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <th>Mean market membership turnover</th>
+                    {data.series.map((s) => (
+                      <td key={s.id}>
+                        {formatValue(s.market_membership_turnover, "percent")}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <th>Mean selected markets</th>
+                    {data.series.map((s) => (
+                      <td key={s.id}>
+                        {formatValue(s.mean_selected_assets, "ratio")}
                       </td>
                     ))}
                   </tr>

@@ -11,6 +11,7 @@ from threading import Event, RLock, Thread
 
 from arblab.hyperliquid_copy.download import file_hash
 from arblab.hyperliquid_copy.lab_config import day
+from arblab.hyperliquid_copy.lab_config_v2 import LabConfigV2
 from .lab_datasets import DatasetCatalog
 from .lab_store import ExperimentStore
 
@@ -71,20 +72,27 @@ class LabJobs:
             self.store.get(request.parent_id)
         preview_date, preview_scope = None, None
         if kind == "cohort_preview":
+            scope_config = (
+                config.effective(
+                    self.catalog.candidate_ids(request.dataset_id, config), {}
+                )
+                if isinstance(config, LabConfigV2)
+                else config
+            )
             preview_date, preview_scope = request.decision_date, request.scope
             if not day(config.start) <= day(preview_date) < day(config.end):
                 raise ValueError(
                     "Preview date must lie inside configured backtest dates"
                 )
             if (
-                config.scope == "per_asset"
-                and preview_scope not in config.coins
-                or config.scope == "pooled"
+                scope_config.scope == "per_asset"
+                and preview_scope not in scope_config.coins
+                or scope_config.scope == "pooled"
                 and preview_scope is not None
             ):
                 raise ValueError("Preview scope must match strategy scope")
         provenance.update(
-            engine="copy_lab_v1",
+            engine="copy_lab_v2" if isinstance(config, LabConfigV2) else "copy_lab_v1",
             source_hashes=source_fingerprint(),
             dependencies={
                 name: version(name) for name in ("arblab", "duckdb", "pyarrow")

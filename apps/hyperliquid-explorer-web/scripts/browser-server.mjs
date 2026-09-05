@@ -11,6 +11,15 @@ const lab = join(reports, "lab");
 execFileSync(
   python,
   [
+    "tools/generate_hyperliquid_lab_cross_class_dataset.py",
+    "--output",
+    join(lab, "datasets", "market_demo"),
+  ],
+  { cwd: root, stdio: "inherit" },
+);
+execFileSync(
+  python,
+  [
     "tools/generate_hyperliquid_lab_dataset.py",
     "--output",
     join(lab, "datasets", "demo"),

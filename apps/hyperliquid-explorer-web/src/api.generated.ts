@@ -68,6 +68,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lab/datasets/{identifier}/instruments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Instruments */
+        get: operations["instruments_api_lab_datasets__identifier__instruments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lab/experiments": {
         parameters: {
             query?: never;
@@ -137,6 +154,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lab/experiments/{identifier}/market-universe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Market History */
+        get: operations["market_history_api_lab_experiments__identifier__market_universe_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lab/experiments/{identifier}/metadata": {
         parameters: {
             query?: never;
@@ -152,6 +186,23 @@ export interface paths {
         head?: never;
         /** Annotate */
         patch: operations["annotate_api_lab_experiments__identifier__metadata_patch"];
+        trace?: never;
+    };
+    "/api/lab/experiments/{identifier}/preview-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Metadata */
+        get: operations["preview_metadata_api_lab_experiments__identifier__preview_info_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/lab/experiments/{identifier}/resume": {
@@ -441,6 +492,10 @@ export interface components {
             curve: components["schemas"]["Page_EquityRow_"];
             /** Id */
             id: string;
+            /** Market Membership Turnover */
+            market_membership_turnover?: number | null;
+            /** Mean Selected Assets */
+            mean_selected_assets?: number | null;
             /** Membership Turnover */
             membership_turnover?: number | null;
             /** Name */
@@ -452,6 +507,8 @@ export interface components {
         Dataset: {
             /** Available */
             available: boolean;
+            /** Catalogue Hash */
+            catalogue_hash?: string | null;
             /** Coins */
             coins?: string[];
             /** Coverage End */
@@ -462,11 +519,17 @@ export interface components {
             coverage_start?: string | null;
             /** Dataset Hash */
             dataset_hash?: string | null;
-            default_config?: components["schemas"]["LabConfig"] | null;
+            /** Default Config */
+            default_config?: (components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"]) | null;
             /** Fee Semantics */
             fee_semantics?: string | null;
             /** Id */
             id: string;
+            /**
+             * Liquidity Available
+             * @default false
+             */
+            liquidity_available: boolean;
             /** Name */
             name: string;
             /**
@@ -474,6 +537,8 @@ export interface components {
              * @default 0
              */
             rows: number;
+            /** Supported Classes */
+            supported_classes?: string[];
             /** Synthetic */
             synthetic: boolean;
         };
@@ -503,7 +568,8 @@ export interface components {
             artifact_hashes: {
                 [key: string]: string;
             };
-            config: components["schemas"]["LabConfig"];
+            /** Config */
+            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"];
             /** Config Hash */
             config_hash: string;
             /**
@@ -554,6 +620,114 @@ export interface components {
              */
             updated_at: string;
         };
+        /** ExplicitUniverse */
+        ExplicitUniverse: {
+            /**
+             * Allocation
+             * @default equal
+             * @enum {string}
+             */
+            allocation: "equal" | "custom";
+            /** Classes */
+            classes?: ("crypto" | "commodity" | "equity" | "index")[];
+            /**
+             * General
+             * @default false
+             */
+            general: boolean;
+            /** Instrument Ids */
+            instrument_ids?: string[];
+            /**
+             * Mode
+             * @default explicit
+             * @constant
+             */
+            mode: "explicit";
+            /**
+             * Reselection
+             * @default daily
+             * @enum {string}
+             */
+            reselection: "daily" | "weekly" | "monthly";
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            } | null;
+        };
+        /** FollowerSettings */
+        FollowerSettings: {
+            /**
+             * Aggregation
+             * @default direction_equal
+             * @enum {string}
+             */
+            aggregation: "direction_equal" | "direction_score_weighted" | "conviction_trimmed";
+            /**
+             * Asset Cap
+             * @default 0.5
+             */
+            asset_cap: number;
+            /**
+             * Deadband
+             * @default 0.02
+             */
+            deadband: number;
+            /**
+             * Fee Bps
+             * @default 4.5
+             */
+            fee_bps: number;
+            /**
+             * Gross Cap
+             * @default 1
+             */
+            gross_cap: number;
+            /**
+             * Initial Equity
+             * @default 10000
+             */
+            initial_equity: number;
+            /**
+             * Latency Seconds
+             * @default 5
+             */
+            latency_seconds: number;
+            /**
+             * Min Known
+             * @default 5
+             */
+            min_known: number;
+            /**
+             * Min Known Weight
+             * @default 0.6
+             */
+            min_known_weight: number;
+            /**
+             * Min Trade Usd
+             * @default 10
+             */
+            min_trade_usd: number;
+            /**
+             * Scale Lookback Days
+             * @default 30
+             */
+            scale_lookback_days: number;
+            /**
+             * Scale Quantile
+             * @default 0.95
+             */
+            scale_quantile: number;
+            /**
+             * Trim
+             * @default 0.1
+             */
+            trim: number;
+            /**
+             * Update Minutes
+             * @default 1
+             */
+            update_minutes: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -571,6 +745,38 @@ export interface components {
              * @default ok
              */
             status: string;
+        };
+        /** InstrumentRow */
+        InstrumentRow: {
+            /** Asset Class */
+            asset_class: string;
+            /** Delisted At */
+            delisted_at?: string | null;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Effective From
+             * Format: date-time
+             */
+            effective_from: string;
+            /** Effective To */
+            effective_to?: string | null;
+            /** Instrument Id */
+            instrument_id: string;
+            /**
+             * Known At
+             * Format: date-time
+             */
+            known_at: string;
+            /**
+             * Listed At
+             * Format: date-time
+             */
+            listed_at: string;
+            /** Supported */
+            supported: boolean;
+            /** Venue */
+            venue: string;
         };
         JsonValue: unknown;
         /** LabConfig */
@@ -708,9 +914,8 @@ export interface components {
              */
             scale_quantile: number;
             /**
-             * Schema Version
-             * @default hyperliquid_copy_lab_v1
-             * @constant
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
              */
             schema_version: "hyperliquid_copy_lab_v1";
             /**
@@ -753,6 +958,144 @@ export interface components {
              * @default 1
              */
             update_minutes: number;
+        };
+        /** LabConfigV2 */
+        LabConfigV2: {
+            /**
+             * Benchmark
+             * @default btc_perp_buy_hold
+             * @constant
+             */
+            benchmark: "btc_perp_buy_hold";
+            /**
+             * End
+             * @default 2026-01-08
+             */
+            end: string;
+            follower?: components["schemas"]["FollowerSettings"];
+            /** Market Universe */
+            market_universe?: components["schemas"]["ExplicitUniverse"] | components["schemas"]["LiquidityUniverse"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            schema_version: "hyperliquid_copy_lab_v2";
+            /**
+             * Split
+             * @default development
+             * @constant
+             */
+            split: "development";
+            /**
+             * Start
+             * @default 2026-01-05
+             */
+            start: string;
+            trader?: components["schemas"]["TraderSettings"];
+        };
+        /** LiquidityUniverse */
+        LiquidityUniverse: {
+            /** Classes */
+            classes?: ("crypto" | "commodity" | "equity" | "index")[];
+            /**
+             * General
+             * @default true
+             */
+            general: boolean;
+            /**
+             * Lookback Days
+             * @default 30
+             */
+            lookback_days: number;
+            /**
+             * Metric
+             * @default traded_notional_usd
+             * @constant
+             */
+            metric: "traded_notional_usd";
+            /**
+             * Min Volume Usd
+             * @default 0
+             */
+            min_volume_usd: number;
+            /**
+             * Mode
+             * @default liquidity
+             * @constant
+             */
+            mode: "liquidity";
+            /**
+             * Publication Lag Days
+             * @default 1
+             * @constant
+             */
+            publication_lag_days: 1;
+            /**
+             * Reselection
+             * @default daily
+             * @enum {string}
+             */
+            reselection: "daily" | "weekly" | "monthly";
+            /**
+             * Top N
+             * @default 3
+             */
+            top_n: number;
+        };
+        /** MarketRow */
+        MarketRow: {
+            /** Asset Class */
+            asset_class?: string | null;
+            /** Budget */
+            budget?: number | null;
+            /** Candidate Count */
+            candidate_count?: number | null;
+            /**
+             * Decision Time
+             * Format: date-time
+             */
+            decision_time: string;
+            /** Display Name */
+            display_name?: string | null;
+            /**
+             * Effective At
+             * Format: date-time
+             */
+            effective_at: string;
+            /** Eligible */
+            eligible?: boolean | null;
+            /** Eligible Count */
+            eligible_count?: number | null;
+            /** Entries */
+            entries?: string[] | null;
+            /** Exits */
+            exits?: string[] | null;
+            /** Instrument Id */
+            instrument_id?: string | null;
+            /** Members */
+            members?: string[] | null;
+            /** Membership Turnover */
+            membership_turnover?: number | null;
+            /** Rank */
+            rank?: number | null;
+            /** Reasons */
+            reasons?: string[] | null;
+            /** Requested Count */
+            requested_count?: number | null;
+            /** Retention */
+            retention?: number | null;
+            /** Selected */
+            selected?: boolean | null;
+            /** Selected Count */
+            selected_count?: number | null;
+            /** Venue */
+            venue?: string | null;
+            /** Volume Usd */
+            volume_usd?: number | null;
+            /** Window End */
+            window_end?: string | null;
+            /** Window Start */
+            window_start?: string | null;
         };
         /** Metric */
         Metric: {
@@ -798,6 +1141,44 @@ export interface components {
             reason?: string | null;
             /** Rows */
             rows: components["schemas"]["EquityRow"][];
+            /** Total */
+            total: number;
+        };
+        /** Page[InstrumentRow] */
+        Page_InstrumentRow_: {
+            /**
+             * Available
+             * @default true
+             */
+            available: boolean;
+            /**
+             * Downsampled
+             * @default false
+             */
+            downsampled: boolean;
+            /** Reason */
+            reason?: string | null;
+            /** Rows */
+            rows: components["schemas"]["InstrumentRow"][];
+            /** Total */
+            total: number;
+        };
+        /** Page[MarketRow] */
+        Page_MarketRow_: {
+            /**
+             * Available
+             * @default true
+             */
+            available: boolean;
+            /**
+             * Downsampled
+             * @default false
+             */
+            downsampled: boolean;
+            /** Reason */
+            reason?: string | null;
+            /** Rows */
+            rows: components["schemas"]["MarketRow"][];
             /** Total */
             total: number;
         };
@@ -867,7 +1248,8 @@ export interface components {
         };
         /** Preview */
         Preview: {
-            config: components["schemas"]["LabConfig"];
+            /** Config */
+            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"];
             /** Dataset Id */
             dataset_id: string;
             /** Decision Date */
@@ -881,6 +1263,11 @@ export interface components {
             parent_id?: string | null;
             /** Scope */
             scope?: string | null;
+        };
+        /** PreviewInfo */
+        PreviewInfo: {
+            /** Hypothetical */
+            hypothetical?: boolean | null;
         };
         /** PublicValidationIssue */
         PublicValidationIssue: {
@@ -1059,7 +1446,8 @@ export interface components {
         };
         /** Submission */
         Submission: {
-            config: components["schemas"]["LabConfig"];
+            /** Config */
+            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"];
             /** Dataset Id */
             dataset_id: string;
             /**
@@ -1069,6 +1457,82 @@ export interface components {
             name: string;
             /** Parent Id */
             parent_id?: string | null;
+        };
+        /** TraderSettings */
+        TraderSettings: {
+            /**
+             * Lookback Days
+             * @default 90
+             */
+            lookback_days: number;
+            /**
+             * Max Cohort
+             * @default 25
+             */
+            max_cohort: number;
+            /** Metric Directions */
+            metric_directions?: {
+                [key: string]: "asc" | "desc";
+            };
+            /** Metric Weights */
+            metric_weights?: {
+                [key: string]: number;
+            };
+            /**
+             * Min Active Days
+             * @default 30
+             */
+            min_active_days: number;
+            /**
+             * Min Cohort
+             * @default 5
+             */
+            min_cohort: number;
+            /**
+             * Min Episodes
+             * @default 20
+             */
+            min_episodes: number;
+            /**
+             * Min Minutes
+             * @default 15
+             */
+            min_minutes: number;
+            /**
+             * Min Notional
+             * @default 100000
+             */
+            min_notional: number;
+            /**
+             * Min Volume
+             * @default 0
+             */
+            min_volume: number;
+            /**
+             * Reselection
+             * @default daily
+             * @enum {string}
+             */
+            reselection: "daily" | "weekly" | "monthly";
+            /**
+             * Scope
+             * @default per_asset
+             * @enum {string}
+             */
+            scope: "per_asset" | "pooled";
+            /**
+             * Selection
+             * @default fraction
+             * @enum {string}
+             */
+            selection: "fraction" | "n";
+            /**
+             * Top Fraction
+             * @default 0.05
+             */
+            top_fraction: number | null;
+            /** Top N */
+            top_n?: number | null;
         };
         /** UniverseRow */
         UniverseRow: {
@@ -1080,6 +1544,8 @@ export interface components {
             coin?: string | null;
             /** Decision Time */
             decision_time?: string | null;
+            /** Decision Trigger */
+            decision_trigger?: string | null;
             /** Effective Weight */
             effective_weight?: number | null;
             /** Eligible */
@@ -1092,6 +1558,8 @@ export interface components {
             exits?: string[];
             /** Known */
             known?: boolean | null;
+            /** Market Decision Time */
+            market_decision_time?: string | null;
             /** Members */
             members?: string[];
             /** Membership Turnover */
@@ -1251,6 +1719,42 @@ export interface operations {
             };
         };
     };
+    instruments_api_lab_datasets__identifier__instruments_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                search?: string;
+                asset_class?: ("crypto" | "commodity" | "equity" | "index") | null;
+            };
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_InstrumentRow_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     experiments_api_lab_experiments_get: {
         parameters: {
             query?: never;
@@ -1368,7 +1872,9 @@ export interface operations {
     };
     clone_api_lab_experiments__identifier__clone_post: {
         parameters: {
-            query?: never;
+            query?: {
+                upgrade?: boolean;
+            };
             header?: never;
             path: {
                 identifier: string;
@@ -1384,6 +1890,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Submission"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    market_history_api_lab_experiments__identifier__market_universe_get: {
+        parameters: {
+            query?: {
+                table?: "rankings" | "cohorts";
+                page?: number;
+                page_size?: number;
+                decision_date?: string | null;
+                asset_class?: ("crypto" | "commodity" | "equity" | "index") | null;
+                instrument_id?: string | null;
+            };
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_MarketRow_"];
                 };
             };
             /** @description Validation Error */
@@ -1419,6 +1963,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Experiment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_metadata_api_lab_experiments__identifier__preview_info_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewInfo"];
                 };
             };
             /** @description Validation Error */
