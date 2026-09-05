@@ -22,6 +22,10 @@ export async function mutate<T>(
   });
   const data = await response.json();
   if (!response.ok) {
+    if (response.status === 403)
+      throw new Error(
+        "The local session is unavailable or expired. Refresh the page before submitting.",
+      );
     const detail =
       typeof data.detail === "string"
         ? data.detail

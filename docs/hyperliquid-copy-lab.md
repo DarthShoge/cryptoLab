@@ -23,6 +23,15 @@ uv run --package hyperliquid-explorer-api uvicorn hyperliquid_explorer_api.app:a
 Open http://127.0.0.1:8010. The dataset writer refuses to overwrite an existing
 directory; run it only once, or choose a new dataset ID. No API keys are needed.
 
+The builder checks the draft before enabling Run. Initial quarterly settings do
+not fit the short demo: the readiness panel shows the required history, available
+dates and specific coverage errors. **Load synthetic preset** is the opt-in way to
+load compatible dates and relaxed eligibility; the app does not silently change
+your configuration. **Ready to submit** is an advisory metadata check, not a promise
+of a successful simulation: submission still verifies checksums, and the worker
+checks actual market data. Submission shows **Saving…**, guards repeated clicks,
+and focuses any error while preserving the draft. Preflight does not save a job.
+
 1. Choose **Load synthetic preset**. This explicitly replaces the normal quarterly
    settings with a short, relaxed demonstration configuration.
 2. Preview the historical trader universe, then **Run and save backtest**.

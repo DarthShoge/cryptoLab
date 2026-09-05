@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   type Bootstrap,
   type Config,
@@ -12,6 +12,8 @@ import {
 import { label } from "./format";
 import { Status } from "./Status";
 import { RankingTable } from "./Universe";
+import { usePreflight } from "./usePreflight";
+import { RunPreflight } from "./RunPreflight";
 
 type Props = {
   bootstrap: Bootstrap;
@@ -41,6 +43,16 @@ export function StrategyBuilder({
     [previewScope, setPreviewScope] = useState(config.coins[0]);
   const preview = useExperiment(previewId);
   const dataset = datasets.find((d) => d.id === datasetId);
+  const preflight = usePreflight(
+    dataset?.available ? datasetId : "",
+    config,
+    bootstrap.token,
+  );
+  const submitting = useRef(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
   const set = <K extends keyof Config>(key: K, value: Config[K]) =>
     setConfig((c) => ({ ...c, [key]: value }));
   const numeric = (key: keyof Config, title: string, step = "any") => (
@@ -72,6 +84,8 @@ export function StrategyBuilder({
     </label>
   );
   const run = async (isPreview = false) => {
+    if (submitting.current || !preflight.ready) return;
+    submitting.current = true;
     setBusy(true);
     setError("");
     try {
@@ -97,6 +111,7 @@ export function StrategyBuilder({
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   };
@@ -421,17 +436,23 @@ export function StrategyBuilder({
               Benchmark: BTC perpetual buy-and-hold, same period and initial
               capital. Development split only. Full warmup is required.
             </p>
+            <RunPreflight state={preflight} />
             {error && (
-              <div className="notice error" role="alert">
+              <div
+                className="notice error"
+                role="alert"
+                tabIndex={-1}
+                ref={errorRef}
+              >
                 {error}
               </div>
             )}
             <button
               className="primary full-width"
-              disabled={busy || !dataset?.available || !config.coins.length}
+              disabled={busy || !preflight.ready || !config.coins.length}
               onClick={() => void run()}
             >
-              Run and save backtest
+              {busy ? "Saving…" : "Run and save backtest"}
             </button>
             <small>
               Inputs are frozen on submission. No orders or paid data requests.
@@ -464,7 +485,7 @@ export function StrategyBuilder({
             )}
             <button
               className="full-width"
-              disabled={busy || !dataset?.available}
+              disabled={busy || !preflight.ready}
               onClick={() => void run(true)}
             >
               Preview trader universe
