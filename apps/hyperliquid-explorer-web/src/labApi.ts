@@ -81,3 +81,17 @@ export function strategySummary(config: Config) {
       : `top ${(config.top_fraction ?? 0) * 100}%`;
   return `${config.coins.join(" + ")} · ${config.scope.replace("_", " ")} · ${cohort} eligible · ${config.lookback_days}d · ${config.reselection} · ${config.aggregation.replace(/_/g, " ")} · BTC perp benchmark`;
 }
+
+export function experimentLabel(experiment: Experiment) {
+  const config = experiment.config as Config;
+  const methods = {
+    direction_equal: "equal-weight direction copying",
+    direction_score_weighted: "score-weighted direction copying",
+    conviction_trimmed: "trimmed-conviction copying",
+  };
+  const summary = strategySummary(config).replace(
+    config.aggregation.replace(/_/g, " "),
+    methods[config.aggregation],
+  );
+  return `${experiment.name} — ${summary} · ${config.start} → ${config.end} · #${experiment.id.slice(0, 10)}`;
+}

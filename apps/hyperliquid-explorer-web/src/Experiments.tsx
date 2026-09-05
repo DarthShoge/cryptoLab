@@ -7,6 +7,7 @@ import {
   mutate,
   strategySummary,
   useExperiment,
+  experimentLabel,
 } from "./labApi";
 import { Status } from "./Status";
 import { Overview } from "./Overview";
@@ -103,6 +104,7 @@ export function Experiments({
                   </td>
                   <td className="strategy-cell">
                     {strategySummary(e.config as Config)}
+                    <small>Run #{e.id.slice(0, 10)}</small>
                   </td>
                   <td className="nowrap">
                     {e.config.start} → {e.config.end}
@@ -176,6 +178,7 @@ function ResultPanels({ experiment }: { experiment: Experiment }) {
           detail={report.data}
           selected={scenario}
           onChange={setSelected}
+          strategyLabel={experimentLabel(experiment)}
         />
       )}
       {tab === "Execution" && report.data && scenario && (
@@ -183,6 +186,7 @@ function ResultPanels({ experiment }: { experiment: Experiment }) {
           detail={report.data}
           scenario={scenario}
           onChange={setSelected}
+          strategyLabel={experimentLabel(experiment)}
         />
       )}
       {tab === "Data & assumptions" && report.data && (

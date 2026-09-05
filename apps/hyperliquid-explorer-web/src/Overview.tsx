@@ -23,10 +23,12 @@ export function ScenarioSelect({
   scenarios,
   selected,
   onChange,
+  strategyLabel,
 }: {
   scenarios: Scenario[];
   selected: Scenario;
   onChange: (s: Scenario) => void;
+  strategyLabel?: string;
 }) {
   const names = [
     ...new Set(scenarios.map((s) => `${s.scenario_type}:${s.name}`)),
@@ -52,7 +54,9 @@ export function ScenarioSelect({
         >
           {names.map((n) => (
             <option key={n} value={n}>
-              {label(n.split(":")[1])}
+              {n.startsWith("strategy:") && strategyLabel
+                ? strategyLabel
+                : label(n.split(":")[1])}
               {n.startsWith("control:") ? " · benchmark" : ""}
             </option>
           ))}
@@ -107,10 +111,12 @@ export function Overview({
   detail,
   selected,
   onChange,
+  strategyLabel,
 }: {
   detail: Detail;
   selected: Scenario;
   onChange: (s: Scenario) => void;
+  strategyLabel?: string;
 }) {
   const [benchmarkKey, setBenchmarkKey] = useState(
     scenarioKey(
@@ -156,6 +162,7 @@ export function Overview({
           scenarios={detail.scenarios}
           selected={selected}
           onChange={onChange}
+          strategyLabel={strategyLabel}
         />
         <label>
           Compare against
@@ -337,7 +344,9 @@ export function Overview({
                         className="link-button"
                         onClick={() => onChange(s)}
                       >
-                        {label(s.name)}
+                        {s.scenario_type === "strategy" && strategyLabel
+                          ? strategyLabel
+                          : label(s.name)}
                       </button>
                       <small>{s.scenario_type}</small>
                     </th>

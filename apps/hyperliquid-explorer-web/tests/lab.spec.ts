@@ -31,6 +31,19 @@ test("configure, preview, save, clone, compare and inspect historical traders", 
   await expect(
     page.getByText("completed", { exact: true }).first(),
   ).toBeVisible({ timeout: 20000 });
+  await expect(
+    page
+      .getByRole("combobox", { name: "Scenario", exact: true })
+      .locator("option:checked"),
+  ).toContainText("Top two SOL and ETH — ETH + SOL");
+  await expect(
+    page
+      .getByRole("combobox", { name: "Scenario", exact: true })
+      .locator("option:checked"),
+  ).toContainText("equal-weight direction copying");
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(page.viewportSize()!.width);
   await page.getByRole("tab", { name: "Trader universe", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Historical trader universe" }),

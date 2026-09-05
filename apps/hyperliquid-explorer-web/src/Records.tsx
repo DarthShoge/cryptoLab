@@ -267,10 +267,12 @@ export function Execution({
   detail,
   scenario,
   onChange,
+  strategyLabel,
 }: {
   detail: Detail;
   scenario: Scenario;
   onChange: (s: Scenario) => void;
+  strategyLabel?: string;
 }) {
   return (
     <>
@@ -279,6 +281,7 @@ export function Execution({
           scenarios={detail.scenarios}
           selected={scenario}
           onChange={onChange}
+          strategyLabel={strategyLabel}
         />
       </div>
       <p className="notice">
