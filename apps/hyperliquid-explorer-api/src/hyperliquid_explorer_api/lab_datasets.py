@@ -1,6 +1,7 @@
 """Operator-registered, manifest-first bounded local datasets. No remote IO."""
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 import re
 from datetime import timedelta
@@ -9,7 +10,7 @@ import pyarrow.parquet as pq
 from arblab.hyperliquid_copy.contracts import FillEvent, semantic_hash
 from arblab.hyperliquid_copy.download import file_hash
 from arblab.hyperliquid_copy.lab_config import day
-from arblab.hyperliquid_copy.lab_ranking import validate_ranking_bound
+from arblab.hyperliquid_copy.lab_validation import LabValidationError, ValidationIssue
 from arblab.hyperliquid_copy.market_data import MarketData
 
 FILES = {"fills.parquet", "books.parquet", "funding.parquet"}
@@ -87,8 +88,13 @@ class DatasetCatalog:
                 )
         return output
 
-    def preflight(self, identifier, config):
+    def _inspect(self, identifier, config):
         data = self.manifest(identifier)
+        coverage_start, coverage_end = (
+            day(data["coverage_start"]),
+            day(data["coverage_end"]),
+        )
+        start, end = day(config.start), day(config.end)
         warmup = day(config.start) - timedelta(
             days=max(
                 config.lookback_days,
@@ -97,40 +103,122 @@ class DatasetCatalog:
                 else 1,
             )
         )
-        if day(data["coverage_start"]) > warmup or day(data["coverage_end"]) < day(
-            config.end
-        ):
-            raise ValueError("Dataset lacks full lookback/warmup or requested dates")
+        issues = []
+        if coverage_start > warmup:
+            issues.append(
+                ValidationIssue(
+                    "insufficient_warmup",
+                    "config.lookback_days",
+                    f"The {config.lookback_days}-day trader lookback and applicable normalization warmup require data from {warmup.date()}; this dataset starts {coverage_start.date()}. Load the synthetic preset or choose a dataset with enough history.",
+                    str(warmup.date()),
+                    str(coverage_start.date()),
+                )
+            )
+        if start < coverage_start:
+            issues.append(
+                ValidationIssue(
+                    "start_before_coverage",
+                    "config.start",
+                    f"Backtest start {start.date()} precedes dataset coverage beginning {coverage_start.date()}.",
+                    str(start.date()),
+                    str(coverage_start.date()),
+                )
+            )
+        if end > coverage_end:
+            issues.append(
+                ValidationIssue(
+                    "end_after_coverage",
+                    "config.end",
+                    f"Backtest end {end.date()} exceeds dataset coverage ending {coverage_end.date()}.",
+                    str(end.date()),
+                    str(coverage_end.date()),
+                )
+            )
         if not set(config.coins + ["BTC"]) <= set(data["coins"]):
-            raise ValueError("Dataset lacks copied-market or BTC benchmark coverage")
-        rows = 0
+            issues.append(
+                ValidationIssue(
+                    "missing_market_coverage",
+                    "config.coins",
+                    "Dataset lacks a copied market or the independent BTC benchmark.",
+                )
+            )
+        rows, fill_rows = 0, 0
         directory = self.directory(identifier)
         for entry in data["files"]:
             path = directory / entry["name"]
-            # Inspect metadata before any row loading, then verify immutable bytes.
+            # Advisory checks inspect bounded metadata, never complete row data.
             actual = pq.ParquetFile(path).metadata.num_rows
             if entry["name"] == "fills.parquet":
-                validate_ranking_bound(actual, config)
+                fill_rows = actual
             rows += actual
-            if actual != entry["rows"] or file_hash(path) != entry["sha256"]:
-                raise ValueError("Dataset checksum or row count changed")
-        minutes = int((day(config.end) - day(config.start)).total_seconds() / 60)
-        if (
-            rows > 1000000
-            or minutes * len(config.coins) > 250000
-            or (minutes // config.update_minutes + 1)
+            if actual != entry["rows"]:
+                issues.append(
+                    ValidationIssue(
+                        "dataset_row_count_changed",
+                        "dataset_id",
+                        "Dataset row counts differ from the registered manifest; ask the operator to check the dataset.",
+                    )
+                )
+        minutes = int((end - start).total_seconds() / 60)
+        estimates = dict(
+            input_rows=rows,
+            asset_minutes=minutes * len(config.coins),
+            contribution_rows=(minutes // config.update_minutes + 1)
             * len(config.coins)
-            * config.max_cohort
-            > 1000000
-        ):
-            raise ValueError(
-                "Dataset/run exceeds bounded resource ceiling; no wallet sampling"
+            * config.max_cohort,
+            ranking_rows=fill_rows * (end - start).days,
+        )
+        for key, limit in dict(
+            input_rows=1000000,
+            asset_minutes=250000,
+            contribution_rows=1000000,
+            ranking_rows=1000000,
+        ).items():
+            if estimates[key] > limit:
+                issues.append(
+                    ValidationIssue(
+                        "resource_ceiling",
+                        "config",
+                        f"Estimated {key.replace('_', ' ')} ({estimates[key]}) exceeds the development limit ({limit}); no wallet sampling is performed.",
+                        str(estimates[key]),
+                        str(limit),
+                    )
+                )
+        return data, dict(
+            ready=not issues,
+            issues=[asdict(i) for i in issues],
+            config_hash=semantic_hash(config.to_dict()),
+            required_start=str(warmup.date()),
+            required_end=str(end.date()),
+            estimates=estimates,
+        )
+
+    def inspect(self, identifier, config):
+        return self._inspect(identifier, config)[1]
+
+    def preflight(self, identifier, config):
+        data, inspection = self._inspect(identifier, config)
+        if not inspection["ready"]:
+            raise LabValidationError(
+                [ValidationIssue(**i) for i in inspection["issues"]]
             )
+        directory = self.directory(identifier)
+        for entry in data["files"]:
+            if file_hash(directory / entry["name"]) != entry["sha256"]:
+                raise LabValidationError(
+                    [
+                        ValidationIssue(
+                            "dataset_checksum_changed",
+                            "dataset_id",
+                            "Dataset checksum changed since registration; ask the operator to check the dataset.",
+                        )
+                    ]
+                )
         return dict(
             dataset_hash=semantic_hash(data),
             manifest=data,
-            input_rows=rows,
-            warmup_start=warmup.isoformat(),
+            input_rows=inspection["estimates"]["input_rows"],
+            warmup_start=day(inspection["required_start"]).isoformat(),
         )
 
     def load(self, identifier, config, frozen):

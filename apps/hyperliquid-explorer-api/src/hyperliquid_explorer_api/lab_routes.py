@@ -24,6 +24,9 @@ from .lab_models import (
 from .lab_queries import compare, universe
 from .models import Page
 from .repository import ReportError
+from dataclasses import asdict
+from arblab.hyperliquid_copy.lab_validation import LabValidationError
+from .lab_models import Preflight
 
 HOSTS = {
     "testserver",
@@ -89,13 +92,14 @@ def install_lab(app, root, repo):
     def safe(fn, *args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except ValueError as exc:
-            # Application validation messages only; parsers/OS errors retain the
-            # app's generic handler. Avoid reflecting dataset-controlled paths.
-            message = str(exc)
-            if "/" in message or "\\" in message:
-                message = "Dataset or experiment validation failed"
-            raise ReportError(message) from None
+        except LabValidationError as exc:
+            return JSONResponse(
+                {"detail": str(exc), "issues": [asdict(i) for i in exc.issues]},
+                status_code=422,
+            )
+        except ValueError:
+            # Only typed, application-authored issues above are public.
+            raise ReportError("Dataset or experiment validation failed") from None
 
     @router.get("/bootstrap", response_model=Bootstrap)
     def bootstrap():
@@ -119,6 +123,10 @@ def install_lab(app, root, repo):
     @router.get("/experiments", response_model=list[Experiment])
     def experiments():
         return app.state.lab.store.list()
+
+    @router.post("/preflight", response_model=Preflight)
+    def preflight(body: Submission):
+        return safe(app.state.lab.catalog.inspect, body.dataset_id, body.config)
 
     @router.post("/experiments", response_model=Experiment, status_code=202)
     def submit(body: Submission):

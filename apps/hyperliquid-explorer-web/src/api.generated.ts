@@ -188,6 +188,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lab/preflight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preflight */
+        post: operations["preflight_api_lab_preflight_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lab/previews": {
         parameters: {
             query?: never;
@@ -831,6 +848,23 @@ export interface components {
             /** Qty */
             qty: number;
         };
+        /** Preflight */
+        Preflight: {
+            /** Config Hash */
+            config_hash: string;
+            /** Estimates */
+            estimates: {
+                [key: string]: number;
+            };
+            /** Issues */
+            issues: components["schemas"]["PublicValidationIssue"][];
+            /** Ready */
+            ready: boolean;
+            /** Required End */
+            required_end: string;
+            /** Required Start */
+            required_start: string;
+        };
         /** Preview */
         Preview: {
             config: components["schemas"]["LabConfig"];
@@ -847,6 +881,19 @@ export interface components {
             parent_id?: string | null;
             /** Scope */
             scope?: string | null;
+        };
+        /** PublicValidationIssue */
+        PublicValidationIssue: {
+            /** Available */
+            available?: string | null;
+            /** Code */
+            code: string;
+            /** Field */
+            field: string;
+            /** Message */
+            message: string;
+            /** Required */
+            required?: string | null;
         };
         /**
          * Record
@@ -1443,6 +1490,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_UniverseRow_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preflight_api_lab_preflight_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Submission"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preflight"];
                 };
             };
             /** @description Validation Error */

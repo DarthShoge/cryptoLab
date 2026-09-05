@@ -30,6 +30,23 @@ class Preview(Submission):
     scope: str | None = None
 
 
+class PublicValidationIssue(Model):
+    code: str
+    field: str
+    message: str
+    required: str | None = None
+    available: str | None = None
+
+
+class Preflight(Model):
+    ready: bool
+    issues: list[PublicValidationIssue]
+    config_hash: str
+    required_start: str
+    required_end: str
+    estimates: dict[str, int]
+
+
 class Annotation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=120)
