@@ -4,7 +4,7 @@ test("read-only explorer renders a real API report", async ({
 }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/");
+  await page.goto("/reports");
   await expect(
     page.getByRole("heading", { name: "Research explorer" }),
   ).toBeVisible();
@@ -43,8 +43,13 @@ test("read-only explorer renders a real API report", async ({
   await expect(
     page.getByRole("heading", { name: "Simulated fills" }),
   ).toBeVisible();
-  await expect(page.getByRole("cell", {name:"partial_depth", exact:true}).first()).toBeVisible();
-  await page.getByRole("combobox", { name: /^Asset/ }).first().selectOption("ETH");
+  await expect(
+    page.getByRole("cell", { name: "partial_depth", exact: true }).first(),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: /^Asset/ })
+    .first()
+    .selectOption("ETH");
   await expect(
     page.getByText("No matching rows.", { exact: false }).first(),
   ).toBeVisible();
@@ -55,7 +60,7 @@ test("read-only explorer renders a real API report", async ({
 
 test("empty and malformed inventories are explicit", async ({ page }) => {
   await page.route("**/api/runs?*", (route) => route.fulfill({ json: [] }));
-  await page.goto("/");
+  await page.goto("/reports");
   await expect(
     page.getByRole("heading", { name: "No available reports" }),
   ).toBeVisible();
@@ -88,7 +93,7 @@ test("loading and recoverable API errors", async ({ page }) => {
       json: { detail: "Temporarily unavailable" },
     });
   });
-  await page.goto("/");
+  await page.goto("/reports");
   await expect(page.getByRole("status").first()).toBeVisible();
   release();
   await expect(page.getByRole("alert")).toBeVisible();
@@ -103,7 +108,7 @@ test("mobile layout keeps the document within the viewport", async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/reports");
   await expect(
     page.getByRole("heading", { name: "Equity vs benchmark" }),
   ).toBeVisible();

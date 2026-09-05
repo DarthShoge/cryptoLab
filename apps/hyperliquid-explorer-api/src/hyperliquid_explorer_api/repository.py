@@ -84,13 +84,35 @@ def public_json(value):
 
 
 class Repository:
-    def __init__(self, root):
+    def __init__(self, root, lab_root=None):
         self.root = Path(root).resolve()
+        self.lab_root = Path(lab_root).resolve() if lab_root else None
 
     def directory(self, run_id):
         if not re.fullmatch(r"hyperliquid_trader_ensemble_[A-Za-z0-9_-]+", run_id):
             raise ReportError("Unknown report", 404)
         path = (self.root / run_id).resolve()
+        if not path.is_dir() and self.lab_root:
+            import sqlite3
+
+            identifier = run_id.removeprefix("hyperliquid_trader_ensemble_")
+            database = self.lab_root / "experiments.sqlite3"
+            if re.fullmatch(r"[a-f0-9]{32}", identifier) and database.is_file():
+                db = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
+                try:
+                    completed = db.execute(
+                        "SELECT 1 FROM experiments WHERE id=? AND status='completed' AND run_id=?",
+                        [identifier, run_id],
+                    ).fetchone()
+                finally:
+                    db.close()
+                candidate = (self.lab_root / "reports" / run_id).resolve()
+                if (
+                    completed
+                    and candidate.is_relative_to(self.lab_root / "reports")
+                    and candidate.is_dir()
+                ):
+                    return candidate
         if not path.is_relative_to(self.root) or path == self.root or not path.is_dir():
             raise ReportError("Unknown report", 404)
         return path

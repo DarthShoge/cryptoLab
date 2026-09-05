@@ -1,4 +1,4 @@
-"""Loopback read-only HTTP interface. No trading, downloads or job submission."""
+"""Loopback strategy lab and report reader. Local jobs only; no exchange writes."""
 
 from datetime import date
 import os
@@ -19,14 +19,20 @@ from .repository import ReportError, Repository
 Kind = Literal["strategy", "control"]
 
 
-def create_app(root=None, web_root=None):
-    repo = Repository(
-        root or os.environ.get("HYPERLIQUID_REPORTS_ROOT") or reports_dir()
+def create_app(root=None, web_root=None, lab_root=None):
+    from .lab_routes import install_lab
+
+    report_root = root or os.environ.get("HYPERLIQUID_REPORTS_ROOT") or reports_dir()
+    lab_root = (
+        lab_root
+        or os.environ.get("HYPERLIQUID_LAB_ROOT")
+        or Path(report_root) / ".copy_lab"
     )
+    repo = Repository(report_root, lab_root)
     web = web_root or os.environ.get("HYPERLIQUID_WEB_ROOT")
     web = Path(web).resolve() if web else None
     app = FastAPI(
-        title="Hyperliquid Read-only Explorer",
+        title="Hyperliquid Copy Strategy Lab",
         version="1.0.0",
         docs_url="/api/docs",
         openapi_url="/api/openapi.json",
@@ -183,6 +189,8 @@ def create_app(root=None, web_root=None):
             media_type="application/octet-stream",
             headers={"X-Content-Type-Options": "nosniff"},
         )
+
+    install_lab(app, lab_root, repo)
 
     @app.get("/{path:path}", include_in_schema=False)
     def frontend(path: str):

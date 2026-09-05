@@ -6,7 +6,7 @@ CryptoLab is a polyglot workspace for DeFi lending-risk analysis and strategy re
 - `strategy-backtester`: Streamlit historical strategy backtester
 - `report-explorer`: Streamlit explorer for generated research reports
 - `strategy-system-card`: React/Vite strategy system card
-- `hyperliquid-explorer-web` + `hyperliquid-explorer-api`: read-only React/TypeScript dashboard with a Python/FastAPI backend
+- `hyperliquid-explorer-web` + `hyperliquid-explorer-api`: local copy-strategy lab with React/TypeScript and Python/FastAPI
 
 The Python apps share the `arblab` package. The JavaScript frontends are independent pnpm workspace packages.
 
@@ -124,8 +124,10 @@ delayed perpetual execution. It cannot submit exchange orders. Paid archive
 downloads require explicit cost acceptance; research and live-paper qualification
 remain separate checkpoints.
 
-The [read-only dashboard guide](docs/hyperliquid-explorer.md) covers the local UI,
-synthetic demo, portfolio analytics and startup at `http://127.0.0.1:8010`.
+The [copy-strategy lab guide](docs/hyperliquid-copy-lab.md) covers universe
+configuration, saved backtests, comparisons, historical traders and the synthetic
+demo at `http://127.0.0.1:8010`. The [legacy report viewer](docs/hyperliquid-explorer.md)
+remains available at `/reports`.
 
 ## Checks and generated data
 
@@ -153,8 +155,8 @@ apps/
   strategy-backtester/    Python Streamlit UI and app tests
   report-explorer/        Python Streamlit report UI and app tests
   strategy-system-card/   React/Vite UI and frontend-owned source
-  hyperliquid-explorer-api/ Python/FastAPI read-only artifact API
-  hyperliquid-explorer-web/ React/TypeScript report and portfolio dashboard
+  hyperliquid-explorer-api/ Python/FastAPI local simulation and artifact API
+  hyperliquid-explorer-web/ React/TypeScript copy-strategy lab
 packages/
   arblab/                 Shared Python domain, backtest, and strategy library
 tests/integration/        Cross-workspace integration checks

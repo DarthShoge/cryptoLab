@@ -1,5 +1,9 @@
 # Hyperliquid read-only explorer
 
+The main UI is now the [copy-strategy lab](hyperliquid-copy-lab.md), with local
+simulation jobs and saved experiments. This guide describes the legacy report
+viewer, retained at `/reports`; its report operations remain read-only.
+
 A React/TypeScript dashboard backed by Python/FastAPI. It reads existing local
 `hyperliquid_copy_report_v1` artifacts; it does not download market data, submit
 jobs, connect wallets, or place orders. Keep it bound to loopback: there is no
@@ -19,7 +23,7 @@ uv run --package hyperliquid-explorer-api uvicorn hyperliquid_explorer_api.app:a
   --host 127.0.0.1 --port 8010 --ws none
 ```
 
-Open **http://127.0.0.1:8010**. Set `HYPERLIQUID_REPORTS_ROOT` to the directory
+Open **http://127.0.0.1:8010/reports**. Set `HYPERLIQUID_REPORTS_ROOT` to the directory
 containing your `hyperliquid_trader_ensemble_*` folders, not an individual run.
 The API defaults to the workspace reports directory. `--ws none` is intentional:
 this application is HTTP-only and does not need the workspace's legacy WebSocket

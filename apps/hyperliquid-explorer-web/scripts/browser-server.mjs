@@ -7,6 +7,16 @@ import { execFileSync, spawn } from "node:child_process";
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const python = join(root, ".venv/bin/python");
 const reports = mkdtempSync(join(tmpdir(), "hyperliquid-explorer-browser-"));
+const lab = join(reports, "lab");
+execFileSync(
+  python,
+  [
+    "tools/generate_hyperliquid_lab_dataset.py",
+    "--output",
+    join(lab, "datasets", "demo"),
+  ],
+  { cwd: root, stdio: "inherit" },
+);
 execFileSync(
   python,
   [
@@ -35,6 +45,7 @@ const server = spawn(
     env: {
       ...process.env,
       HYPERLIQUID_REPORTS_ROOT: reports,
+      HYPERLIQUID_LAB_ROOT: lab,
       HYPERLIQUID_WEB_ROOT: join(root, "apps/hyperliquid-explorer-web/dist"),
     },
   },

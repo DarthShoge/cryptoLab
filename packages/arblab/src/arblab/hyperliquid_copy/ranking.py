@@ -47,7 +47,7 @@ def percentiles(values):
     return [sum(ranks[v])/len(ranks[v])/(len(values)-1) for v in values]
 
 
-def _metrics(fills, config, semantics, smoke):
+def wallet_metrics(fills, config, semantics, smoke):
     episodes = [e for e in build_episodes(fills, semantics, smoke=smoke) if e.complete]
     pnl = [leader_net_pnl(f, semantics, smoke=smoke) for f in fills]
     daily = defaultdict(float)
@@ -89,7 +89,7 @@ def rank_traders(fills, decision_time, config, semantics, *, coin=None, smoke=Fa
     for fill in sorted(fills, key=lambda f: f.order_key):
         if start <= fill.exchange_time < decision_time and (coin is None or fill.coin == coin):
             grouped[fill.user].append(fill)
-    candidates = {user: _metrics(rows, config, semantics, smoke) for user, rows in sorted(grouped.items())}
+    candidates = {user: wallet_metrics(rows, config, semantics, smoke) for user, rows in sorted(grouped.items())}
     eligible = [user for user, (_, exclusions) in candidates.items() if not exclusions]
     scores = {user: 0. for user in eligible}
     if eligible:

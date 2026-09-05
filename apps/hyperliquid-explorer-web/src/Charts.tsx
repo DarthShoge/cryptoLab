@@ -11,7 +11,7 @@ import {
 import type { EquityPage } from "./api";
 import { formatValue } from "./format";
 
-function Plot({
+export function Plot({
   title,
   rows,
   lines,
@@ -45,7 +45,9 @@ function Plot({
               type="number"
               scale="time"
               domain={["dataMin", "dataMax"]}
-              tickFormatter={(v) => new Date(v).toISOString().slice(11, 19)}
+              tickFormatter={(v) =>
+                new Date(v).toISOString().slice(5, 16).replace("T", " ")
+              }
               tick={{ fill: "#9aabb5", fontSize: 11 }}
               minTickGap={40}
             />
@@ -54,9 +56,11 @@ function Plot({
               tickFormatter={(v) =>
                 unit === "percent"
                   ? `${(v * 100).toFixed(1)}%`
-                  : Number(v).toLocaleString("en-US", {
-                      maximumFractionDigits: 0,
-                    })
+                  : unit === "ratio"
+                    ? Number(v).toFixed(3)
+                    : Number(v).toLocaleString("en-US", {
+                        maximumFractionDigits: 0,
+                      })
               }
               tick={{ fill: "#9aabb5", fontSize: 11 }}
               width={65}

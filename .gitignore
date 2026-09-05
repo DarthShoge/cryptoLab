@@ -196,6 +196,8 @@ apps/hyperliquid-explorer-web/playwright-report/
 # Price data cache (backtest)
 .price_cache/
 .hyperliquid_cache/
+.hyperliquid_lab/
+reports/.copy_lab/
 reports/hyperliquid_trader_ensemble_*/
 
 # Local agent/process artifacts
