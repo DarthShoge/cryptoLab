@@ -91,7 +91,9 @@ def pull_fill_day(s3, root, day, *, coins=("BTC", "ETH", "SOL"), accepted_cost=F
 def _table(rows):
     table = pa.Table.from_pylist(rows)
     # Nullable fields must not infer null types in legacy-only first batches.
-    for name, kind in (("block_number", pa.int64()), ("block_time", pa.timestamp("us", tz="UTC")), ("fee_token", pa.string())):
+    for name, kind in (("block_number", pa.int64()), ("block_time", pa.timestamp("us", tz="UTC")), ("fee_token", pa.string()), ("raw_details_json", pa.string())):
         index = table.schema.get_field_index(name)
+        if index < 0:  # Older callers/partitions do not contain raw details.
+            continue
         table = table.set_column(index, name, table.column(name).cast(kind))
     return table

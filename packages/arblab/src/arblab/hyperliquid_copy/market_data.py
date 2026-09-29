@@ -39,7 +39,7 @@ def read_parquet(paths, time_column, start, end):
     if time_column not in ("exch_time", "timestamp", "exchange_time"):
         raise ValueError("invalid timestamp column")
     with duckdb.connect() as db:
-        rows = db.execute(f'SELECT * FROM read_parquet(?, hive_partitioning=false) WHERE "{time_column}" >= ? AND "{time_column}" <= ?',
+        rows = db.execute(f'SELECT * FROM read_parquet(?, hive_partitioning=false, union_by_name=true) WHERE "{time_column}" >= ? AND "{time_column}" <= ?',
                           [[str(p) for p in paths], start, end])
         columns = [c[0] for c in rows.description]
         return [dict(zip(columns, row)) for row in rows.fetchall()]

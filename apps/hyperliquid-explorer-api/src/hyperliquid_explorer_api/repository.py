@@ -30,6 +30,8 @@ ARTIFACTS = frozenset(
         "simulated_fills.parquet",
         "equity_curve.parquet",
         "funding_ledger.parquet",
+        "control_funding_ledger.parquet",
+        "proxy_requests.parquet",
         "control_fills.parquet",
         "control_equity_curve.parquet",
     }

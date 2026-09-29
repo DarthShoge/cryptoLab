@@ -12,6 +12,7 @@ test("coverage is explained before running and rapid clicks save only once", asy
       submissions++;
   });
   await page.goto("/");
+  await page.getByLabel("Local dataset").selectOption("demo");
   const run = page.getByRole("button", {
     name: "Run and save backtest",
     exact: true,

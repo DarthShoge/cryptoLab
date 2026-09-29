@@ -179,6 +179,7 @@ def compare(jobs, repo, identifiers, units):
         ),
         ("fee_bps", "Different fee assumptions"),
         ("latency_seconds", "Different execution delays"),
+        ("proxy", "Different proxy execution/mark assumptions"),
         ("benchmark", "Different benchmarks"),
         ("split", "Different research splits"),
     ):

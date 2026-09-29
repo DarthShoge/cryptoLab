@@ -22,6 +22,9 @@ import {
   editorConfig,
   universeOf,
   wireConfig,
+  defaultProxySettings,
+  type ProxySettings,
+  type ProxyCadence,
   type MarketUniverse,
   type WireConfig,
 } from "./marketConfig";
@@ -62,7 +65,17 @@ export function StrategyBuilder({
       : null,
   );
   const dataset = datasets.find((d) => d.id === datasetId);
-  const submittedConfig = wireConfig(config, marketUniverse);
+  const hourly = dataset?.pricing_mode === "hourly_proxy";
+  const [proxy, setProxy] = useState<ProxySettings>(() => {
+    const wire = (initial?.config ?? bootstrap.defaults) as WireConfig;
+    return "proxy" in wire ? wire.proxy : defaultProxySettings;
+  });
+  const [cadence, setCadence] = useState<ProxyCadence>(() => {
+    const wire = (initial?.config ?? bootstrap.defaults) as WireConfig;
+    return wire.schema_version === "hyperliquid_copy_lab_proxy_v2" ? wire.rebalance : "hourly";
+  });
+  const scheduled = hourly && cadence !== "hourly";
+  const submittedConfig = wireConfig(config, marketUniverse, hourly ? proxy : undefined, cadence);
   const previewAssets =
     marketUniverse.mode === "explicit"
       ? marketUniverse.instrument_ids
@@ -97,6 +110,7 @@ export function StrategyBuilder({
       <select
         aria-label={title}
         value={String(config[key])}
+        disabled={key === "reselection" && scheduled}
         onChange={(e) => set(key, e.target.value as never)}
       >
         {options.map((v) => (
@@ -150,6 +164,8 @@ export function StrategyBuilder({
       const c = editorConfig(wire, dataset.coins ?? []);
       setConfig(c);
       setMarketUniverse(universeOf(wire));
+      if ("proxy" in wire) setProxy(wire.proxy);
+      setCadence(wire.schema_version === "hyperliquid_copy_lab_proxy_v2" ? wire.rebalance : "hourly");
       setPreviewDate(c.start);
       setPreviewScope(c.coins[0]);
       setError("");
@@ -190,6 +206,7 @@ export function StrategyBuilder({
               dataset={dataset}
               value={marketUniverse}
               onChange={setMarketUniverse}
+              lockReselection={scheduled}
             />
             <div className="form-grid">
               {choose("scope", "Ranking scope", ["per_asset", "pooled"])}
@@ -317,7 +334,21 @@ export function StrategyBuilder({
                 "direction_score_weighted",
                 "conviction_trimmed",
               ])}
-              {numeric(
+              {hourly && <label>Portfolio rebalance cadence
+                <select aria-label="Portfolio rebalance cadence" value={cadence} onChange={(e) => {
+                  const next = e.target.value as ProxyCadence;
+                  setCadence(next);
+                  if (next !== "hourly") {
+                    setConfig((c) => ({ ...c, reselection: next }));
+                    setMarketUniverse((u) => ({ ...u, reselection: next }));
+                  }
+                }}>
+                  <option value="hourly">Hourly</option>
+                  <option value="daily">Daily (00:00 UTC)</option>
+                  <option value="weekly">Weekly (Monday 00:00 UTC)</option>
+                </select>
+              </label>}
+              {hourly ? <label>{scheduled ? "Valuation cadence" : "Target update cadence"}<input aria-label={scheduled ? "Valuation cadence" : "Target update cadence (minutes)"} value="Hourly (60 minutes)" readOnly /></label> : numeric(
                 "update_minutes",
                 "Target update cadence (minutes)",
                 "1",
@@ -329,6 +360,8 @@ export function StrategyBuilder({
               Asset budgets must sum to one. Equal trader votes and equal asset
               allocation are different settings.
             </small>
+            {hourly && <p className="notice">Targets execute at the next available bar open strictly after the decision plus delay. Closed sessions wait; carried marks are never executable prices. No order-book depth or fill-ratio claim.</p>}
+            {scheduled && <p className="notice">Market and trader selection follow the portfolio schedule. Quantities are held between decisions; weights drift with prices. Valuation and native funding remain hourly. {cadence === "weekly" ? "Weekly decisions occur Monday 00:00 UTC; a midweek start stays in cash until the first Monday." : "Daily decisions occur at 00:00 UTC."}</p>}
             <details>
               <summary>Coverage, normalisation & execution</summary>
               <div className="form-grid">
@@ -387,6 +420,20 @@ export function StrategyBuilder({
                     ? "SYNTHETIC DATASET"
                     : "UNQUALIFIED LOCAL DATA"}
                 </p>
+                {hourly && <>
+                  <p className="mode-badge">APPROXIMATE HOURLY PROXY</p>
+                  <p className="notice">Native Hyperliquid activity determines trader rankings and positions. External prices approximate follower returns; funding uses native rates on proxy notional. Market availability is based on past observations and research mappings, not historical listing dates. General means the dataset's observed, mapped markets, not every Hyperliquid market.</p>
+                  <details><summary>Price mappings & sessions</summary>
+                    {dataset.proxy_mappings?.map((mapping, i) => <p key={i}>{String(mapping.instrument_id)} → {String(mapping.provider)} / {String(mapping.ticker)} · {String(mapping.unit)} · {String(mapping.calendar)}</p>)}
+                  </details>
+                  <div className="form-grid">
+                    {([
+                      ["slippage_bps", "Proxy slippage (basis points)"],
+                      ["max_mark_age_seconds", "Maximum mark age (seconds)"],
+                      ["max_wait_seconds", "Maximum execution wait (seconds)"],
+                    ] as const).map(([key, title]) => <label key={key}>{title}<input type="number" aria-label={title} value={proxy[key]} onChange={(e) => setProxy((p) => ({...p, [key]: Number(e.target.value)}))} /></label>)}
+                  </div>
+                </>}
                 <p className="muted">
                   {dataset.coverage_start} → {dataset.coverage_end}
                   <br />
@@ -394,8 +441,8 @@ export function StrategyBuilder({
                   {dataset.coins?.join(" / ")}
                 </p>
                 <p className="muted">{dataset.coverage_note}</p>
-                {dataset.synthetic && dataset.default_config && (
-                  <button onClick={preset}>Load synthetic preset</button>
+                {dataset.default_config && (
+                  <button onClick={preset}>{dataset.synthetic ? "Load synthetic preset" : "Load dataset preset"}</button>
                 )}
               </>
             )}

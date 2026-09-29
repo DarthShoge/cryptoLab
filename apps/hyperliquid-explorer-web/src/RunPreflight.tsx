@@ -29,6 +29,15 @@ export function RunPreflight({
             Required history: {state.data.required_start} →{" "}
             {state.data.required_end} (UTC).
           </p>
+          {state.data.estimates.ranking_rows !== undefined && (
+            <p>
+              Ranking rows (upper bound):{" "}
+              {state.data.estimates.ranking_rows.toLocaleString("en-GB")}.
+            </p>
+          )}
+          {(state.data.estimate_notes ?? []).map((note, index) => (
+            <p key={`estimate-${index}`}>{note}</p>
+          ))}
           <small>
             Full checksum and market-data validation still runs on submission
             and execution. Settings are not changed automatically.

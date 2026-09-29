@@ -32,8 +32,8 @@ def submit(client, **changes):
     return response.json(), bootstrap["token"]
 
 
-def completed(client, identifier):
-    deadline = time.monotonic() + 25
+def completed(client, identifier, *, timeout_seconds=25):
+    deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
         item = client.get("/api/lab/experiments/" + identifier).json()
         if item["status"] not in {"queued", "running"}:

@@ -6,6 +6,7 @@ test("configure, preview, save, clone, compare and inspect historical traders", 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
+  await page.getByLabel("Local dataset").selectOption("demo");
   await expect(
     page.getByRole("heading", { name: "Hyperliquid copy-strategy lab" }),
   ).toBeVisible();

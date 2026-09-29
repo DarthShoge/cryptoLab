@@ -171,6 +171,8 @@ export function MarketUniverse({
                   <td>
                     {row.instrument_id}
                     <small>{row.display_name}</small>
+                    {row.proxy_ticker && <small>Proxy: {row.proxy_ticker}</small>}
+                    {row.availability_basis && <small>{row.availability_basis.replace(/_/g, " ")}</small>}
                   </td>
                   <td>
                     {row.asset_class} / {row.venue}

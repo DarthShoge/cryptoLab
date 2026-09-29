@@ -154,6 +154,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lab/experiments/{identifier}/diagnostics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diagnostics */
+        get: operations["diagnostics_api_lab_experiments__identifier__diagnostics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lab/experiments/{identifier}/market-universe": {
         parameters: {
             query?: never;
@@ -430,6 +447,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountingCheck */
+        AccountingCheck: {
+            /** Difference Usd */
+            difference_usd?: number | null;
+            /** Name */
+            name: string;
+            /** Passed */
+            passed?: boolean | null;
+            /** Reason */
+            reason?: string | null;
+        };
         /** Analytics */
         Analytics: {
             /** Benchmark */
@@ -520,7 +548,7 @@ export interface components {
             /** Dataset Hash */
             dataset_hash?: string | null;
             /** Default Config */
-            default_config?: (components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"]) | null;
+            default_config?: (components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"] | components["schemas"]["LabConfigProxy"] | components["schemas"]["LabConfigProxyScheduled"]) | null;
             /** Fee Semantics */
             fee_semantics?: string | null;
             /** Id */
@@ -533,6 +561,16 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Pricing Mode
+             * @default order_book
+             * @enum {string}
+             */
+            pricing_mode: "order_book" | "hourly_proxy";
+            /** Proxy Mappings */
+            proxy_mappings?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            /**
              * Rows
              * @default 0
              */
@@ -541,6 +579,191 @@ export interface components {
             supported_classes?: string[];
             /** Synthetic */
             synthetic: boolean;
+        };
+        /** DiagnosticCohort */
+        DiagnosticCohort: {
+            /** Candidate Count */
+            candidate_count?: number | null;
+            /** Coin */
+            coin?: string | null;
+            /**
+             * Decision Time
+             * Format: date-time
+             */
+            decision_time: string;
+            /** Eligible Count */
+            eligible_count?: number | null;
+            /** Membership Turnover */
+            membership_turnover?: number | null;
+            /** Selected Count */
+            selected_count?: number | null;
+        };
+        /** DiagnosticContext */
+        DiagnosticContext: {
+            /** Assets */
+            assets?: string[];
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /** Exposure Reason */
+            exposure_reason?: string | null;
+            /** Fees Usd */
+            fees_usd?: number | null;
+            /** Fills */
+            fills?: number | null;
+            /** Funding Usd */
+            funding_usd?: number | null;
+            /** Max Gross Usd */
+            max_gross_usd?: number | null;
+            /** Mean Net Usd */
+            mean_net_usd?: number | null;
+            /** Return Value */
+            return_value: number;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+        };
+        /** DiagnosticMetric */
+        DiagnosticMetric: {
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Unit
+             * @default ratio
+             */
+            unit: string;
+            /** Value */
+            value?: number | null;
+        };
+        /** DiagnosticPeriod */
+        DiagnosticPeriod: {
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /** Partial */
+            partial: boolean;
+            /** Return Value */
+            return_value: number;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+        };
+        /** DiagnosticPoint */
+        DiagnosticPoint: {
+            /** Drawdown */
+            drawdown: number;
+            /** Equity */
+            equity: number;
+            /** Gross Exposure */
+            gross_exposure?: number | null;
+            /** Growth */
+            growth: number;
+            /** Net Exposure */
+            net_exposure?: number | null;
+            /**
+             * Time
+             * Format: date-time
+             */
+            time: string;
+        };
+        /** DiagnosticSeries */
+        DiagnosticSeries: {
+            /** Max Drawdown */
+            max_drawdown?: number | null;
+            /** Months */
+            months?: components["schemas"]["DiagnosticPeriod"][];
+            /** Points */
+            points?: components["schemas"]["DiagnosticPoint"][];
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Samples
+             * @default 0
+             */
+            samples: number;
+            /** Weeks */
+            weeks?: components["schemas"]["DiagnosticPeriod"][];
+        };
+        /** Diagnostics */
+        Diagnostics: {
+            /** Accounting */
+            accounting: {
+                [key: string]: components["schemas"]["DiagnosticMetric"];
+            };
+            /** Benchmark Metrics */
+            benchmark_metrics: {
+                [key: string]: components["schemas"]["DiagnosticMetric"];
+            };
+            /** Checks */
+            checks: components["schemas"]["AccountingCheck"][];
+            /** Cohort Reason */
+            cohort_reason?: string | null;
+            /** Cohorts */
+            cohorts: components["schemas"]["DiagnosticCohort"][];
+            /** Config */
+            config: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Config Hash */
+            config_hash: string;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Experiment Id */
+            experiment_id: string;
+            /** Methods */
+            methods: string[];
+            /** Name */
+            name: string;
+            /** Positions */
+            positions: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Provenance */
+            provenance: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Reconciliation */
+            reconciliation: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Research Eligible */
+            research_eligible: boolean | null;
+            /** Run Id */
+            run_id: string;
+            /**
+             * Schema Version
+             * @default saved_diagnostics_v1
+             */
+            schema_version: string;
+            /** Series */
+            series: {
+                [key: string]: components["schemas"]["DiagnosticSeries"];
+            };
+            /** Statistics */
+            statistics: {
+                [key: string]: components["schemas"]["DiagnosticMetric"];
+            };
+            /** Stored Metrics */
+            stored_metrics: {
+                [key: string]: components["schemas"]["DiagnosticMetric"];
+            };
+            /**
+             * Synthetic
+             * @default false
+             */
+            synthetic: boolean;
+            /** Warnings */
+            warnings: string[];
+            /** Worst Weeks */
+            worst_weeks: components["schemas"]["DiagnosticContext"][];
         };
         /** EquityRow */
         EquityRow: {
@@ -569,7 +792,7 @@ export interface components {
                 [key: string]: string;
             };
             /** Config */
-            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"];
+            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"] | components["schemas"]["LabConfigProxy"] | components["schemas"]["LabConfigProxyScheduled"];
             /** Config Hash */
             config_hash: string;
             /**
@@ -750,6 +973,10 @@ export interface components {
         InstrumentRow: {
             /** Asset Class */
             asset_class: string;
+            /** Availability Basis */
+            availability_basis?: string | null;
+            /** Calendar */
+            calendar?: string | null;
             /** Delisted At */
             delisted_at?: string | null;
             /** Display Name */
@@ -763,16 +990,14 @@ export interface components {
             effective_to?: string | null;
             /** Instrument Id */
             instrument_id: string;
-            /**
-             * Known At
-             * Format: date-time
-             */
-            known_at: string;
-            /**
-             * Listed At
-             * Format: date-time
-             */
-            listed_at: string;
+            /** Known At */
+            known_at?: string | null;
+            /** Listed At */
+            listed_at?: string | null;
+            /** Proxy Ticker */
+            proxy_ticker?: string | null;
+            /** Proxy Unit */
+            proxy_unit?: string | null;
             /** Supported */
             supported: boolean;
             /** Venue */
@@ -959,6 +1184,82 @@ export interface components {
              */
             update_minutes: number;
         };
+        /** LabConfigProxy */
+        LabConfigProxy: {
+            /**
+             * Benchmark
+             * @default btc_perp_buy_hold
+             * @constant
+             */
+            benchmark: "btc_perp_buy_hold";
+            /**
+             * End
+             * @default 2026-08-08
+             */
+            end: string;
+            follower?: components["schemas"]["FollowerSettings"];
+            /** Market Universe */
+            market_universe?: components["schemas"]["ExplicitUniverse"] | components["schemas"]["LiquidityUniverse"];
+            proxy?: components["schemas"]["ProxySettings"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            schema_version: "hyperliquid_copy_lab_proxy_v1";
+            /**
+             * Split
+             * @default development
+             * @constant
+             */
+            split: "development";
+            /**
+             * Start
+             * @default 2026-08-03
+             */
+            start: string;
+            trader?: components["schemas"]["TraderSettings"];
+        };
+        /** LabConfigProxyScheduled */
+        LabConfigProxyScheduled: {
+            /**
+             * Benchmark
+             * @default btc_perp_buy_hold
+             * @constant
+             */
+            benchmark: "btc_perp_buy_hold";
+            /**
+             * End
+             * @default 2026-08-08
+             */
+            end: string;
+            follower?: components["schemas"]["FollowerSettings"];
+            /** Market Universe */
+            market_universe?: components["schemas"]["ExplicitUniverse"] | components["schemas"]["LiquidityUniverse"];
+            proxy?: components["schemas"]["ProxySettings"];
+            /**
+             * Rebalance
+             * @default weekly
+             * @enum {string}
+             */
+            rebalance: "daily" | "weekly";
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            schema_version: "hyperliquid_copy_lab_proxy_v2";
+            /**
+             * Split
+             * @default development
+             * @constant
+             */
+            split: "development";
+            /**
+             * Start
+             * @default 2026-08-03
+             */
+            start: string;
+            trader?: components["schemas"]["TraderSettings"];
+        };
         /** LabConfigV2 */
         LabConfigV2: {
             /**
@@ -1046,6 +1347,8 @@ export interface components {
         MarketRow: {
             /** Asset Class */
             asset_class?: string | null;
+            /** Availability Basis */
+            availability_basis?: string | null;
             /** Budget */
             budget?: number | null;
             /** Candidate Count */
@@ -1076,6 +1379,8 @@ export interface components {
             members?: string[] | null;
             /** Membership Turnover */
             membership_turnover?: number | null;
+            /** Proxy Ticker */
+            proxy_ticker?: string | null;
             /** Rank */
             rank?: number | null;
             /** Reasons */
@@ -1233,6 +1538,8 @@ export interface components {
         Preflight: {
             /** Config Hash */
             config_hash: string;
+            /** Estimate Notes */
+            estimate_notes?: string[];
             /** Estimates */
             estimates: {
                 [key: string]: number;
@@ -1249,7 +1556,7 @@ export interface components {
         /** Preview */
         Preview: {
             /** Config */
-            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"];
+            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"] | components["schemas"]["LabConfigProxy"] | components["schemas"]["LabConfigProxyScheduled"];
             /** Dataset Id */
             dataset_id: string;
             /** Decision Date */
@@ -1268,6 +1575,24 @@ export interface components {
         PreviewInfo: {
             /** Hypothetical */
             hypothetical?: boolean | null;
+        };
+        /** ProxySettings */
+        ProxySettings: {
+            /**
+             * Max Mark Age Seconds
+             * @default 345600
+             */
+            max_mark_age_seconds: number;
+            /**
+             * Max Wait Seconds
+             * @default 345600
+             */
+            max_wait_seconds: number;
+            /**
+             * Slippage Bps
+             * @default 5
+             */
+            slippage_bps: number;
         };
         /** PublicValidationIssue */
         PublicValidationIssue: {
@@ -1447,7 +1772,7 @@ export interface components {
         /** Submission */
         Submission: {
             /** Config */
-            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"];
+            config: components["schemas"]["LabConfig"] | components["schemas"]["LabConfigV2"] | components["schemas"]["LabConfigProxy"] | components["schemas"]["LabConfigProxyScheduled"];
             /** Dataset Id */
             dataset_id: string;
             /**
@@ -1890,6 +2215,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Submission"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    diagnostics_api_lab_experiments__identifier__diagnostics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Diagnostics"];
                 };
             };
             /** @description Validation Error */

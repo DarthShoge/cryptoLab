@@ -37,6 +37,9 @@ class Curve:
         )
         self.path = repo.artifact(run_id, file, optional=True)
         self.where, self.params = scenario_where(scenario)
+        self.interval_seconds = scenario.metrics.get("sampling_interval_seconds", 60)
+        if self.interval_seconds not in (60, 3600):
+            raise ReportError("Unsupported equity sampling interval")
 
     @property
     def cte(self):
@@ -63,9 +66,9 @@ class Curve:
                     OR unrealized_pnl IS NULL OR NOT isfinite(unrealized_pnl)
                     OR gross_exposure IS NULL OR NOT isfinite(gross_exposure)
                     OR net_exposure IS NULL OR NOT isfinite(net_exposure)) AS invalid_equity,
-                count(*) FILTER (WHERE prev_time IS NOT NULL AND epoch(time-prev_time) != 60) AS gaps
+                count(*) FILTER (WHERE prev_time IS NOT NULL AND epoch(time-prev_time) != ?) AS gaps
                 FROM curve""",
-                    [str(self.path), *self.params],
+                    [str(self.path), *self.params, self.interval_seconds],
                 )
             )[0]
 
@@ -80,7 +83,7 @@ class Curve:
             return Page[EquityRow](rows=[], total=0)
         if stats["invalid_equity"] or stats["gaps"]:
             raise ReportError(
-                "Equity contains invalid values or a missing/duplicate minute"
+                "Equity contains invalid values or a missing/duplicate sample"
             )
         sampling = ""
         parameters = [str(self.path), *self.params]
@@ -134,14 +137,11 @@ def records(
         "funding": "funding_ledger.parquet",
     }[table]
     if scenario and scenario.scenario_type == "control":
-        if table == "funding":
-            return Page[Record](
-                rows=[],
-                total=0,
-                available=False,
-                reason="Control funding ledger is not provided by this report",
-            )
-        file = "control_fills.parquet"
+        file = (
+            "control_funding_ledger.parquet"
+            if table == "funding"
+            else "control_fills.parquet"
+        )
     path = repo.artifact(run_id, file, optional=True)
     if path is None:
         return Page[Record](

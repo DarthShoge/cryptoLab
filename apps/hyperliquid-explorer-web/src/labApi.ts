@@ -86,10 +86,13 @@ export function strategySummary(wire: WireConfig) {
       ? `top ${config.top_n}`
       : `top ${(config.top_fraction ?? 0) * 100}%`;
   const markets =
-    wire.schema_version === "hyperliquid_copy_lab_v2"
+    wire.schema_version !== "hyperliquid_copy_lab_v1"
       ? marketSummary(wire.market_universe)
       : config.coins.join(" + ");
-  return `${markets} · ${config.scope.replace("_", " ")} · ${cohort} eligible · ${config.lookback_days}d · ${config.reselection} · ${config.aggregation.replace(/_/g, " ")} · BTC perp benchmark`;
+  const proxySummary = wire.schema_version === "hyperliquid_copy_lab_proxy_v2"
+    ? ` · ${wire.rebalance} trader/portfolio rebalance · approximate hourly proxy valuation`
+    : wire.schema_version === "hyperliquid_copy_lab_proxy_v1" ? " · approximate hourly proxy" : "";
+  return `${markets} · ${config.scope.replace("_", " ")} · ${cohort} eligible · ${config.lookback_days}d · ${config.reselection} · ${config.aggregation.replace(/_/g, " ")} · BTC perp benchmark${proxySummary}`;
 }
 
 export function experimentLabel(experiment: Experiment) {

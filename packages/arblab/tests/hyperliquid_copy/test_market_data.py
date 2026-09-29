@@ -32,6 +32,25 @@ def test_parquet_roundtrip(tmp_path):
     assert market.mark("BTC", T) == 100
 
 
+@pytest.mark.parametrize("new_first", [False, True])
+def test_mixed_fill_schemas_preserve_optional_raw_details(tmp_path, new_first):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    from arblab.hyperliquid_copy.market_data import read_parquet
+
+    old, new = tmp_path / "old.parquet", tmp_path / "new.parquet"
+    pq.write_table(pa.Table.from_pylist([
+        {"exchange_time": T, "event_id": "old"},
+    ]), old)
+    pq.write_table(pa.Table.from_pylist([
+        {"exchange_time": T, "event_id": "new", "raw_details_json": '{"fee":"1"}'},
+    ]), new)
+    paths = [new, old] if new_first else [old, new]
+    rows = {row["event_id"]: row for row in read_parquet(paths, "exchange_time", T, T)}
+    assert rows["new"]["raw_details_json"] == '{"fee":"1"}'
+    assert rows["old"]["raw_details_json"] is None
+
+
 def test_upstream_funding_and_paths(tmp_path):
     from arblab.hyperliquid_copy.market_data import MarketData
     from arblab.hyperliquid_copy.data_paths import market_partition

@@ -199,6 +199,12 @@ apps/hyperliquid-explorer-web/playwright-report/
 .hyperliquid_lab/
 reports/.copy_lab/
 reports/hyperliquid_trader_ensemble_*/
+# Generated research evidence is kept in the local research archive.
+reports/hyperliquid_annual_acceptance_*/
+reports/hyperliquid_weekly_diagnostics_*/
+reports/hyperliquid_feature_write_recovery_*/
+reports/hyperliquid_cleanup_*/
+reports/hyperliquid_validation_benchmark*.json
 
 # Local agent/process artifacts
 docs/superpowers/

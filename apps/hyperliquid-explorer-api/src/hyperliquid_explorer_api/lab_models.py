@@ -6,12 +6,25 @@ from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 from pydantic.dataclasses import dataclass
 from arblab.hyperliquid_copy.lab_config import LabConfig as DomainConfig
 from arblab.hyperliquid_copy.lab_config_v2 import LabConfigV2 as DomainConfigV2
+from arblab.hyperliquid_copy.lab_config_proxy import LabConfigProxy as DomainConfigProxy
+from arblab.hyperliquid_copy.lab_config_proxy import (
+    LabConfigProxyScheduled as DomainConfigProxyScheduled,
+)
 from arblab.hyperliquid_copy.lab_config_codec import parse_lab_config
 from .models import Analytics, EquityRow, Page, Model
 
 LabConfig = dataclass(DomainConfig, frozen=True, config=ConfigDict(extra="forbid"))
 LabConfigV2 = dataclass(DomainConfigV2, frozen=True, config=ConfigDict(extra="forbid"))
-AnyLabConfig = Annotated[LabConfig | LabConfigV2, Field(discriminator="schema_version")]
+LabConfigProxy = dataclass(
+    DomainConfigProxy, frozen=True, config=ConfigDict(extra="forbid")
+)
+LabConfigProxyScheduled = dataclass(
+    DomainConfigProxyScheduled, frozen=True, config=ConfigDict(extra="forbid")
+)
+AnyLabConfig = Annotated[
+    LabConfig | LabConfigV2 | LabConfigProxy | LabConfigProxyScheduled,
+    Field(discriminator="schema_version"),
+]
 
 
 class Submission(BaseModel):
@@ -53,6 +66,7 @@ class Preflight(Model):
     required_start: str
     required_end: str
     estimates: dict[str, int]
+    estimate_notes: list[str] = Field(default_factory=list)
 
 
 class Annotation(BaseModel):
@@ -98,6 +112,8 @@ class Dataset(Model):
     supported_classes: list[str] = Field(default_factory=list)
     liquidity_available: bool = False
     catalogue_hash: str | None = None
+    pricing_mode: Literal["order_book", "hourly_proxy"] = "order_book"
+    proxy_mappings: list[dict[str, JsonValue]] = Field(default_factory=list)
 
 
 class Bootstrap(Model):
@@ -162,11 +178,15 @@ class InstrumentRow(Model):
     venue: str
     asset_class: str
     supported: bool
-    listed_at: datetime
+    listed_at: datetime | None = None
     delisted_at: datetime | None = None
-    known_at: datetime
+    known_at: datetime | None = None
     effective_from: datetime
     effective_to: datetime | None = None
+    availability_basis: str | None = None
+    proxy_ticker: str | None = None
+    proxy_unit: str | None = None
+    calendar: str | None = None
 
 
 class MarketRow(Model):
@@ -176,6 +196,8 @@ class MarketRow(Model):
     display_name: str | None = None
     venue: str | None = None
     asset_class: str | None = None
+    availability_basis: str | None = None
+    proxy_ticker: str | None = None
     volume_usd: float | None = None
     rank: int | None = None
     eligible: bool | None = None

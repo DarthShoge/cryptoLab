@@ -182,6 +182,10 @@ def build_metrics(scenario, stats, synthetic):
     )
     output = {}
     for key, (unit, group, description) in SPECS.items():
+        if scenario.metrics.get("sampling_interval_seconds") == 3600:
+            description = description.replace("minute", "hourly").replace(
+                "365 × 1440", "365 × 24"
+            )
         value = number(derived[key] if key in derived else scenario.metrics.get(key))
         reason = None if value is not None else "not provided or undefined"
         if key in derived and not valid:
@@ -238,5 +242,9 @@ def analyze(repo, run_id, scenario, benchmark=None):
         metrics=metrics,
         benchmark=other,
         warnings=list(dict.fromkeys(warnings)),
-        conventions=CONVENTIONS,
+        conventions=(
+            CONVENTIONS.replace("minute", "hourly").replace("365 × 1440", "365 × 24")
+            if scenario.metrics.get("sampling_interval_seconds") == 3600
+            else CONVENTIONS
+        ),
     )

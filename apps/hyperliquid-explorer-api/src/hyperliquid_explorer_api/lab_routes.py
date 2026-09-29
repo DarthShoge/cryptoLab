@@ -29,6 +29,8 @@ from arblab.hyperliquid_copy.lab_validation import LabValidationError
 from .lab_models import Preflight
 from .lab_models import InstrumentRow, MarketRow, PreviewInfo
 from .lab_market_queries import market_universe, preview_info
+from .diagnostic_models import Diagnostics
+from .diagnostic_service import get_diagnostics
 from arblab.hyperliquid_copy.lab_config_codec import migrate_v1_to_v2
 
 HOSTS = {
@@ -165,6 +167,10 @@ def install_lab(app, root, repo):
     @router.get("/experiments/{identifier}/preview-info", response_model=PreviewInfo)
     def preview_metadata(identifier: str):
         return safe(preview_info, app.state.lab, identifier)
+
+    @router.get("/experiments/{identifier}/diagnostics", response_model=Diagnostics)
+    def diagnostics(identifier: str):
+        return get_diagnostics(app.state.lab, repo, identifier)
 
     @router.patch("/experiments/{identifier}/metadata", response_model=Experiment)
     def annotate(identifier: str, body: Annotation):

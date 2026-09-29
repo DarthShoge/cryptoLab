@@ -6,6 +6,9 @@ from .lab_config import day
 from .lab_pipeline import is_decision
 from .lab_ranking import rank_universe, cohort_snapshot
 from .lab_market_selection import select_markets
+from .proxy_schedule import decision_times
+from .disk_score_result import ScoredCohort
+from .selection_disk_evidence import append_scored_cohort
 
 
 def target_tick(at, start, minutes):
@@ -34,17 +37,7 @@ class SelectionState:
         old = set(self.active)
         market_changed = False
         if is_decision(at, self.start, c.market_universe.reselection):
-            rows, cohort = select_markets(
-                self.dataset.catalogue,
-                self.dataset.volume,
-                c.market_universe,
-                at,
-                None if not self.market_cohorts else self.active,
-                c.follower.scale_lookback_days
-                if c.follower.aggregation == "conviction_trimmed"
-                else 0,
-                target_tick(at, self.start, c.follower.update_minutes),
-            )
+            rows, cohort = self.select_markets(at)
             self.market_rankings.extend(rows)
             self.market_cohorts.append(cohort)
             self.active = cohort["members"]
@@ -65,18 +58,7 @@ class SelectionState:
         for scope in scopes:
             exiting = scope is not None and scope not in self.active
             effective = c.effective(self.active, self.budgets)
-            rows = (
-                []
-                if exiting
-                else rank_universe(
-                    self.dataset.fills,
-                    at,
-                    effective,
-                    scope,
-                    self.dataset.manifest["fee_semantics"],
-                    smoke=True,
-                )
-            )
+            rows = [] if exiting else self.rank_traders(at, effective, scope)
             trigger = (
                 "market_exit"
                 if exiting
@@ -86,11 +68,38 @@ class SelectionState:
                 if scope is None
                 else "market_entry"
             )
-            for row in rows:
-                row.update(
-                    market_decision_time=self.market_time, decision_trigger=trigger
+            if isinstance(rows, ScoredCohort):
+                consume = getattr(
+                    getattr(self.dataset, "activity", None), "consume_ranking", None
                 )
-            snapshot = cohort_snapshot(rows, at, scope, self.previous.get(scope))
+                snapshot, selected = append_scored_cohort(
+                    rows,
+                    self.rankings,
+                    at,
+                    scope,
+                    self.previous.get(scope),
+                    market_time=self.market_time,
+                    trigger=trigger,
+                    acknowledge=(
+                        None
+                        if consume is None
+                        else lambda result, snapshot, selected: consume(
+                            result,
+                            snapshot,
+                            selected,
+                            config=effective,
+                            semantics=self.dataset.manifest["fee_semantics"],
+                        )
+                    ),
+                )
+            else:
+                for row in rows:
+                    row.update(
+                        market_decision_time=self.market_time, decision_trigger=trigger
+                    )
+                snapshot = cohort_snapshot(rows, at, scope, self.previous.get(scope))
+                self.rankings.extend(rows)
+                selected = [r for r in rows if r["selected"]]
             snapshot.update(
                 market_decision_time=self.market_time,
                 decision_trigger=trigger,
@@ -98,22 +107,50 @@ class SelectionState:
                 if c.trader.selection == "n"
                 else ceil(c.trader.top_fraction * snapshot["eligible_count"]),
             )
-            self.rankings.extend(rows)
             self.trader_cohorts.append(snapshot)
             self.previous[scope] = snapshot["members"]
             for coin in self.active if scope is None else [scope]:
-                self.selected[coin] = [r for r in rows if r["selected"]]
+                self.selected[coin] = list(selected)
         for coin in old - set(self.active):
             self.selected[coin] = []
         return bool(scopes)
 
+    def select_markets(self, at):
+        c = self.config
+        return select_markets(
+            self.dataset.catalogue,
+            self.dataset.volume,
+            c.market_universe,
+            at,
+            None if not self.market_cohorts else self.active,
+            c.follower.scale_lookback_days
+            if c.follower.aggregation == "conviction_trimmed"
+            else 0,
+            target_tick(at, self.start, c.follower.update_minutes),
+        )
 
-def preview_selection(dataset, config, decision, scope):
-    state = SelectionState(dataset, config)
-    at = day(config.start)
-    while at <= decision:
+    def rank_traders(self, at, effective, scope):
+        return rank_universe(
+            self.dataset.fills,
+            at,
+            effective,
+            scope,
+            self.dataset.manifest["fee_semantics"],
+            smoke=True,
+        )
+
+
+def preview_selection(dataset, config, decision, scope, *, state_type=SelectionState):
+    state = state_type(dataset, config)
+    for at in decision_times(
+        day(config.start),
+        decision + timedelta(days=1),
+        getattr(config, "rebalance", "daily"),
+    ):
+        # A preview returns only its requested decision rankings. Historical
+        # membership/market state stays available without retaining every score.
+        state.rankings.clear()
         state.advance(at)
-        at += timedelta(days=1)
     actual = any(
         r["decision_time"] == decision and r["coin"] == scope
         for r in state.trader_cohorts
@@ -126,13 +163,10 @@ def preview_selection(dataset, config, decision, scope):
         ]
     else:
         rows = (
-            rank_universe(
-                dataset.fills,
+            state.rank_traders(
                 decision,
                 config.effective(state.active, state.budgets),
                 scope,
-                dataset.manifest["fee_semantics"],
-                smoke=True,
             )
             if scope is None or scope in state.active
             else []

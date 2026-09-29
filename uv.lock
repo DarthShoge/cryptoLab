@@ -267,6 +267,7 @@ dependencies = [
     { name = "base58" },
     { name = "ccxt" },
     { name = "duckdb" },
+    { name = "exchange-calendars" },
     { name = "hyperliquid-data" },
     { name = "hyperliquid-python-sdk" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -282,6 +283,7 @@ requires-dist = [
     { name = "base58" },
     { name = "ccxt" },
     { name = "duckdb", specifier = "==1.5.5" },
+    { name = "exchange-calendars", specifier = ">=4.11,<5" },
     { name = "hyperliquid-data", specifier = "==0.1.0" },
     { name = "hyperliquid-python-sdk", specifier = "==0.24.0" },
     { name = "numpy" },
@@ -1159,6 +1161,24 @@ wheels = [
 ]
 
 [[package]]
+name = "exchange-calendars"
+version = "4.11.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "korean-lunar-calendar" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "pandas" },
+    { name = "pyluach" },
+    { name = "toolz" },
+    { name = "tzdata" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/ce/721d6177ed19eec009a9762efd2eb6a86368a11be49447d7f908823e2247/exchange_calendars-4.11.1.tar.gz", hash = "sha256:bdaf000c3c5a0087341e1fdfe063182d27585bdba3f1a3d0189a13bdb4afea5d", size = 4018247, upload-time = "2025-08-20T19:36:09.933Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/2d/5d7aa4ad29cfb6488693bb94c9e1140f597726b098e0435e9ba8210cd6a1/exchange_calendars-4.11.1-py3-none-any.whl", hash = "sha256:40ec771589e5a9b96b9e09667cd0f3fde7c70444e3a7530b8989ebd0750ee478", size = 208939, upload-time = "2025-08-20T19:36:08.277Z" },
+]
+
+[[package]]
 name = "fastapi"
 version = "0.141.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1565,6 +1585,15 @@ requires-dist = [
     { name = "arblab", editable = "packages/arblab" },
     { name = "python-dotenv" },
     { name = "streamlit" },
+]
+
+[[package]]
+name = "korean-lunar-calendar"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/9f/6160e95f3934026194dc7a0b5c78fe5c6e74761830ddea3e9cfc38e3f983/korean_lunar_calendar-0.4.0.tar.gz", hash = "sha256:be56f27bc0594fdbbdf7bbe00f504a9f929a31e311bd7d9bb93561b645afade7", size = 13425, upload-time = "2026-06-15T14:19:57.163Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c1/88/f56033b09fdca5c8c5e5fc2f3513950a05cd62caa9bd8e6d2750a887c86e/korean_lunar_calendar-0.4.0-py3-none-any.whl", hash = "sha256:c042e20de0bb702add6bec8d0f6da1ea8d3b170838e63846f70420cf341fe4e7", size = 11323, upload-time = "2026-06-15T14:19:56.089Z" },
 ]
 
 [[package]]
@@ -2705,6 +2734,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/46/79/461a4636c6cfdbf0c90f3d8532db728e3ae117d63765a431aa3f1ebfe66b/pyheck-0.1.5-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:64201a6d213bec443aeb33f66c60cea61aaf6257e48a19159ac69a5afad4768e", size = 1240962, upload-time = "2022-02-18T23:11:56.528Z" },
     { url = "https://files.pythonhosted.org/packages/1f/2b/1df278fe24e40e5bf13277cd114b47c4e1e498c7850c5ed38f807f945de2/pyheck-0.1.5-cp37-abi3-win32.whl", hash = "sha256:1501fcfd15f7c05c6bfe38915f5e514ac95fc63e945f7d8b089d30c1b8fdb2c5", size = 180706, upload-time = "2022-02-18T23:11:57.572Z" },
     { url = "https://files.pythonhosted.org/packages/aa/21/07e09ee32556379a2d1c17f680a49f52ee89283d51637743ecffcb232d3b/pyheck-0.1.5-cp37-abi3-win_amd64.whl", hash = "sha256:e519f80a0ef87a8f880bfdf239e396e238dcaed34bec1ea7ef526c4873220e82", size = 193764, upload-time = "2022-02-18T23:11:58.745Z" },
+]
+
+[[package]]
+name = "pyluach"
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/11/42568c1568a75f8803c59f26d29af01a0890352b7a8e03d41ecda8bfb5dd/pyluach-2.3.0.tar.gz", hash = "sha256:ec6e30669d1df50c9ca160486da44a8195bb4c7a5d3d533990d0c5b03accd281", size = 26910, upload-time = "2025-09-09T20:24:39.651Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8a/c8/f96208ade3ca4c23b372497d0788bcf0f2e0ff4310e5ee693366bc33fdf0/pyluach-2.3.0-py3-none-any.whl", hash = "sha256:4497b731aef59508b079dbf5f00bc5bf4329ac45090a6cd37b5a83756f0e69ab", size = 25914, upload-time = "2025-09-09T20:24:37.831Z" },
 ]
 
 [[package]]

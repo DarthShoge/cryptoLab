@@ -7,11 +7,22 @@ import { ExperimentDetail, Experiments } from "./Experiments";
 import { Compare } from "./Compare";
 
 export function Lab() {
+  const [entry] = useState(() => {
+    const query = new URLSearchParams(window.location.search);
+    const requested = query.get("experiment") ?? "";
+    return {
+      id: /^[a-f0-9]{32}$/.test(requested) ? requested : null,
+      tab: query.get("tab") === "diagnostics" ? "Diagnostics" : "Performance",
+    };
+  });
   const bootstrap = useResource<Bootstrap>("/api/lab/bootstrap");
   const datasets = useResource<Dataset[]>("/api/lab/datasets");
-  const [view, setView] = useState("builder"),
-    [id, setId] = useState<string | null>(null),
+  const [view, setView] = useState(entry.id ? "detail" : "builder"),
+    [id, setId] = useState<string | null>(entry.id),
     [comparison, setComparison] = useState<string[]>([]);
+  // A saved-result link must not mount the builder or send its POST preflight.
+  // Once explicitly opened, keep the builder mounted to preserve unsaved edits.
+  const [builderVisited, setBuilderVisited] = useState(!entry.id);
   const [draft, setDraft] = useState<Submission | undefined>(),
     [draftKey, setDraftKey] = useState(0);
   return (
@@ -44,7 +55,10 @@ export function Lab() {
         <nav className="lab-nav" aria-label="Strategy lab">
           <button
             className={view === "builder" ? "active" : ""}
-            onClick={() => setView("builder")}
+            onClick={() => {
+              setBuilderVisited(true);
+              setView("builder");
+            }}
           >
             Strategy builder
           </button>
@@ -76,7 +90,7 @@ export function Lab() {
         {bootstrap.data && datasets.data && (
           <>
             <div hidden={view !== "builder"}>
-              <StrategyBuilder
+              {builderVisited && <StrategyBuilder
                 key={draftKey}
                 bootstrap={bootstrap.data}
                 datasets={datasets.data}
@@ -85,7 +99,7 @@ export function Lab() {
                   setId(e.id);
                   setView("detail");
                 }}
-              />
+              />}
             </div>
             {view === "library" && (
               <Experiments
@@ -104,7 +118,9 @@ export function Lab() {
                 key={id}
                 id={id}
                 token={bootstrap.data.token}
+                initialTab={entry.id === id ? entry.tab : "Performance"}
                 onClone={(value) => {
+                  setBuilderVisited(true);
                   setDraft(value);
                   setDraftKey((n) => n + 1);
                   setView("builder");

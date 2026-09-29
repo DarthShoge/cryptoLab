@@ -20,6 +20,12 @@ from arblab.hyperliquid_copy.lab_config_v2 import (
 )
 from arblab.hyperliquid_copy.lab_instruments import Catalogue, timestamp
 from arblab.hyperliquid_copy.lab_volume import MarketVolume
+from arblab.hyperliquid_copy.lab_config_proxy import LabConfigProxy
+from arblab.hyperliquid_copy.proxy_dataset import (
+    ProxyDatasetManifest,
+    SCHEMA as PROXY_SCHEMA,
+)
+from . import lab_proxy_datasets
 
 FILES = {"fills.parquet", "books.parquet", "funding.parquet"}
 
@@ -51,6 +57,8 @@ class DatasetCatalog:
         if not path.is_relative_to(directory) or path.stat().st_size > 1000000:
             raise ValueError("Invalid dataset manifest")
         metadata = json.loads(path.read_text())
+        if metadata.get("schema") == PROXY_SCHEMA:
+            return ProxyDatasetManifest(directory).metadata
         if (
             metadata.get("schema")
             not in ("hyperliquid_lab_dataset_v1", "hyperliquid_lab_dataset_v2")
@@ -144,7 +152,14 @@ class DatasetCatalog:
     def instruments(
         self, identifier, *, page=1, page_size=50, search="", asset_class=None
     ):
-        rows = self.catalogue(identifier).public_rows()
+        data = self.manifest(identifier)
+        rows = (
+            lab_proxy_datasets.instruments(
+                ProxyDatasetManifest(self.directory(identifier))
+            )
+            if data["schema"] == PROXY_SCHEMA
+            else self.catalogue(identifier, data).public_rows()
+        )
         rows = [
             r
             for r in rows
@@ -156,6 +171,10 @@ class DatasetCatalog:
         )
 
     def candidate_ids(self, identifier, config, data=None):
+        if isinstance(config, LabConfigProxy):
+            return lab_proxy_datasets.candidate_ids(
+                ProxyDatasetManifest(self.directory(identifier)), config
+            )
         if not isinstance(config, LabConfigV2):
             return config.coins
         universe = config.market_universe
@@ -189,6 +208,9 @@ class DatasetCatalog:
         for path in sorted(self.root.iterdir()):
             try:
                 data = self.manifest(path.name)
+                if data["schema"] == PROXY_SCHEMA:
+                    output.append(lab_proxy_datasets.summary(path.name, path))
+                    continue
                 catalogue = self.catalogue(path.name, data)
                 output.append(
                     dict(
@@ -231,6 +253,18 @@ class DatasetCatalog:
 
     def _inspect(self, identifier, config):
         data = self.manifest(identifier)
+        if data["schema"] == PROXY_SCHEMA:
+            return lab_proxy_datasets.inspect(self.directory(identifier), config)
+        if isinstance(config, LabConfigProxy):
+            raise LabValidationError(
+                [
+                    ValidationIssue(
+                        "pricing_mode_mismatch",
+                        "dataset_id",
+                        "Hourly proxy configuration requires a registered proxy dataset.",
+                    )
+                ]
+            )
         submitted = config
         v2 = isinstance(config, LabConfigV2)
         volume_days = 0
@@ -409,11 +443,17 @@ class DatasetCatalog:
             warmup_start=day(inspection["required_start"]).isoformat(),
         )
 
-    def load(self, identifier, config, frozen):
+    def load(self, identifier, config, frozen, *, temp_root=None):
         current = self.preflight(identifier, config)
         if current["dataset_hash"] != frozen["dataset_hash"]:
             raise ValueError("Dataset changed since submission")
         directory = self.directory(identifier)
+        if current["manifest"]["schema"] == PROXY_SCHEMA:
+            return ProxyDatasetManifest(directory).load(
+                temp_root=temp_root or directory.parent,
+                expected_hash=frozen["dataset_hash"],
+                config=config,
+            )
         fills = [
             FillEvent(**r)
             for r in pq.read_table(directory / "fills.parquet").to_pylist()

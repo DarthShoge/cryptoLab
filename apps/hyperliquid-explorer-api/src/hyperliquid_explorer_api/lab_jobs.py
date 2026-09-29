@@ -12,19 +12,32 @@ from threading import Event, RLock, Thread
 from arblab.hyperliquid_copy.download import file_hash
 from arblab.hyperliquid_copy.lab_config import day
 from arblab.hyperliquid_copy.lab_config_v2 import LabConfigV2
+from arblab.hyperliquid_copy.lab_config_proxy import LabConfigProxy
 from .lab_datasets import DatasetCatalog
 from .lab_store import ExperimentStore
+from .lab_scratch import clean_scratch
+from .lab_verification_session import POLICIES
 
 
 def source_fingerprint():
     import arblab.hyperliquid_copy.lab_pipeline as engine
 
     folder = Path(engine.__file__).parent
-    return {p.name: file_hash(p) for p in sorted(folder.glob("*.py"))}
+    hashes = {p.name: file_hash(p) for p in sorted(folder.glob("*.py"))}
+    for name in (
+        "lab_worker.py",
+        "lab_verification_session.py",
+        "lab_file_hash_session.py",
+    ):
+        hashes[f"api/{name}"] = file_hash(Path(__file__).with_name(name))
+    return hashes
 
 
 class LabJobs:
-    def __init__(self, root):
+    def __init__(self, root, *, verification_policy="full"):
+        if verification_policy not in POLICIES:
+            raise ValueError("Invalid verification policy")
+        self.verification_policy = verification_policy
         self.root = Path(root).resolve()
         self.store = ExperimentStore(self.root)
         self.catalog = DatasetCatalog(self.root)
@@ -32,7 +45,33 @@ class LabJobs:
         self.stop = Event()
         self.process = None
         self.active = None
+        self.output_handles = None
         self.ownership = None
+
+    def _open_worker_logs(self, identifier):
+        folder = self.root / "worker_logs"
+        folder.mkdir(exist_ok=True)
+        stdout = (folder / f"{identifier}.stdout.log").open("xb")
+        try:
+            stderr = (folder / f"{identifier}.stderr.log").open("xb")
+        except BaseException:
+            stdout.close()
+            raise
+        self.output_handles = stdout, stderr
+        return self.output_handles
+
+    def _close_worker_logs(self):
+        if self.output_handles is not None:
+            for handle in self.output_handles:
+                handle.close()
+            self.output_handles = None
+
+    @staticmethod
+    def _worker_failure(identifier, returncode):
+        return (
+            "Worker failed or rejected data; no validated result published "
+            f"(exit code {returncode}; logs: worker_logs/{identifier}.*.log)"
+        )
 
     def start(self):
         self.ownership = (self.root / "worker.lock").open("a")
@@ -53,7 +92,9 @@ class LabJobs:
                 except subprocess.TimeoutExpired:
                     self.process.kill()
                     self.process.wait()
+                self._close_worker_logs()
                 self.process = None
+                clean_scratch(self.root, self.active)
                 self.store.transition(
                     self.active,
                     "running",
@@ -76,7 +117,7 @@ class LabJobs:
                 config.effective(
                     self.catalog.candidate_ids(request.dataset_id, config), {}
                 )
-                if isinstance(config, LabConfigV2)
+                if isinstance(config, (LabConfigV2, LabConfigProxy))
                 else config
             )
             preview_date, preview_scope = request.decision_date, request.scope
@@ -92,10 +133,25 @@ class LabJobs:
             ):
                 raise ValueError("Preview scope must match strategy scope")
         provenance.update(
-            engine="copy_lab_v2" if isinstance(config, LabConfigV2) else "copy_lab_v1",
+            verification_policy=self.verification_policy,
+            engine=config.schema_version.removeprefix("hyperliquid_")
+            if isinstance(config, LabConfigProxy)
+            else "copy_lab_v2"
+            if isinstance(config, LabConfigV2)
+            else "copy_lab_v1",
             source_hashes=source_fingerprint(),
             dependencies={
-                name: version(name) for name in ("arblab", "duckdb", "pyarrow")
+                name: version(name)
+                for name in (
+                    "arblab",
+                    "duckdb",
+                    "pyarrow",
+                    *(
+                        ("exchange-calendars",)
+                        if isinstance(config, LabConfigProxy)
+                        else ()
+                    ),
+                )
             },
         )
         return self.store.create(
@@ -121,8 +177,10 @@ class LabJobs:
                 except subprocess.TimeoutExpired:
                     self.process.kill()
                     self.process.wait()
+                self._close_worker_logs()
                 self.process = None
                 self.active = None
+            clean_scratch(self.root, identifier)
             return self.store.transition(identifier, item["status"], "cancelled")
 
     def publish(self, item):
@@ -149,8 +207,10 @@ class LabJobs:
         with self.lock:
             if self.process and self.process.poll() is not None:
                 item = self.store.get(self.active)
+                returncode = self.process.returncode
+                self._close_worker_logs()
                 try:
-                    if self.process.returncode:
+                    if returncode:
                         raise ValueError("Worker rejected input or failed")
                     run_id, hashes = self.publish(item)
                     self.store.transition(
@@ -165,8 +225,9 @@ class LabJobs:
                         item["id"],
                         "running",
                         "failed",
-                        error="Worker failed or rejected data; no validated result published",
+                        error=self._worker_failure(item["id"], returncode),
                     )
+                clean_scratch(self.root, item["id"])
                 self.process, self.active = None, None
             if not self.process and not self.stop.is_set():
                 item = self.store.next_queued()
@@ -175,6 +236,7 @@ class LabJobs:
                     try:
                         if item["provenance"]["source_hashes"] != source_fingerprint():
                             raise ValueError("Engine changed since submission")
+                        stdout, stderr = self._open_worker_logs(item["id"])
                         self.process = subprocess.Popen(
                             [
                                 sys.executable,
@@ -186,11 +248,12 @@ class LabJobs:
                                 item["id"],
                             ],
                             stdin=subprocess.DEVNULL,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
+                            stdout=stdout,
+                            stderr=stderr,
                         )
                         self.active = item["id"]
                     except Exception:
+                        self._close_worker_logs()
                         self.store.transition(
                             item["id"],
                             "running",

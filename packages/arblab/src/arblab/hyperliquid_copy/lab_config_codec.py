@@ -2,6 +2,7 @@
 
 from dataclasses import fields
 from .lab_config import LabConfig
+from .lab_config_proxy import LabConfigProxy, LabConfigProxyScheduled
 from .lab_config_v2 import (
     LabConfigV2,
     TraderSettings,
@@ -11,10 +12,14 @@ from .lab_config_v2 import (
 
 
 def parse_lab_config(value):
-    if isinstance(value, (LabConfig, LabConfigV2)):
+    if isinstance(value, (LabConfig, LabConfigV2, LabConfigProxy)):
         return value
     if not isinstance(value, dict):
         raise ValueError("Configuration must be an object")
+    if value.get("schema_version") == "hyperliquid_copy_lab_proxy_v1":
+        return LabConfigProxy(**value)
+    if value.get("schema_version") == "hyperliquid_copy_lab_proxy_v2":
+        return LabConfigProxyScheduled(**value)
     if (
         value.get("schema_version", "hyperliquid_copy_lab_v1")
         == "hyperliquid_copy_lab_v1"

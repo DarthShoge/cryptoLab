@@ -10,6 +10,7 @@ dependencies = [
   "ccxt",
   "numpy",
   "pandas",
+  "exchange-calendars>=4.11,<5",
   "anchorpy==0.20.1",
   "solana>=0.33.0",
   "base58",

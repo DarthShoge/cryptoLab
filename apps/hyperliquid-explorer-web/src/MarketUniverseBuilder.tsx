@@ -15,10 +15,12 @@ export function MarketUniverseBuilder({
   dataset,
   value,
   onChange,
+  lockReselection = false,
 }: {
   dataset?: Dataset;
   value: MarketUniverse;
   onChange: (value: MarketUniverse) => void;
+  lockReselection?: boolean;
 }) {
   const [page, setPage] = useState(1),
     [search, setSearch] = useState(""),
@@ -109,6 +111,7 @@ export function MarketUniverseBuilder({
           Market reselection
           <select
             aria-label="Market reselection"
+            disabled={lockReselection}
             value={value.reselection}
             onChange={(e) =>
               onChange({

@@ -9,7 +9,20 @@ export type AssetClass = MarketUniverse["classes"][number];
 export type ConfigV2 = Required<Schemas["LabConfigV2"]> & {
   market_universe: MarketUniverse;
 };
-export type WireConfig = Config | ConfigV2;
+export type ProxySettings = Required<Schemas["ProxySettings"]>;
+export type ConfigProxy = Required<Schemas["LabConfigProxy"]> & {
+  market_universe: MarketUniverse;
+  proxy: ProxySettings;
+};
+export type ConfigProxyScheduled = Required<Schemas["LabConfigProxyScheduled"]> & {
+  market_universe: MarketUniverse;
+  proxy: ProxySettings;
+};
+export type ProxyCadence = "hourly" | "daily" | "weekly";
+export type WireConfig = Config | ConfigV2 | ConfigProxy | ConfigProxyScheduled;
+export const defaultProxySettings: ProxySettings = {
+  slippage_bps: 5, max_mark_age_seconds: 345600, max_wait_seconds: 345600,
+};
 export const classes: [AssetClass, string][] = [
   ["crypto", "Crypto"],
   ["commodity", "Commodities"],
@@ -70,7 +83,7 @@ export function marketSummary(universe: MarketUniverse): string {
     : `${universe.general ? "General" : universe.classes.join(" + ")} · top ${universe.top_n} assets by ${universe.lookback_days}d USD volume (1d lag) · assets ${universe.reselection}`;
 }
 export function universeOf(config: WireConfig): MarketUniverse {
-  return config.schema_version === "hyperliquid_copy_lab_v2"
+  return config.schema_version !== "hyperliquid_copy_lab_v1"
     ? config.market_universe
     : {
         mode: "explicit",
@@ -108,7 +121,9 @@ export function editorConfig(
 export function wireConfig(
   c: Config,
   market_universe: MarketUniverse,
-): ConfigV2 {
+  proxy?: ProxySettings,
+  cadence: ProxyCadence = "hourly",
+): ConfigV2 | ConfigProxy | ConfigProxyScheduled {
   const {
     scope,
     lookback_days,
@@ -144,7 +159,7 @@ export function wireConfig(
     benchmark,
     split,
   } = c;
-  return {
+  const structured: ConfigV2 = {
     schema_version: "hyperliquid_copy_lab_v2",
     market_universe,
     start,
@@ -185,4 +200,17 @@ export function wireConfig(
       trim,
     },
   };
+  if (proxy && cadence !== "hourly") return {
+    ...structured,
+    schema_version: "hyperliquid_copy_lab_proxy_v2",
+    rebalance: cadence,
+    follower: { ...structured.follower, update_minutes: 60 },
+    proxy,
+  };
+  return proxy ? {
+    ...structured,
+    schema_version: "hyperliquid_copy_lab_proxy_v1",
+    follower: { ...structured.follower, update_minutes: 60 },
+    proxy,
+  } : structured;
 }

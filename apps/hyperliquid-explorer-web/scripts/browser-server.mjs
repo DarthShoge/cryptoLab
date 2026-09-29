@@ -8,6 +8,9 @@ const root = fileURLToPath(new URL("../../../", import.meta.url));
 const python = join(root, ".venv/bin/python");
 const reports = mkdtempSync(join(tmpdir(), "hyperliquid-explorer-browser-"));
 const lab = join(reports, "lab");
+execFileSync(python, ["-c", "import sys; from pathlib import Path; sys.path.insert(0, 'apps/hyperliquid-explorer-api/tests'); from test_lab_proxy import write_proxy_fixture; write_proxy_fixture(Path(sys.argv[1]))", join(lab, "datasets", "proxy")], { cwd: root, stdio: "inherit" });
+execFileSync(python, ["-c", "import sys; from pathlib import Path; sys.path.insert(0, 'apps/hyperliquid-explorer-api/tests'); from test_lab_proxy import write_scheduled_fixture; write_scheduled_fixture(Path(sys.argv[1]))", join(lab, "datasets", "scheduled")], { cwd: root, stdio: "inherit" });
+execFileSync(python, ["-c", "import sys; from pathlib import Path; sys.path.insert(0, 'apps/hyperliquid-explorer-api/tests'); from test_lab_proxy import write_annual_fixture; write_annual_fixture(Path(sys.argv[1]))", join(lab, "datasets", "annual")], { cwd: root, stdio: "inherit" });
 execFileSync(
   python,
   [

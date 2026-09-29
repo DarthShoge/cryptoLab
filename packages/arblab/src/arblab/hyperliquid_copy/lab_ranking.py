@@ -33,6 +33,13 @@ def rank_universe(fills, decision, config, scope, semantics, *, smoke=False):
             activity = grouped[fill.user]
             if fill.exchange_time >= start:
                 activity.append(fill)
+    return rank_activity(
+        sorted(grouped.items()), decision, config, scope, semantics, smoke=smoke
+    )
+
+
+def rank_activity(grouped, decision, config, scope, semantics, *, smoke=False):
+    """Score ordered wallet groups; callers may stream bounded histories from disk."""
     legacy = RankingConfig(
         lookback_days=config.lookback_days,
         min_active_days=config.min_active_days,
@@ -41,7 +48,7 @@ def rank_universe(fills, decision, config, scope, semantics, *, smoke=False):
         min_minutes=config.min_minutes,
     )
     rows = []
-    for user, activity in sorted(grouped.items()):
+    for user, activity in grouped:
         if activity:
             metrics, reasons = wallet_metrics(activity, legacy, semantics, smoke)
             if not sum(closing_size(f) * f.px for f in activity):

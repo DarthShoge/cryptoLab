@@ -15,6 +15,8 @@ MARKET_RANKINGS = pa.schema(
         "display_name": TEXT,
         "venue": TEXT,
         "asset_class": TEXT,
+        "availability_basis": TEXT,
+        "proxy_ticker": TEXT,
         "volume_usd": NUMBER,
         "rank": INTEGER,
         "eligible": pa.bool_(),

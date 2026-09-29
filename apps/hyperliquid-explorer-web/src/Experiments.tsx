@@ -17,6 +17,7 @@ import { Universe } from "./Universe";
 import { utc } from "./format";
 import { MarketUniverse } from "./MarketUniverse";
 import { editorConfig, type WireConfig } from "./marketConfig";
+import { Diagnostics } from "./Diagnostics";
 
 export function Experiments({
   onOpen,
@@ -143,8 +144,8 @@ export function Experiments({
   );
 }
 
-function ResultPanels({ experiment }: { experiment: Experiment }) {
-  const [tab, setTab] = useState("Performance");
+function ResultPanels({ experiment, initialTab }: { experiment: Experiment; initialTab: string }) {
+  const [tab, setTab] = useState(initialTab);
   const [drilldown, setDrilldown] = useState<{
     date: string;
     instrument: string;
@@ -168,6 +169,7 @@ function ResultPanels({ experiment }: { experiment: Experiment }) {
       <nav className="tabs" role="tablist" aria-label="Backtest research views">
         {[
           "Performance",
+          "Diagnostics",
           "Market universe",
           "Trader universe",
           "Execution",
@@ -184,6 +186,12 @@ function ResultPanels({ experiment }: { experiment: Experiment }) {
         ))}
       </nav>
       <Status {...report} />
+      {tab === "Diagnostics" && (
+        <Diagnostics id={experiment.id} onTraders={(date, instrument) => {
+          setDrilldown({ date, instrument });
+          setTab("Trader universe");
+        }} />
+      )}
       {tab === "Market universe" && (
         <MarketUniverse
           id={experiment.id}
@@ -247,10 +255,12 @@ export function ExperimentDetail({
   id,
   token,
   onClone,
+  initialTab = "Performance",
 }: {
   id: string;
   token: string;
   onClone: (s: Submission) => void;
+  initialTab?: string;
 }) {
   const state = useExperiment(id);
   const [error, setError] = useState(""),
@@ -363,7 +373,7 @@ export function ExperimentDetail({
                 : "Running a bounded local simulation. Your configuration is already saved."}
             </p>
           ) : (
-            e.status === "completed" && <ResultPanels experiment={e} />
+            e.status === "completed" && <ResultPanels experiment={e} initialTab={initialTab} />
           )}
         </>
       )}
