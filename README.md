@@ -1,13 +1,14 @@
 # CryptoLab
 
-CryptoLab is a polyglot workspace for DeFi lending-risk analysis and strategy research. It contains four independently runnable frontends:
+CryptoLab is a polyglot workspace for DeFi lending-risk analysis and strategy research. It contains five independently runnable frontends:
 
 - `kamino-simulator`: Streamlit liquidation-risk simulator and CLI
 - `strategy-backtester`: Streamlit historical strategy backtester
 - `report-explorer`: Streamlit explorer for generated research reports
 - `strategy-system-card`: React/Vite strategy system card
+- `hyperliquid-explorer-web` + `hyperliquid-explorer-api`: local copy-strategy lab with React/TypeScript and Python/FastAPI
 
-The three Python frontends share the `arblab` package. The JavaScript frontend is an independent pnpm workspace package.
+The Python apps share the `arblab` package. The JavaScript frontends are independent pnpm workspace packages.
 
 ## Prerequisites
 
@@ -115,6 +116,19 @@ just test-browser
 
 Tests marked `onchain` (Solana RPC) or `market_data` (remote market data) are opt-in when such tests exist, for example `uv run pytest -m onchain` or `uv run pytest -m market_data`.
 
+## Hyperliquid trader ensemble
+
+The [offline trader-ensemble prototype](docs/hyperliquid-trader-ensemble.md) reuses
+Hyperliquid data helpers and tests causal wallet ranking, ensemble signals and
+delayed perpetual execution. It cannot submit exchange orders. Paid archive
+downloads require explicit cost acceptance; research and live-paper qualification
+remain separate checkpoints.
+
+The [copy-strategy lab guide](docs/hyperliquid-copy-lab.md) covers universe
+configuration, saved backtests, comparisons, historical traders and the synthetic
+demo at `http://127.0.0.1:8010`. The [legacy report viewer](docs/hyperliquid-explorer.md)
+remains available at `/reports`.
+
 ## Checks and generated data
 
 ```bash
@@ -141,6 +155,8 @@ apps/
   strategy-backtester/    Python Streamlit UI and app tests
   report-explorer/        Python Streamlit report UI and app tests
   strategy-system-card/   React/Vite UI and frontend-owned source
+  hyperliquid-explorer-api/ Python/FastAPI local simulation and artifact API
+  hyperliquid-explorer-web/ React/TypeScript copy-strategy lab
 packages/
   arblab/                 Shared Python domain, backtest, and strategy library
 tests/integration/        Cross-workspace integration checks

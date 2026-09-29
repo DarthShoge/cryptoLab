@@ -1,0 +1,30 @@
+[
+  {
+    "instrument_id": "BTC", "provider": "binance", "ticker": "BTCUSDT",
+    "asset_class": "crypto", "quote_currency": "USD", "calendar": "24/7",
+    "unit": "BTC", "adjustment": "raw", "valid_from": "2026-08-01", "valid_to": "2026-09-01",
+    "description": "Binance USD-M BTC return proxy; USDT assumed at USD parity, venue basis ignored",
+    "provenance": "Research mapping; https://github.com/binance/binance-public-data"
+  },
+  {
+    "instrument_id": "xyz:TSLA", "provider": "yahoo", "ticker": "TSLA",
+    "asset_class": "equities", "quote_currency": "USD", "calendar": "XNYS",
+    "unit": "Tesla share", "adjustment": "raw", "valid_from": "2026-08-01", "valid_to": "2026-09-01",
+    "description": "Regular-session Tesla share-price return proxy, not a continuously traded perpetual",
+    "provenance": "Research mapping; https://finance.yahoo.com/quote/TSLA/"
+  },
+  {
+    "instrument_id": "xyz:GOLD", "provider": "yahoo", "ticker": "GLD",
+    "asset_class": "commodities", "quote_currency": "USD", "calendar": "XNYS",
+    "unit": "SPDR Gold Shares ETF share", "adjustment": "raw", "valid_from": "2026-08-01", "valid_to": "2026-09-01",
+    "description": "Gold-return ETF proxy; ETF expenses/tracking difference and regular-session restriction apply; do not copy native gold quantities",
+    "provenance": "Research mapping; https://www.spdrgoldshares.com/usa/"
+  },
+  {
+    "instrument_id": "xyz:SP500", "provider": "yahoo", "ticker": "^GSPC",
+    "asset_class": "indices", "quote_currency": "USD", "calendar": "XNYS",
+    "unit": "S&P 500 index point", "adjustment": "raw", "valid_from": "2026-08-01", "valid_to": "2026-09-01",
+    "description": "S&P 500 price-index return proxy; index is not directly executable; regular-session approximation",
+    "provenance": "Research mapping; https://finance.yahoo.com/quote/%5EGSPC/"
+  }
+]

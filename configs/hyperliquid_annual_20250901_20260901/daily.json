@@ -1,0 +1,77 @@
+{
+  "schema_version": "hyperliquid_copy_lab_proxy_v2",
+  "market_universe": {
+    "mode": "explicit",
+    "general": false,
+    "classes": [
+      "commodity",
+      "crypto",
+      "equity",
+      "index"
+    ],
+    "instrument_ids": [
+      "BTC",
+      "xyz:GOLD",
+      "xyz:SP500",
+      "xyz:TSLA"
+    ],
+    "allocation": "equal",
+    "weights": null,
+    "reselection": "daily"
+  },
+  "trader": {
+    "scope": "per_asset",
+    "lookback_days": 90,
+    "min_active_days": 30,
+    "min_episodes": 20,
+    "min_notional": 100000,
+    "min_volume": 0,
+    "min_minutes": 15,
+    "metric_weights": {
+      "copyability": 0.2,
+      "drawdown_efficiency": 0.2,
+      "pnl_efficiency": 0.2,
+      "positive_day_rate": 0.2,
+      "profit_factor": 0.2
+    },
+    "metric_directions": {
+      "copyability": "desc",
+      "drawdown_efficiency": "desc",
+      "pnl_efficiency": "desc",
+      "positive_day_rate": "desc",
+      "profit_factor": "desc"
+    },
+    "selection": "fraction",
+    "top_fraction": 0.05,
+    "top_n": null,
+    "min_cohort": 5,
+    "max_cohort": 25,
+    "reselection": "daily"
+  },
+  "follower": {
+    "aggregation": "direction_equal",
+    "initial_equity": 10000,
+    "gross_cap": 1,
+    "asset_cap": 0.5,
+    "update_minutes": 60,
+    "latency_seconds": 5,
+    "fee_bps": 4.5,
+    "deadband": 0.02,
+    "min_trade_usd": 10,
+    "min_known": 5,
+    "min_known_weight": 0.6,
+    "scale_lookback_days": 30,
+    "scale_quantile": 0.95,
+    "trim": 0.1
+  },
+  "proxy": {
+    "slippage_bps": 5,
+    "max_mark_age_seconds": 345600,
+    "max_wait_seconds": 345600
+  },
+  "start": "2025-09-01",
+  "end": "2026-09-01",
+  "benchmark": "btc_perp_buy_hold",
+  "split": "development",
+  "rebalance": "daily"
+}
