@@ -1,13 +1,14 @@
 # CryptoLab
 
-CryptoLab is a polyglot workspace for DeFi lending-risk analysis and strategy research. It contains four independently runnable frontends:
+CryptoLab is a polyglot workspace for DeFi lending-risk analysis and strategy research. It contains five independently runnable frontends:
 
 - `kamino-simulator`: Streamlit liquidation-risk simulator and CLI
 - `strategy-backtester`: Streamlit historical strategy backtester
 - `report-explorer`: Streamlit explorer for generated research reports
 - `strategy-system-card`: React/Vite strategy system card
+- `solana-portfolio`: React/Vite Solana portfolio, Kamino health and trading analytics ([setup and data coverage](apps/solana-portfolio/README.md)); run `npm run dev:portfolio`
 
-The three Python frontends share the `arblab` package. The JavaScript frontend is an independent pnpm workspace package.
+The three Python frontends share the `arblab` package. The JavaScript frontends are independent pnpm workspace packages; the portfolio app also uses a local read-only Python API backed by `arblab`.
 
 ## Prerequisites
 
@@ -141,6 +142,7 @@ apps/
   strategy-backtester/    Python Streamlit UI and app tests
   report-explorer/        Python Streamlit report UI and app tests
   strategy-system-card/   React/Vite UI and frontend-owned source
+  solana-portfolio/       React portfolio UI, local read-only API, and tests
 packages/
   arblab/                 Shared Python domain, backtest, and strategy library
 tests/integration/        Cross-workspace integration checks

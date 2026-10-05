@@ -3,6 +3,9 @@
   "private": true,
   "packageManager": "pnpm@10.30.3",
   "scripts": {
+    "dev:portfolio": "node apps/solana-portfolio/scripts/dev.mjs",
+    "build:portfolio": "npm --prefix apps/solana-portfolio run build",
+    "test:portfolio": ".venv/bin/python -m pytest apps/solana-portfolio/tests -q",
     "dev": "pnpm --filter @cryptolab/strategy-system-card dev",
     "build": "pnpm --filter @cryptolab/strategy-system-card build",
     "typecheck": "pnpm --filter @cryptolab/strategy-system-card typecheck",
